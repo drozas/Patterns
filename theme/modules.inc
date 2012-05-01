@@ -13,8 +13,8 @@ function patterns_modules_page($pid) {
   $pattern = patterns_utils_if_invalid_go_back($pid);
 
   drupal_set_title($pattern->title . ' ' . t('(Pattern Modules)'));
-
   $modules = isset($pattern->pattern['modules']) ? $pattern->pattern['modules'] : array();
+  $drupal_version = isset($pattern->pattern['info']['core']) ? $pattern->pattern['info']['core'] : 'core undefined';
   $modules = is_array($modules) ? $modules : array($modules);
   $modules_info = system_rebuild_module_data();
   $modules_list = module_list();
@@ -39,7 +39,7 @@ function patterns_modules_page($pid) {
     	
     }
     elseif (!$available) {
-    	$row[] = l(t('Download and Enable'), 'admin/patterns/drush/dlenable/' . $module);	
+    	$row[] = l(t('Download and Enable'), 'admin/patterns/drush/dlenable/' . $drupal_version . '/' . $module);	
     }
     else {
     	$row[] = '-';
