@@ -1,3 +1,8 @@
+7057:
+
+		Added checking in the export function if the component returns
+			an empty array.
+
 7056:
 
 		- PHP parser is working

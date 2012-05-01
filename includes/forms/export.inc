@@ -250,6 +250,12 @@ function patterns_export_page1($form, &$form_state) {
   return $form;
 }
 
+
+/**
+ * 
+ * TODO: add doc
+ * TODO: improve performance
+ */
 function patterns_export_submit($form, &$form_state) {
 
   $tm_index = patterns_tagmodules_get_index();
@@ -310,12 +316,22 @@ function patterns_export_submit($form, &$form_state) {
 //  }
 
   list($sections, $modules) = patterns_export_php($tm_index);
-
+  
+  // If some sections did not return any data
+  // we remove them. We don't remove the modules!
+	foreach ($sections as $s => $value) {
+  	if (empty($value)) {
+  		unset($sections[$s]);		
+  	}
+  }
+  
   if (empty($sections)) {
     drupal_set_message(t('Export did not return any data.'), 'error');
     return FALSE;
   }
 
+  
+  
   // Modules that needs to be enabled
   // to run the pattern
   patterns_api_add_modules_section($modules, $pattern);
@@ -339,6 +355,7 @@ function patterns_export_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/patterns/export';
 
 }
+
 function patterns_export_php($tagmodules) {
 
   $result = array();
