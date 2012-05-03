@@ -46,6 +46,10 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     }
   }
   
+  // needed for formatting
+  $form['available'] = array(
+      '#markup' => t(''),
+  );
   
   $pattern = patterns_utils_if_invalid_go_back($pid);
 
@@ -119,10 +123,16 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
   }
   
   if ($not_available) {
-    drupal_set_message(t('Some modules are not available, please download them before running this pattern.'), 'error');
+    //drupal_set_message(t('Some modules are not available, please download them before running this pattern.'), 'error');
+    $form['available'] = array(
+      '#markup' => t('Some modules are not available, please download them before running this pattern.<br>'),
+    );
   }
   else {
-    drupal_set_message(t('All modules required by this module are available. Click !here to run this pattern.', array('!here' => l(t('here'), 'admin/patterns/enable/' . $pid))));
+    //drupal_set_message(t('All modules required by this module are available. Click !here to run this pattern.', array('!here' => l(t('here'), 'admin/patterns/enable/' . $pid))));
+    $form['available'] = array(
+      '#markup' => t('All modules required by this module are available. Click !here to run this pattern.<br>', array('!here' => l(t('here'), 'admin/patterns/enable/' . $pid))),
+    );
     return $form;
   }
   
