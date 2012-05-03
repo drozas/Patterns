@@ -113,7 +113,9 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
       '#disabled' => $available,
     );
     
-    $not_available = !$available;
+    if(!$available) {
+      $not_available = TRUE;
+    }
   }
   
   if ($not_available) {
@@ -121,6 +123,7 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
   }
   else {
     drupal_set_message(t('All modules required by this module are available. Click !here to run this pattern.', array('!here' => l(t('here'), 'admin/patterns/enable/' . $pid))));
+    return $form;
   }
   
   // buttons
