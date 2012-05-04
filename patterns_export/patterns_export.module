@@ -15,7 +15,7 @@
 
 module_load_include('inc', 'patterns_export', 'export');
 
-function patterns_export_menu_alter($items) {
+function patterns_export_menu_alter(&$items) {
 
   $items['admin/patterns/export'] = array(
     'title' => 'Export',
