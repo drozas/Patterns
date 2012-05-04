@@ -1,6 +1,11 @@
+7058:
+
+		- Created Patterns_export submodule.
+		- Patterns_components depends on patterns_export
+
 7057:
 
-		Added checking in the export function if the component returns
+		- Added checking in the export function if the component returns
 			an empty array.
 
 7056:
