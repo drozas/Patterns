@@ -13,9 +13,9 @@
 
 /**
  * Use patterns_export_actions_from_form instead.
- * 
+ *
  * @deprecated
- * @see patterns_export_actions_from_form
+ * @see patterns_export_actions_from_form()
  */
 function patterns_api_extract_actions($form, $args = array(), $tag = NULL, $action = PATTERNS_MODIFY) {
   return patterns_export_actions_from_form($form, $args, $tag, $action);
@@ -23,7 +23,7 @@ function patterns_api_extract_actions($form, $args = array(), $tag = NULL, $acti
 
 /**
  * Extract the current state of a form.
- * Enter description here ...
+ * TODO: Enter description here ...
  * @param unknown_type $form
  * @param unknown_type $args
  * @param unknown_type $action
