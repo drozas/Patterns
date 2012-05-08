@@ -69,28 +69,27 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
 }
 
 function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
-  $info = user_patterns();
-  $form_id = current($info['permission'][PATTERNS_MODIFY]);
-  $form_data = patterns_api_extract_actions($form_id, array(), 'permission', PATTERNS_MODIFY);
-  $form_data = $form_data[0][PATTERNS_MODIFY];
-
-  $roles = $form_data['role_names'];
+  
+  $roles = user_roles();
+  $permissions = user_role_permissions($roles);
   $result = array();
-  foreach ($roles as $id => $role) {
-    $perms = $form_data[$id-1]; // TODO: this might not be right if the IDs are not contiguous.
-    $perms2 = array(); // Permissions that are set.
-    foreach ($perms as $perm) {
-      if ($perm !== 0) {
-        array_push($perms2, $perm);
-      }
-    }
-    $permissions = implode(', ', $perms2);
+
+  foreach ($permissions as $rid => $perms) {
+    $permissions = array_keys($perms);
+    
     $data = array('tag' => 'permission');
-    $data['rid'] = $id;
+    $data['rid'] = $rid;
     $data['value'] = $permissions;
-    $action = array(PATTERNS_CREATE => $data);
+    $action = array(
+      PATTERNS_MODIFY => array(
+        'tag' => 'permission',
+        'rid' => $rid,
+        'value' => $permissions
+      )
+    );
     array_push($result, $action);
   }
+
   return $result;
 }
 
@@ -402,6 +401,13 @@ function user_patterns_validate($action, $tag, &$data) {
         }
         // Checking if format is valid.
         if ($permissions !== FALSE) {
+          if (gettype($premissions) == 'string') {
+            $p = preg_split('/,/', $permissions, PREG_SPLIT_NO_EMPTY);
+            $permissions = array();
+            foreach ($p as $perm) {
+              $permissions[] = trim($perm);
+            }
+          }
           if (gettype($permissions) != 'array') {
             $valid_format = FALSE;
           }
@@ -593,14 +599,9 @@ function user_patterns_build($action, $form_id, &$data = NULL, &$a) {
     }
   }
   elseif ($form_id == 'user_admin_permissions') {
-    // TODO: use user_permission_get_modules() instead.
+
     // Get list of permissions to ensure only available permissions are saved.
-    $permissions = array();
-    foreach (module_list(FALSE, FALSE, TRUE) as $module) {
-      if ($p = module_invoke($module, 'permission')) {
-        $permissions = array_merge($permissions, array_keys($p));
-      }
-    }
+    $permissions = array_keys(user_permission_get_modules());
 
     if (is_string($data['value'])) {
       $p = explode(',', $data['value']);
