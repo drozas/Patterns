@@ -43,6 +43,27 @@ function pathauto_patterns_actions() {
   );
 }
 
+function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
+   //$info = pathauto_patterns();
+   //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
+  //$loop = TRUE;
+  $paths = db_query("SELECT * FROM {url_alias}", array(), array('fetch' => PDO::FETCH_ASSOC))->fetchAll();
+  $result = array();
+  foreach ($paths as $path) {
+    $path = (array) $path;
+    $data = array('tag' => 'path');
+    $data = array_merge($data, $path);
+    $action = array(PATTERNS_CREATE => $data);
+    array_push($result, $action);
+   //  $action = array(PATTERNS_PATTERNS_CREATE => $data);
+   // array_push($result, $action);
+
+    // It is important to user array merge. Pushing is not enough
+    //$result = array_merge($result, patterns_api_extract_actions($form_id, $path, 'url_alias', PATTERNS_MODIFY));
+  }
+  return $result;
+}
+
 
 // Prepare data for processing
 function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
@@ -140,26 +161,6 @@ function pathauto_patterns_build($action, $tag, &$data = NULL, $form_id) {
 }
 
 
-function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
-  //$info = pathauto_patterns();
-  //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
-  //$loop = TRUE;
-  $paths = db_query("SELECT * FROM {url_alias}", array(), array('fetch' => PDO::FETCH_ASSOC))->fetchAll();
-  $result = array();
-  foreach ($paths as $path) {
-    $path = (array) $path;
-    $data = array('tag' => 'path');
-    $data = array_merge($data, $path);
-    $action = array(PATTERNS_CREATE => $data);
-    array_push($result, $action);
-  //  $action = array(PATTERNS_PATTERNS_CREATE => $data);
-  //  array_push($result, $action);
-
-    // It is important to user array merge. Pushing is not enough
-    //$result = array_merge($result, patterns_api_extract_actions($form_id, $path, 'url_alias', PATTERNS_MODIFY));
-  }
-  return $result;
-}
 
 
 /*
