@@ -61,7 +61,7 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
   $result = array();
   foreach ($roles as $role) {
     $data = array('tag' => 'role');
-    $data['value'] = $role;
+    $data['name'] = $role;
     $action = array(PATTERNS_CREATE => $data);
     array_push($result, $action);
   }
@@ -69,14 +69,14 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
 }
 
 function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
-  
+
   $roles = user_roles();
   $permissions = user_role_permissions($roles);
   $result = array();
 
   foreach ($permissions as $rid => $perms) {
     $permissions = array_keys($perms);
-    
+
     $data = array('tag' => 'permission');
     $data['rid'] = $rid;
     $data['value'] = $permissions;
