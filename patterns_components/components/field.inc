@@ -163,9 +163,13 @@ function field_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE) {
 
 // Prepare data for processing
 function field_patterns_prepare($action, $tag, &$data = NULL) {
-  // @TODO: remove unnecessary stuff from $data array;
+  $prefix = '';
+  if ($action == PATTERNS_DELETE || $action == PATTERNS_MODIFY) {
+    $prefix = 'field_';
+  }
+// @TODO: remove unnecessary stuff from $data array;
   if (isset($data['name'])) {
-    $data['field_name'] = 'field_' . $data['name'];
+    $data['field_name'] = $prefix . $data['name'];
   }
   if (isset($data['entity'])) {
     $data['entity_type'] = $data['entity'];
@@ -188,7 +192,7 @@ function field_patterns_prepare($action, $tag, &$data = NULL) {
   }
   else {
     foreach ($data['weight'] as $key => $lev) {
-      $name = 'field_' . $key;
+      $name =  $prefix . $key;
       $data['fields'][$name]['weight'] = $lev;
     }
     unset($data['weight']);
@@ -302,14 +306,17 @@ function field_patterns_cleanup($action, $tag, &$data) {
 }
 
 function _field_patterns_prepare_instance($action, $data) {
-  $PREFIX      = 'field_';
-  $EXISTING_F  = '_add_existing_field';
-  $NEW_F       = '_add_new_field';
+  $prefix = '';
+  if ($action == PATTERNS_DELETE || $action == PATTERNS_MODIFY) {
+    $prefix = 'field_';
+  }
+  $existing_f  = '_add_existing_field';
+  $new_f       = '_add_new_field';
 
   $all_fields = field_info_fields();
-  $EXISTING = array_key_exists($PREFIX . $data['name'], $all_fields) ? $EXISTING_F : $NEW_F;
+  $existing = array_key_exists($prefix . $data['name'], $all_fields) ? $existing_f : $new_f;
   $data['fields'] = array();
-  $fname = $PREFIX . $data['name'];
+  $fname = $prefix . $data['name'];
 
   // Setting default values which can be overriden later
 
@@ -321,24 +328,24 @@ function _field_patterns_prepare_instance($action, $data) {
   $default_label = $fname;
   if ($action == PATTERNS_CREATE) {
     // NAME
-    $data['fields'][$EXISTING]['field_name'] = $fname;
+    $data['fields'][$existing]['field_name'] = $fname;
     unset($data['name']);
     // LABEL
     if (isset($data['label'])) {
-      $data['fields'][$EXISTING]['label'] = $data['label'];
+      $data['fields'][$existing]['label'] = $data['label'];
       unset($data['label']);
     }
     else {
-      $data['fields'][$EXISTING]['label'] = $default_label;
+      $data['fields'][$existing]['label'] = $default_label;
     }
 
     // WEIGHT
     if (isset($data['weight'])) {
-      $data['fields'][$EXISTING]['weight'] = $data['weight'];
+      $data['fields'][$existing]['weight'] = $data['weight'];
       unset($data['weight']);
     }
     else {
-      $data['fields'][$EXISTING]['weight'] = $default_weight;
+      $data['fields'][$existing]['weight'] = $default_weight;
     }
 
     // PARENT(unused parameter?)
@@ -353,11 +360,11 @@ function _field_patterns_prepare_instance($action, $data) {
 
     // TYPE
     if (isset($data['type'])) {
-      $data['fields'][$EXISTING]['type'] = $data['type'];
+      $data['fields'][$existing]['type'] = $data['type'];
       unset($data['type']);
     }
     else {
-      $data['fields'][$EXISTING]['type'] = $default_type;
+      $data['fields'][$existing]['type'] = $default_type;
     }
 
     // WIDGET
@@ -381,11 +388,11 @@ function _field_patterns_prepare_instance($action, $data) {
       default:
         $w = $data['widget'];
       }
-      $data['fields'][$EXISTING]['widget_type'] = $w;
+      $data['fields'][$existing]['widget_type'] = $w;
       unset($data['widget']);
     }
     else {
-      $data['fields'][$EXISTING]['widget_type'] =  $default_widget_type;
+      $data['fields'][$existing]['widget_type'] =  $default_widget_type;
     }
   }
   // INSTANCE
