@@ -357,7 +357,7 @@ function patterns_export_submit($form, &$form_state) {
   }
 
   // Display the exported pattern
-  //drupal_set_message(print_r($pattern, true));
+ // drupal_set_message(print_r($pattern, true));
 
   $result = patterns_io_save_pattern($pattern, $filename, $format);
 
