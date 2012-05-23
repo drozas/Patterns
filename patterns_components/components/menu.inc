@@ -53,7 +53,7 @@ function menu_patterns_export_all_menu($args = NULL, &$result = NULL) {
   foreach ($menus as $menu) {
     $menu = (array) $menu;
     
-    $data = array('tag' => 'menu_custom');
+    $data = array('tag' => 'menu');
     $data = array_merge($data, $menu);
     $action = array(PATTERNS_CREATE => $data);
     
