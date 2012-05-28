@@ -78,7 +78,7 @@ function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
     if ($menu_item['link_title'] == '') {
       $menu_item['link_title'] = 'null';
     }
-    $menu_item['options'] = unserialize($menu_item['options']);
+    //$menu_item['options'] = unserialize($menu_item['options']);
     $menu_item['href'] = "";
     $data = array('tag' => 'menu_item');
     //print $data;
