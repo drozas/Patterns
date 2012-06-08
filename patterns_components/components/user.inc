@@ -77,9 +77,6 @@ function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
   foreach ($permissions as $rid => $perms) {
     $permissions = array_keys($perms);
 
-    $data = array('tag' => 'permission');
-    $data['rid'] = $rid;
-    $data['value'] = $permissions;
     $action = array(
       PATTERNS_MODIFY => array(
         'tag' => 'permission',
@@ -401,7 +398,7 @@ function user_patterns_validate($action, $tag, &$data) {
         }
         // Checking if format is valid.
         if ($permissions !== FALSE) {
-          if (gettype($premissions) == 'string') {
+          if (gettype($permissions) == 'string') {
             $p = preg_split('/,/', $permissions, PREG_SPLIT_NO_EMPTY);
             $permissions = array();
             foreach ($p as $perm) {
