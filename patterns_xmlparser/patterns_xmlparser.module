@@ -279,6 +279,11 @@ function _patterns_xmlparser_parse_tag($data, &$index = 0) {
     if (isset($current['value']) && !trim($current['value']) && $current['value'] != "0") {
       unset($current['value']);
     }
+    if (isset($current['value'])) {
+      if (is_numeric($current['value'])) {
+        $current['value'] = (int)$current['value'];
+      }
+    }
 
     switch ($type) {
       case 'open':
