@@ -2,21 +2,22 @@
 
 module_load_include('inc', 'api');
 module_load_include('inc', 'update', 'update.manager');
-
+include drupal_get_path('module', 'update') . '/update.authorize.inc';
 
 /*
  * $modules is an array of tuples (module name, drupal version)
  */
- function patterns_drush_download_modules_form($form, &$form_state, $modules) {  
+ function patterns_drush_dlenable_modules_form($form, &$form_state, $modules, $modules_to_enable, $enable_dependencies) {  
   $form['#tree'] = TRUE;
   
   $form['all'] = array (
     '#type' => 'fieldset',
-    '#title' => 'Options',
+    '#title' => 'Download Options',
     '#collapsible' => FALSE,
     '#collapsed' => FALSE,
     '#tree' => TRUE, // enables tree datastrucutre
   );
+ 
   
   foreach($modules as $module) {
     // get release history
@@ -70,23 +71,51 @@ module_load_include('inc', 'update', 'update.manager');
         '#value' => $drupal_version,
       );
     }
-  } 
+  }
   
-  $form['all']['submit'] = array(
+    //die(var_dump($modules_to_enable));
+  if(!empty($modules_to_enable)) {
+      $form['modules_to_enable'] = array (
+        '#type' => 'fieldset',
+        '#title' => 'Following modules are going to be enabled',
+        '#collapsible' => FALSE,
+        '#collapsed' => FALSE,
+        '#tree' => TRUE, // enables tree datastrucutre
+      );
+    foreach($modules_to_enable as $module) {
+      $form['modules_to_enable'][$module] = array(
+        '#type' => 'value',
+        '#value' => $module,
+      );
+    }
+
+    $form['modules_to_enable']['list'] = array(
+      '#markup' => implode('<br>', $modules_to_enable)
+    );
+
+    $form['modules_to_enable']['enable_dependencies'] = array(
+      '#type' => 'value',
+      '#value' => $enable_dependencies,
+    );
+  }
+  
+  $form['submit'] = array(
       '#type' => 'submit',
-      '#value' => t('download'),
-      '#submit' => array('patterns_drush_download_modules_form_submit'),
+      '#value' => empty($modules_to_enable) ? t('Download') : t('Download & Enable'),
+      '#submit' => array('patterns_drush_dlenable_modules_form_submit'),
   );
 
   return $form;
 }
 
-function patterns_drush_download_modules_form_submit($form, &$form_state) {
+function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
   // array where all operations are saved for the batch
   $operations = array();
+  $authorize = FALSE;
   
   //$output = array();
-  
+  if(!isset($form_state['values']['all']))
+    $form_state['values']['all'] = array();
   foreach($form_state['values']['all'] as $module => $info) {
     echo $module;
     
@@ -156,43 +185,110 @@ function patterns_drush_download_modules_form_submit($form, &$form_state) {
       // trying to install the code, there's no need to prompt for FTP/SSH
       // credentials. Instead, we instantiate a FileTransferLocal and invoke
       // update_authorize_run_install() directly.
-      if (fileowner($project_real_location) == fileowner(conf_path())) {
-        module_load_include('inc', 'update', 'update.authorize');
-        $filetransfer = new FileTransferLocal(DRUPAL_ROOT);
+      $arguments = array(
+        'project' => $project_title,
+        'updater_name' => get_class($updater),
+        'local_url' => $project_real_location,
+      );
+      module_load_include('inc', 'update', 'update.authorize');
+      $filetransfer = new FileTransferLocal(DRUPAL_ROOT);
         // call_user_func_array('update_authorize_run_install_modified', array_merge(array($filetransfer), $arguments));
-        $operations[] = array(
-          'update_authorize_batch_copy_project',
-          array($project,
+      $operations[] = array(
+        'update_authorize_batch_copy_project',
+          array($project_title,
             get_class($updater),
             $project_real_location, // local url
             $filetransfer,
-          ),
-         );
+        ),
+      );
+      // check if we have enough rights - otherwise ask for authorization
+      if (fileowner($project_real_location) == fileowner(conf_path()) && false ) {
+
       }
       // Otherwise, go through the regular workflow to prompt for FTP/SSH
       // credentials and invoke update_authorize_run_install() indirectly with
       // whatever FileTransfer object authorize.php creates for us.
       else {
-        system_authorized_init('update_authorize_run_install', drupal_get_path('module', 'update') . '/update.authorize.inc', $arguments, t('Update manager'));
+        $authorize = TRUE;
+        /*system_authorized_init('update_authorize_run_install', drupal_get_path('module', 'update') . '/update.authorize.inc', $arguments, t('Update manager'));
         $form_state['redirect'] = system_authorized_get_url();
+        return;
+        */
       }
     }
+  }  
+  
+  // add operations to enable modules
+  $modules_to_enable = array();
+  $enable_dependencies = FALSE;
+  if(isset($form_state['values']['modules_to_enable'])) {
+    foreach($form_state['values']['modules_to_enable'] as $key => $value) {
+      if($key != 'enable_dependencies')
+        $modules_to_enable[] = $form_state['values']['modules_to_enable'][$key];
+    }
+    $enable_dependencies = $form_state['values']['modules_to_enable']['enable_dependencies'];
   }
-
+  $operations[] = array(
+    'patterns_drush_batch_module_enable',
+    array($modules_to_enable, $enable_dependencies)
+  );
+    
+  // die(var_dump($operations));
   // create batch with gathered operations and start it
   $batch = array(
-    'title' => t('Installing %project', array('%project' => $project)),
+    'title' => t('Installing modules'),
     'init_message' => t('Preparing to install'),
     'operations' => $operations,
     'finished' => 'update_authorize_install_batch_finished',
-    'file' => drupal_get_path('module', 'update') . '/update.authorize.inc',
+    'file' =>  drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc',
+    //'file' => drupal_get_path('module', 'update') . '/update.authorize.inc',
   );
-  batch_set($batch);
+  var_dump($batch);
+ // die();
 
-  // Invoke the batch via authorize.php.
+
+  if ($authorize) {
+    system_authorized_init('patterns_drush_batch', drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc', array($batch), t('Installing modules'));
+    $form_state['redirect'] = system_authorized_get_url();
+    return;
+  }
+  else {
+   die('nay');
+     batch_set($batch);
+    // Invoke the batch via authorize.php.
+    system_authorized_batch_process();
+  }
+}
+
+function patterns_drush_batch($filetransfer, $batch) {
+  var_dump($batch);
+  foreach($batch['operations'] as &$op) {
+    if($op[0] != 'patterns_drush_batch_module_enable')
+      $op[1][3] = $filetransfer;
+  }
+  batch_set($batch);
   system_authorized_batch_process();
 }
 
+function patterns_drush_callback($filetransfer, $arguments_array) {
+  foreach($arguments_array as $arguments) {
+    update_authorize_run_install($filetransfer, $arguments);
+  }
+}
+/**
+ * module_enable wrapper for batch
+ */
+function patterns_drush_batch_module_enable($module_list, $enable_dependencies, &$context) {
+  //echo 'module list <br>';
+ // echo var_dump($module_list);
+// die();
+$context['finished'] = 1.0;
+  //include('')
+ // @module_enable($module_list);//, $enable_dependencies);
+ // echo 'reaching';
+ _update_batch_create_message($context['results']['log']['Return'], l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
+  return;
+}
  /**
  * Download the release history xml for the specified request.
  * based on drush's "_drush_pm_get_release_history_xml($request)" function
