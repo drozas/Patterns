@@ -121,8 +121,7 @@ function patterns_xmlparser_rearrange_data($pattern) {
       unset($pattern[$key]);
     }
     else {
-
-    	if ($value['xml_tag'] == PATTERNS_SECTION_INFO) {
+      if ($value['xml_tag'] == PATTERNS_SECTION_INFO) {
         $pattern[PATTERNS_SECTION_INFO] = _patterns_xmlparser_rearrange_data($value);
         unset($pattern[PATTERNS_SECTION_INFO]['xml_tag']);
         unset($pattern[$key]); // TODO: unset in _patterns_xmlparser_rearrange_data
@@ -190,8 +189,6 @@ function _patterns_xmlparser_process_action($action = NULL) {
 }
 
 function _patterns_xmlparser_rearrange_data($data, $parent = '') {
-  $numeric = array();
-  $count = 0;
 
   foreach ($data as $key => $value) {
     if (isset($value['value'])) {
@@ -203,16 +200,15 @@ function _patterns_xmlparser_rearrange_data($data, $parent = '') {
       }
     }
 
-    if (is_numeric($key) && is_array($value) && count($value) == 2 && isset($value['tag']) && isset($value['value'])) {
+    if (is_numeric($key) && is_array($value) && count($value) == 2 && isset($value['xml_tag']) && isset($value['value'])) {
       unset($data[$key]);
       if (isset($data[$value['xml_tag']])) {
-        $numeric[] = $value['xml_tag'];
-        $data[$count++] = $data[$value['xml_tag']];
-        $data[$count++] = $value['value'];
-        unset($data[$value['xml_tag']]);
-      }
-      elseif (in_array($value['tag'], $numeric)) {
-        $data[$count++] = $value['value'];
+        if (!is_array($data[$value['xml_tag']])) {
+          $val = $data[$value['xml_tag']];
+          $data[$value['xml_tag']] = array();
+          $data[$value['xml_tag']][] = $val;
+        }
+        $data[$value['xml_tag']][] = $value['value'];
       }
       else {
         $data[$value['xml_tag']] = $value['value'];
@@ -278,6 +274,11 @@ function _patterns_xmlparser_parse_tag($data, &$index = 0) {
 
     if (isset($current['value']) && !trim($current['value']) && $current['value'] != "0") {
       unset($current['value']);
+    }
+    if (isset($current['value'])) {
+      if (is_numeric($current['value'])) {
+        $current['value'] = (int)$current['value'];
+      }
     }
 
     switch ($type) {

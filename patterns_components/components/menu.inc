@@ -46,16 +46,16 @@ function menu_patterns_actions($data) {
 function menu_patterns_export_all_menu($args = NULL, &$result = NULL) {
  // $info = menu_patterns($data=NULL);
  // $form_id = current($info['menu'][PATTERNS_MODIFY]);
-  $menus = db_query("SELECT * FROM {menu_custom} ORDER BY title", array(), array('fetch' => PDO::FETCH_ASSOC));
+  //$menus = db_query("SELECT * FROM {menu_custom} ORDER BY title", array(), array('fetch' => PDO::FETCH_ASSOC));
   
+  $menus = menu_load_all();
   $result = array();
   foreach ($menus as $menu) {
     $menu = (array) $menu;
     
     $data = array('tag' => 'menu');
     $data = array_merge($data, $menu);
-print_r($data);
-    $action = array(PATTERNS_CREATE => $menu);
+    $action = array(PATTERNS_CREATE => $data);
     
     array_push($result, $action);
     // It is important to user array merge. Pushing is not enough
@@ -67,7 +67,9 @@ print_r($data);
 function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
   //$info = menu_patterns($data=NULL);
   //$form_id = current($info['menu_item'][PATTERNS_MODIFY]);
-  $menu_items = db_query("SELECT * FROM {menu_links} ORDER BY link_title", array(), array('fetch' => PDO::FETCH_ASSOC));
+  //$menu_items = db_query("SELECT * FROM {menu_links} ORDER BY link_title", array(), array('fetch' => PDO::FETCH_ASSOC));
+  $menus = menu_get_active_menu_names();
+  $menu_items = menu_load_links($menus);
   $result = array();
   $i = 0;
   foreach ($menu_items as $menu_item) {
@@ -76,12 +78,12 @@ function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
     if ($menu_item['link_title'] == '') {
       $menu_item['link_title'] = 'null';
     }
-    $menu_item['options'] = unserialize($menu_item['options']);
+    //$menu_item['options'] = unserialize($menu_item['options']);
     $menu_item['href'] = "";
     $data = array('tag' => 'menu_item');
-    print $data;
+    //print $data;
     $data = array_merge($data, $menu_item);
-    $action = array(PATTERNS_CREATE => $menu_item);
+    $action = array(PATTERNS_CREATE => $data);
     array_push($result, $action);
     // It is important to user array merge. Pushing is not enough
     //$result = array_merge($result, patterns_api_extract_actions($form_id, $menu_item, 'menu_item', PATTERNS_MODIFY));
