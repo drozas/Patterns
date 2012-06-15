@@ -23,7 +23,16 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
   else {
     // check what button was clicked and which operation to execute
     // download button?
-    if($form_state['values']['submit_dl'] == $form_state['triggering_element']['#value']) {
+    
+    $modules_to_enable = array();
+    foreach($form_state['values']['modules'] as $module => $info) {
+      if($info['enable'] == 1) {
+        $modules_to_enable[] = $module;
+      }
+    }
+
+    if($form_state['values']['submit_dl'] == $form_state['triggering_element']['#value'] ||
+       $form_state['values']['submit_dlen'] == $form_state['triggering_element']['#value']) {
       // create array of tuples: (module, drupal_version)
       $modules = array();
       foreach($form_state['values']['modules'] as $module => $info) {
@@ -32,13 +41,20 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
         }
       }
       $form_state2;
-      $form = patterns_drush_download_modules_form(NULL, $form_state2, $modules);
+      if($form_state['values']['submit_dlen'] != $form_state['triggering_element']['#value']) {
+        $modules_to_enable = array(); // erase array if not needed
+      }
+      
+      $form = patterns_drush_dlenable_modules_form(NULL, $form_state2, $modules, $modules_to_enable, $form_state['values']['enable_dependencies']);
           
       return $form;
     }
     // enable button?
     else if($form_state['values']['submit_en'] == $form_state['triggering_element']['#value']) {
-      drupal_set_message('Not yet implemented', 'error');
+      if(module_enable($modules_to_enable, $form_state['values']['enable_dependencies']))
+        drupal_set_message('Modules have been enabled.');
+      else
+        drupal_set_message('An error occured. Please check the dependencies and if everything has been downloaded.');
     }
     // download and enable button?
     else if($form_state['values']['submit_dlen'] == $form_state['triggering_element']['#value']) {
@@ -46,6 +62,8 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     }
   }
   
+  $form['information'] = array(
+    '#markup' => t('Without rights an authorization will be needed.'));
   // needed for formatting
   $form['available'] = array(
       '#markup' => t(''),
@@ -62,12 +80,22 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
 
   $not_available = FALSE;
   
-  $form['modules'] = array();
+  $form['modules'] = array(
+    '#prefix' => '<table border=1>
+                    <tr>
+                      <td><h1>Module</h1></td>
+                      <td><h1>Enable</h1></td>
+                      <td><h1>Download</h1></td>
+                    </tr>',
+    '#suffix' => '</table>',
+  );
   $form['#tree'] = TRUE;
   $form['step'] = array(
     '#type' => 'value',
     '#value' => $form_state['values']['step'],
   );
+  
+  variable_set('patterns_pid', $pid);
   
   // Get module name, whether its to be disabled or enabled,
   // whether the module is available or not, and whether it is
@@ -77,9 +105,16 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     $available = array_key_exists($module, $modules_info);
     $enabled = array_key_exists($module, $modules_list);
     $drupal_version = isset($pattern->pattern['info']['core']) ? $pattern->pattern['info']['core'] : 'core undefined';
-
+    
+    $form['modules'][$module] = array(
+      '#prefix' => '<tr>',
+      '#suffix' => '</tr>',
+    );
+    
     $form['modules'][$module]['m'] = array(
       '#markup' => t($module),
+      '#prefix' => '<td>',
+      '#suffix' => '</td>',
     );
       
     $form['modules'][$module]['module'] = array(
@@ -92,6 +127,7 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
       '#value' => $drupal_version,
     );
     
+    /*
     if($available) {
       $form['modules'][$module]['available'] = array(
         '#markup' => t(' available'),
@@ -102,19 +138,24 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
         '#markup' => t(' not available'),
       );
     }
+    */
     
     // enable checkbox
     $form['modules'][$module]['enable'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Enable?'),
-      '#disabled' => !$available || $enabled,
+      '#title' => $enabled ? t('Already enabled') :  t('Enable'),
+      '#disabled' => $enabled,
+      '#prefix' => '<td>',
+      '#suffix' => '</td>',
     );
     
     // download checkbox
     $form['modules'][$module]['download'] = array(
       '#type' => 'checkbox',
-      '#title' => t('Download?'),
+      '#title' => $available ? t('Already downloaded') : t('Download'),
       '#disabled' => $available,
+      '#prefix' => '<td>',
+      '#suffix' => '</td>',
     );
     
     if(!$available) {
@@ -136,6 +177,11 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     return $form;
   }
   
+  $form['enable_dependencies'] = array(
+    '#type' => 'checkbox',
+    '#title' => 'Enable dependencies?',
+  );
+  
   // buttons
   $form['submit_dl'] = array(
     '#type' => 'submit',
@@ -154,7 +200,7 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     '#value' => t('Download & Enable'),
     '#submit' => array('patterns_modules_page_submit'),
   );
-  
+  $form['#redirect'] = 'patterns_modules_page_submit';
   return $form;
 }
 
