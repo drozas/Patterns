@@ -245,7 +245,7 @@ function patterns_menu() {
     'access arguments' => array('get patterns'),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-  );
+  );	 
 
   // IMPORT
 
