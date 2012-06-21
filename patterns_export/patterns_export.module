@@ -142,6 +142,22 @@ function _patterns_export_if_invalid_step_goback($step = 0,
 
 function patterns_export($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $form['noparser'] = array(
+      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+      '#prefix' => '<strong>',
+      '#suffix' => '</strong></br>',
+    );  
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+
+    return $form;
+  }
+
+
   //$step = _patterns_export_check_step($form_state);
   //_patterns_export_if_invalid_step_goback($step);
 //  $form['step'] = array(

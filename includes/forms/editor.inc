@@ -42,9 +42,18 @@ function patterns_editor_create_page($pid = NULL) {
   */
 function patterns_editor($form_id, $pattern = array()) {
 
+
   $pattern = patterns_get_pattern_obj($pattern);
 
   $form = drupal_get_form($form_id, $pattern);
+  
+  if($form_id == "patterns_import_source" && isset($form['noparser'])) 
+    return $form;
+
+  if($form_id == "patterns_quickrun" && isset($form['noparser']))
+    return $form;
+
+
   $editor  = drupal_render($form);
   if (!patterns_load_co2($form['format']['#default_value'])) {
     $co2 = l(t('Codemirror'), 'http://codemirror.net/');
