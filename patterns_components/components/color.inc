@@ -40,6 +40,13 @@ function color_patterns_export_all_color($args = NULL, &$result = NULL) {
 
       $data = array('tag' => 'color', 'theme' => $voc->name);
       $data = array_merge($data, $vocp);
+      
+      $current_scheme = variable_get('color_' . $voc->name . '_palette', array());
+      if (empty($current_scheme)) {
+      	$scheme_name = array('scheme'=>'default');
+      	$data = array_merge($data, $scheme_name);
+      }
+      
       $action = array(PATTERNS_MODIFY => $data);
       array_push($result, $action);
 

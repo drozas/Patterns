@@ -245,7 +245,7 @@ function patterns_menu() {
     'access arguments' => array('get patterns'),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-  );
+  );	 
 
   // IMPORT
 
@@ -351,6 +351,13 @@ function patterns_menu() {
  * First function to be called for displaying the pattern list page.
  */
 function patterns_list() {
+  $form = array();
+  
+  if (!patterns_parser_ready()) {
+    $messages = t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+  }
 
   drupal_add_js('misc/ajax.js');
 
@@ -424,6 +431,22 @@ function patterns_list_public() {
  * @ingroup forms
  */
 function patterns_enable_pattern($form, &$form_state, $pid) {
+
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $form['noparser'] = array(
+      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+      '#prefix' => '<strong>',
+      '#suffix' => '</strong></br>',
+    );  
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+
+    return $form;
+  }
+
 
   $pattern = patterns_utils_if_invalid_go_back($pid);
 

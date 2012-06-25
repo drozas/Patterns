@@ -31,6 +31,12 @@ function patterns_permission() {
  */
 function patterns_config_settings($form, &$form_state) {
 
+  if (!patterns_parser_ready()) {
+    $messages = t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+  }
+
   $text = 'Configure the behavior of Patterns.';
   $title = 'Patterns settings';
   patterns_forms_add_page_header($form, $title, $text);

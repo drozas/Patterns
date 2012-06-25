@@ -12,7 +12,10 @@ function patterns_lab($form, &$form_state) {
     $form['noparser'] = array(
       '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
       '#prefix' => '<strong>',
-      '#suffix' => '</strong',
+      '#suffix' => '</strong></br>',
+    );
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
     );
 
     return $form;

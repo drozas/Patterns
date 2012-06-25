@@ -1,3 +1,7 @@
+7059:
+
+		- Fixed published patterns bug http://drupal.org/node/1619162
+
 7058:
 
 		- Created Patterns_export submodule.

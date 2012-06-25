@@ -13,6 +13,21 @@
  */
 function patterns_import_source($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $form['noparser'] = array(
+      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+      '#prefix' => '<strong>',
+      '#suffix' => '</strong></br>',
+    );  
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+
+    return $form;
+  }
+
   $def_dir = patterns_path_get_files_dir();
 
   $text = t('Cut and paste the content of a pattern file in the text area below to import it in the database.');
@@ -73,6 +88,22 @@ function patterns_import_source($form, &$form_state) {
  */
 function patterns_import_file($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $form['noparser'] = array(
+      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+      '#prefix' => '<strong>',
+      '#suffix' => '</strong></br>',
+    );  
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+
+    return $form;
+  }
+
+
   $def_dir = patterns_path_get_files_dir();
 
   $text = 'Choose a local file to import in the database.';
@@ -129,6 +160,21 @@ function patterns_import_file($form, &$form_state) {
  * Display the import pattern url form
  */
 function patterns_import_url($form, &$form_state) {
+
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $form['noparser'] = array(
+      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+      '#prefix' => '<strong>',
+      '#suffix' => '</strong></br>',
+    );  
+    $form['parsers'] = array(
+      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+
+    return $form;
+  }
 
   $text = 'Insert the uri of a remote file to be downloaded and imported in the database.';
   $title = 'Import from URL';

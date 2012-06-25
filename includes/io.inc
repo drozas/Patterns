@@ -13,20 +13,30 @@
  *   The ID of the Pattern to be displayed.
  */
 function patterns_io_get_pattern_service($pattern) {
+	// TODO: handling correctly different formats
+  $content_type = 'text/plain';
+  drupal_add_http_header('Content-Type', $content_type . '; charset=utf-8');
+  
+ 	// GET service is available only if settings allows it
+  if (!variable_get('patterns_allow_publish', PATTERNS_ALLOW_PUBLISH_DEFAULT)) {	
+  	print 'Patterns GET service not available. Please try later.';
+  	exit;  
+  }
 
+  $pattern = patterns_get_pattern($pattern);
 
-  $pattern = patterns_utils_if_invalid_go_back($pattern);
+  if (!$pattern) {
+  	print 'Invalid pattern identifier.';
+  	exit;
+  }
 
   // Make sure pattern is public (published).
   if (!$pattern->public) {
-    drupal_set_message(t('Pattern %name is not public.', array('%name' => $pattern->name)), 'error');
-    drupal_goto('admin/patterns');
+  	print 'Requested pattern is not available through GET service';
+  	exit;
   }
-
-  // TODO: handling correctly different formats
-  $content_type = 'text/plain';
-
-  drupal_add_http_header('Content-Type', $content_type . '; charset=utf-8');
+	
+  // Finally
   print file_get_contents($pattern->file);
   exit;
 }
