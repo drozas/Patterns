@@ -1,6 +1,7 @@
 <?php
 
 module_load_include('inc', 'api');
+module_load_include('module', 'update');
 module_load_include('inc', 'update', 'update.manager');
 include drupal_get_path('module', 'update') . '/update.authorize.inc';
 
