@@ -47,12 +47,12 @@ function patterns_editor($form_id, $pattern = array()) {
 
   $form = drupal_get_form($form_id, $pattern);
   
-  if($form_id == "patterns_import_source" && isset($form['noparser'])) 
+  if(($form_id == "patterns_quickrun" || $form_id == "patterns_import_source") && !patterns_parser_ready()){ 
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
     return $form;
-
-  if($form_id == "patterns_quickrun" && isset($form['noparser']))
-    return $form;
-
+  }
 
   $editor  = drupal_render($form);
   if (!patterns_load_co2($form['format']['#default_value'])) {
@@ -74,15 +74,9 @@ function patterns_edit_page($pid = NULL) {
   $form = array();
 
   if (!patterns_parser_ready()) {
-    $form['noparser'] = array(
-      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
-      '#prefix' => '<strong>',
-      '#suffix' => '</strong></br>',
-    );  
-    $form['parsers'] = array(
-      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
-    );
-
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
     return $form;
   }
 

@@ -16,15 +16,6 @@ function patterns_import_source($form, &$form_state) {
   $form = array();
 
   if (!patterns_parser_ready()) {
-    $form['noparser'] = array(
-      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
-      '#prefix' => '<strong>',
-      '#suffix' => '</strong></br>',
-    );  
-    $form['parsers'] = array(
-      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
-    );
-
     return $form;
   }
 
@@ -91,15 +82,9 @@ function patterns_import_file($form, &$form_state) {
   $form = array();
 
   if (!patterns_parser_ready()) {
-    $form['noparser'] = array(
-      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
-      '#prefix' => '<strong>',
-      '#suffix' => '</strong></br>',
-    );  
-    $form['parsers'] = array(
-      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
-    );
-
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
     return $form;
   }
 
@@ -161,18 +146,27 @@ function patterns_import_file($form, &$form_state) {
  */
 function patterns_import_url($form, &$form_state) {
 
+  //$form = array();
+
+  //if (!patterns_parser_ready()) {
+  //  $form['noparser'] = array(
+  //    '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+  //    '#prefix' => '<strong>',
+  //    '#suffix' => '</strong></br>',
+  //  );  
+  //  $form['parsers'] = array(
+  //    '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+  //  );
+
+  //  return $form;
+  //}
+
   $form = array();
 
   if (!patterns_parser_ready()) {
-    $form['noparser'] = array(
-      '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
-      '#prefix' => '<strong>',
-      '#suffix' => '</strong></br>',
-    );  
-    $form['parsers'] = array(
-      '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
-    );
-
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
     return $form;
   }
 

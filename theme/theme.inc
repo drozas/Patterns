@@ -91,11 +91,11 @@ function theme_patterns_list($args) {
 
   $patterns_title = '<div id="all_patterns_div">';
 
-  if (!patterns_utils_is_public_page_enabled()) {
-    if (!patterns_parser_ready()) {
-      $patterns_title .= t('No available patterns parser was found. Please enable one from the Modules page.');
-    }
-  }
+  //if (!patterns_utils_is_public_page_enabled()) {
+  //  if (!patterns_parser_ready()) {
+  //    $patterns_title .= t('No available patterns parser was found. Please enable one from the Modules page.');
+  //  }
+  //}
 
   $form['patterns'] = array(
     '#prefix' => $patterns_title,
