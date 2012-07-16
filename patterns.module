@@ -718,15 +718,15 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
  * @param string $action
  *   The action to be executed. One of {'create', 'modify', 'delete'}.
  * @param array $data
- *   (optional) The data supplied as an associative array. Defaults to NULL.
+ *   (optional) The data supplied as an associative array. Defaults NULL.
  * @param mixed $form_id
- *   (optional) The name of the form to be used. Defaults to NULL.
- * @param array $a
- *   (optional) Extra parameters to pass. Defaults to NULL.
+ *   (optional) The name of the form to be used. Defaults NULL.
+ * @param array $extra
+ *   (optional) Extra parameters to pass to the function. Defaults NULL.
  *
  * @return array $return An array packed by patterns_results().
  */
-function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$a = NULL) {
+function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$extra = NULL) {
 
   $tag_modules = patterns_tagmodules_get_index($data); // TODO: check the parameters
 
@@ -739,15 +739,15 @@ function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$a = N
     $func = $module . '_patterns_' . $hook;
     if (function_exists($func)) {
       if ($form_id) { // We are past hook_patterns_build().
-        $return = $func($action, $form_id, $data, $a);
+        $return = $func($action, $form_id, $data, $extra);
       }
       else {
-        $return = $func($action, $tag, $data, $a);
+        $return = $func($action, $tag, $data, $extra);
       }
     }
     else {
-      $msg = t('Required patterns callback function %func does not exist.', array('%func' => $func));
-      $return = patterns_results(PATTERNS_ERR, $msg);
+      $msg = t('Function %func not found. Hook %hook skipped', array('%func' => $func, '%hook' => $hook));
+      $return = patterns_results(PATTERNS_SUCCESS, $msg);
     }
   }
   else {
