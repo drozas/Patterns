@@ -156,8 +156,8 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
   }
 
   if (count($patternscan['generic_errors']) != 0) {
-    $msgs[] = t('Generic errors in the patterns were found. Probably a tag was misplaced. Please verify: %found',
-            array('%found' => implode(', ', $patternscan['generic_errors'])));
+    $msgs[] = t('Generic errors in the patterns were found. Probably a tag was misplaced. Please verify: !found',
+            array('!found' => implode(', ', $patternscan['generic_errors'])));
   }
 
   if (count($patternscan['invalid_actions']) != 0) {
@@ -326,7 +326,32 @@ function _patterns_scan_action($action, $result = array()) {
   if (!isset($action['tag']) || !is_string($action['tag'])) {
     $result['missing_tag'][] = array('actionid' => $action, 'key' => $key, 'value' => $action);
   }
+  
+  // Try to validate the tag with the component
+  else {
+  	$tag = $action['tag'];
+  	unset($action['tag']);
+  	 $tag_modules = patterns_tagmodules_get_index($action, true); // TODO: check the parameters
 
+	  // Unsetting it while the module performs operations.
+	  // $tag = $data['tag'];
+	  // unset($data['tag']);
+	
+	  if (!isset($tag_modules[$tag])) {
+	  	$result['generic_errors'][] = t('Unknown tag found: %tag', array('%tag' => $tag));
+	  }
+	  else {
+	  	$module = $tag_modules[$tag]['module'];
+	  	$result = module_invoke($module, 'patterns_validate');
+	  	
+    	
+  		//if (!patterns_error_check_results($validation)) {
+    	//	$result['generic_errors'][] = $results['msg'];
+  		//	debug($results);	
+  		//}
+	  }
+  	
+  }
   //else {
   //  $newactions[] = array('action' => $key, 'data' => $action);
   //}
