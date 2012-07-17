@@ -133,6 +133,7 @@ function taxonomy_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE
 
 }
 
+
 // Prepare data for processing
 function taxonomy_patterns_prepare($action, $tag, &$data) {
   // dirty fix for the int <-> string problem
@@ -208,6 +209,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   return patterns_results($status, $msg);
 }
 
+
 // Return which callback functions to actually use.
 function taxonomy_patterns_callbacks($action, $tag, &$data) {
   // Just return the form ids specified above. No custom functions used here.
@@ -215,6 +217,7 @@ function taxonomy_patterns_callbacks($action, $tag, &$data) {
   $result = $desc[$tag][$action];
   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
 }
+
 
 // Prepare for valid processing of this type of component
 function taxonomy_patterns_build($action, $form_id, &$data = NULL, &$a) {
