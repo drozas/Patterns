@@ -60,20 +60,7 @@ function system_patterns($data) {
 
 }
 
-function system_patterns_actions($data) {
-  return array(
-        'system_modules' => t('System: Enable or disable module'),
-        'set_active_theme' => t('System: Set active theme'),
-        'form' => t('System: Execute form'),
-        'call_php_func_form' => t('Call PHP function: Call function'),
-        'variables' => t('System: Set or delete variables'),
-        'variable' => t('System: Set or delete variable'),
-/*        'system_add_date_format_type_form' => t('Create a type of date and time'),
-        'system_date_time_settings' => t('Edit the types of date and time'),
-        'system_delete_date_format_type_form' => t('Delete a type of date and time'),
-        'system_configure_date_formats_form' => t('Create/edit formats of date and time'),*/
-  );
-}
+
 
 function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   // Taken from the Devel module.

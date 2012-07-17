@@ -33,15 +33,6 @@ function pathauto_patterns() {
 }
 
 
-function pathauto_patterns_actions() {
-  return array(
-    'pathauto_admin_form' => t('Pathauto: Create/Edit URL aliases'),
-    'path_admin_delete_confirm' => t('Pathauto: Delete URL aliases'),
-    'pathauto_settings_form' => t('Pathauto: Configure pathauto settings'),
-    'pathauto_patterns_form' => t('Pathauto: Configure patterns settings for auto URLs aliases'),
-    'pathauto_bulk_update_form' => t('Pathauto: Generate URL aliases according to patterns settings'),
-  );
-}
 
 function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
    //$info = pathauto_patterns();

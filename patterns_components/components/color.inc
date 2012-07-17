@@ -18,11 +18,6 @@ function color_patterns($data= NULL) {
 
 }
 
-function color_patterns_actions($data) {
-  return array(
-    'system_theme_settings' => t('color: Edit scheme color settings'),
-  );
-}
 
 function color_patterns_export_all_color($args = NULL, &$result = NULL) {
 //  $info = color_patterns(NULL);

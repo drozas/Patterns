@@ -31,14 +31,6 @@ function menu_patterns($data) {
 
 }
 
-function menu_patterns_actions($data) {
-  return array(
-    'menu_edit_menu' => t('Menu: Add or edit menu'),
-    'menu_delete_menu_confirm' => t('Menu: Delete menu'),
-    'menu_edit_item' => t('Menu: Add or edit menu item'),
-    'menu_item_delete_form' => t('Menu: Delete menu item'),
-  );
-}
 
 /*
  * Menu export from API extract function.
