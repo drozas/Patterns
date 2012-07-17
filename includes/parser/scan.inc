@@ -185,6 +185,12 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
       $msgs[] = t('A mandatory \'tag\' was missing for action %action.', array('%action' => $value['key']));
     }
   }
+  
+  if (count($patternscan['unknown_tag']) != 0) {
+  	$utags = implode(', ', $patternscan['unknown_tag']);
+  	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
+   
+  }
 
   if (count($patternscan['empties']) > 0) {
     $msgs[] = t('Pattern contains empty sections or actions:') . ' ' . implode(', ', $patternscan['empties']);
@@ -337,8 +343,11 @@ function _patterns_scan_action($action, $result = array()) {
 	  // $tag = $data['tag'];
 	  // unset($data['tag']);
 	
+  	 $result = module_invoke_all('patterns_validate');
+	  	
+  	 
 	  if (!isset($tag_modules[$tag])) {
-	  	$result['generic_errors'][] = t('Unknown tag found: %tag', array('%tag' => $tag));
+	  	$result['unknown_tag'][] = $tag;
 	  }
 	  else {
 	  	$module = $tag_modules[$tag]['module'];
