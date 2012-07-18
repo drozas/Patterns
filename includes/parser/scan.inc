@@ -39,6 +39,8 @@ function patterns_scan_pattern($pattern, $include = FALSE) {
                   'contain_includes' => FALSE,
                   'include_scans' => array(),
                   'generic_errors' => array(),
+  								'unknown_tag' => array(),
+  								'tag_errors' => array(),
   );
 
   if (empty($pattern)) {
