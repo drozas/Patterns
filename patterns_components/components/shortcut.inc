@@ -60,17 +60,6 @@ function shortcut_patterns($data = NULL) {
   return $actions;
 }
 
-function shortcut_patterns_actions($data) {
-  return array(
-    'shortcut_set_add_form' => t('Shortcut: add a new shortcut set'),
-    'shortcut_set_edit_form' => t('Shortcut: change the name a shortcut set'),
-    'shortcut_set_delete_form' => t('Shortcut: delete a shortcut set'),
-    'shortcut_set_switch' => t('Shortcut: switch shortcut sets for user'),
-    'shortcut_link_add' => t('Shortcut: add link to a shortcut set'),
-    'shortcut_link_edit' => t('Shortcut: edit a shortcut link'),
-    'shortcut_link_delete' => t('Shortcut: delete a shortcut link'),
-    );
-}
 
 function shortcut_patterns_export_all_set($args = NULL, &$result = NULL) {
   $info = shortcut_patterns();

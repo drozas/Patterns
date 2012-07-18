@@ -17,11 +17,6 @@ function toolbar_patterns($data) {
   return $actions;
 }
 
-function toolbar_patterns_actions($data) {
-  return array(
-    'user_admin_permissions' => t('Decide who can use toolbar'),
-    );
-}
 
 /**
  * hook_patterns_prepare()

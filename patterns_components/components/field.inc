@@ -34,16 +34,6 @@ function field_patterns($data= NULL) {
 
 }
 
-function field_patterns_actions($data) {
-  return array(
-    'field_ui_field_overview_form' => t('Add/Create a Field'),
-    'field_ui_field_delete_form' => t('Delete a Field/Instance'),
-    'field_ui_field_edit_form' => t('Define extra settings for Instances'),
-    'field_ui_field_settings_form' => t('Define extra settings for Field'),
-  );
-}
-
-
 function field_patterns_export_all_ins($args = NULL, &$result = NULL) {
   //$info = field_patterns();
   _field_info_collate_fields(true);

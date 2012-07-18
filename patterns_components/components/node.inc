@@ -83,13 +83,6 @@ function node_patterns_export_all_nodes($args = NULL, &$result = NULL) {
 }
 
 
-function node_patterns_actions($data) {
-  return array(
-    'node_delete_confirm' => t('Delete Nodes'),
-    'node_type_form' => t('Create or Edit Content Types'),
-    'node_type_delete_confirm' => t('Delete Content Types'),
-  );
-}
 
 // returns arguments needed for the forms when processing automatically
 // $loop is set if we want to extract all values

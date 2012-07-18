@@ -45,15 +45,6 @@ function taxonomy_patterns($data = NULL) {
 
 }
 
-// Return a list of forms/actions this component can handle
-function taxonomy_patterns_actions($data) {
-  return array(
-    'taxonomy_form_vocabulary' => t('Taxonomy: Add or edit vocabulary'),
-    'taxonomy_form_term' => t('Taxonomy: Add or edit a term to a vocabulary'),
-    'taxonomy_vocabulary_confirm_delete' => t('Taxonomy: Delete a vocabulary'),
-  );
-}
-
 
 function taxonomy_patterns_export_all_vocs($args = NULL, &$result = NULL) {
   $info = taxonomy_patterns();
