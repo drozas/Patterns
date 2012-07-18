@@ -189,9 +189,16 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
   if (count($patternscan['unknown_tag']) != 0) {
   	$utags = implode(', ', $patternscan['unknown_tag']);
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
-   
   }
 
+  if (count($patternscan['tag_errors']) != 0) {
+  	$errors = '';
+  	foreach ($patternscan['tag_errors'] as $error) {
+  		$errors += $error['action'] . ': ' + $error['tag'] . '(' . $error['message'] . ')' . '</br>';  
+  	}
+  	$msgs[] = t('Components reported errors about tags: ') . $errors;
+  }
+  
   if (count($patternscan['empties']) > 0) {
     $msgs[] = t('Pattern contains empty sections or actions:') . ' ' . implode(', ', $patternscan['empties']);
   }
@@ -335,46 +342,25 @@ function _patterns_scan_action($action, $result = array()) {
   
   // Try to validate the tag with the component
   else {
+  	
   	$tag = $action['tag'];
-  	unset($action['tag']);
   	
   	// We force to rebuild the index and reload the components
 	  // because this method may be invoked as a service
 	  $tag_modules = patterns_tagmodules_get_index($action, true, true); 
 
-	  // Unsetting it while the module performs operations.
-	  // $tag = $data['tag'];
-	  // unset($data['tag']);
-	/*
-  	 $result = module_invoke_all('patterns_validate');
-  	 $rr = module_invoke_all('patterns');
-	  	
-  	 $v = module_exists('patterns_components');
-  	 $a = patterns_utils_is_module_enabled('patterns_components');
-  	 module_load_include('inc', 'patterns_components','components/taxonomy')
-  	 $o = function_exists('taxonomy_patterns');
-  	*/
-  	 
+
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
 	  else {
-
-	  	$module = $tag_modules[$tag]['module'];
+			patterns_invoke('prepare', $key, $action);
+			$validation = patterns_invoke('validate', $key, $action);
+			
+	  	if (!patterns_error_check_results($validation)) {
+    		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, $msg => $validation['msg']);
+  		}
 	  	
-	  	$hook = 'validate';
-	  	$func = $module . '_patterns_' . $hook;
-	  	
-	  	if (function_exists($func)) {
-        $validation = $func($key, $tag, $action);
-	  		if (!patterns_error_check_results($validation)) {
-    			$result['generic_errors'][] = $validation['msg'];
-  			}
-	  	}
-	  	
-	  	//$validation = module_invoke($module, 'patterns_validate', $ac);
-	  	
-  		
 	  }
   	
   }
