@@ -14,8 +14,8 @@ info:
 actions:
 
     - create:
-        tag: term
-        name: Patatina
-        descr: This is a Patatina
-        vocabulary: anothervoc # machine_name
-        #vid: 2
+        tag: vocabulary
+        name: My vocabulary
+        machine_name: myvoc
+        descr: Useless!
+        

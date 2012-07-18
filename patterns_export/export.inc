@@ -9,6 +9,7 @@
  * TODO: finish Export documentation
  * TODO: code cleanup
  * TODO: Export through the Batch API
+ * TODO: Export to File / DataBase as for the Patterns Lab
  */
 
 /**

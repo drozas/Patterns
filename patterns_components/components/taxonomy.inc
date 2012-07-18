@@ -129,6 +129,11 @@ function taxonomy_patterns_prepare($action, $tag, &$data) {
   if (isset($data['old_machine_name']))
     $data['old_machine_name'] = '' . $data['old_machine_name'];
 
+	if (isset($data['descr'])) {
+		$data['description'] = $data['descr'];
+		unset($data['descr']); 
+	}    
+    
   // VOCABULARY
   if ($tag == 'vocabulary') {
     if ($action == PATTERNS_DELETE ) {
@@ -191,7 +196,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
     }
   }
   else if ($tag == 'vocabulary') {
-  	$keys = patterns_api_key_exists(array('name', 'machine_name', 'description'), $data);
+  	$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
   	$msg = t("The following mandatory keys were missing for tag %tag: ", array('%tag' => $tag));
   	foreach ($keys as $key => $exist) {
 			if (!$exist) {

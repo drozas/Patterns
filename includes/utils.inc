@@ -211,3 +211,33 @@ function patterns_utils_is_public_page() {
   }
   return (request_path() == $p) ? TRUE : FALSE;
 }
+
+/**
+ * Enhanced version of array_key_exists with support for array of keys
+ * 
+ * Returns an associative array where to each key is associated the 
+ * logical value TRUE if it was found in the test array, FALSE otherwise.
+ * 
+ * @param mixed|Array $key
+ * 	The key or set of keys to test
+ * @return Array $out
+ * 	Associative array of boolean values for each key
+ * 
+ * @see array_key_exists
+ */
+function patterns_utils_key_exists($key = NULL, $array = array()) {
+	$out = array();
+	if (!isset($key)) {
+		return $out;
+	}
+  if (!is_array($key)) {
+  	$key = array($key);
+  }
+	if (count($key) === 0) {
+		return $out;
+	}
+	foreach ($key as $k) {
+		$out[$k] = array_key_exists($k, $array);
+	}
+	return $out;
+}

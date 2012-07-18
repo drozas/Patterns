@@ -8,10 +8,9 @@
  */
 
 /**
- * Returns an array containing all the reserved words
- * for a Patterns.
+ * Returns an array with the reserved words for Patterns files
  *
- * Such words are not allowed to be used as a section heading.
+ * Those words are not allowed to be used as section headings.
  *
  * @return Array
  *   The array of reserved words.
@@ -29,7 +28,7 @@ function patterns_api_reserved_words() {
 }
 
 /**
- * Tells whether a string is a Patterns reserved word
+ * Returns TRUE if a string is a Patterns reserved word
  *
  * @param mixed $word
  *   The string to check.
@@ -44,7 +43,7 @@ function patterns_api_is_reserved_word($word = NULL) {
 }
 
 /**
- * Checks whether a string is a valid component name.
+ * Checks whether a string is an existing component name.
  *
  * @param mixed $component
  *   The string with the name of the component
@@ -62,7 +61,7 @@ function patterns_api_is_valid_component_name($component = NULL) {
 
 
 /**
- * Adds / Replaces an Info section to a pattern.
+ * Adds / Replaces the 'modules' section in a pattern.
  *
  * Removes duplicates from the list of modules.
  *
@@ -91,7 +90,7 @@ function patterns_api_add_modules_section($modules = NULL, &$pattern = array(), 
  *
  * Checks whether the section name is valid before adding it.
  *
- * @param mixed $section
+ * @param mixed $section_name
  *   A string representing the pattern name
  * @param array $pattern (optional)
  *   The associative array representing a pattern
@@ -99,21 +98,20 @@ function patterns_api_add_modules_section($modules = NULL, &$pattern = array(), 
  *   If TRUE, an existing section with the same name will be
  *   overwritten. Defaults FALSE.
  */
-function patterns_api_add_section($section = NULL, &$pattern = array(), $ow = FALSE) {
-  if (is_null($section)) return FALSE;
-  if (patterns_api_is_reserved_word($section)) return FALSE;
-  if (isset($pattern[$section]) && !$ow) return FALSE;
+function patterns_api_add_section($section_name = NULL, &$pattern = array(), $ow = FALSE) {
+  if (is_null($section_name)) return FALSE;
+  if (patterns_api_is_reserved_word($section_name)) return FALSE;
+  if (isset($pattern[$section_name]) && !$ow) return FALSE;
 
-  $pattern[$section] = array();
+  $pattern[$section_name] = array();
   return $pattern;
 }
 
 
 /**
- * Adds / Replaces an Info section to a pattern.
+ * Adds / Replaces the 'info' section in a pattern
  *
- * Missing properties are options are automatically filled in with
- * standard values.
+ * Adds automatically the standard values to the missing properties
  *
  * @param array $info (optional)
  *   An associative array of properties for the info section.
@@ -140,6 +138,26 @@ function patterns_api_add_info_section($info = array(), &$pattern = array(), $ow
   $pattern[PATTERNS_SECTION_INFO]['author_website'] = (isset($info['author_website'])) ? $info['author_website'] : $base_root;
 
   return $pattern;
+}
+
+/**
+ * Adds an action to a section
+ * 
+ * Checks that the action has the 'tag' key
+ * 
+ * @param mixed $action
+ * 		A valid Patterns action, e.g. PATTERNS_CREATE, PATTERNS_MODIFY, etc.
+ * @param Array $data
+ * 		The tag of the action and the additional properties
+ * @param Array $section Optional
+ * 		The containing section
+ */
+function patterns_api_add_action($action = PATTERNS_CREATE, $data = array(), &$section = array()) {
+  if (!isset($data['tag'])) {
+  	return FALSE;
+  }
+	$section[] = array($action => $data);
+  return TRUE;
 }
 
 
@@ -192,26 +210,4 @@ function patterns_actions() {
                 PATTERNS_DELETE => PATTERNS_DELETE,
                 PATTERNS_INCLUDE => PATTERNS_INCLUDE,
                 );
-}
-
-/**
- * Given 
- * 
- * @return Bool TRUE, if the current page is the public patterns page
- */
-function patterns_api_key_exists($property = NULL, $action = array()) {
-	$out = array();
-	if (!isset($property)) {
-		return $out;
-	}
-  if (!is_array($property)) {
-  	$property = array($property);
-  }
-	if (count($property) === 0) {
-		return $out;
-	}
-	foreach ($property as $p) {
-		$out[$p] = array_key_exists($p, $action);
-	}
-	return $out;
 }
