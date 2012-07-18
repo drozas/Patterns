@@ -1,3 +1,11 @@
+7060:
+
+		- All patterns hooks for executing patterns are optional now
+		- Validation is now also on the level of the single tags
+
+************************************************************************************
+
+
 7059:
 
 		- Fixed published patterns bug http://drupal.org/node/1619162
