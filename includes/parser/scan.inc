@@ -337,27 +337,44 @@ function _patterns_scan_action($action, $result = array()) {
   else {
   	$tag = $action['tag'];
   	unset($action['tag']);
-  	 $tag_modules = patterns_tagmodules_get_index($action, true); // TODO: check the parameters
+  	
+  	// We force to rebuild the index and reload the components
+	  // because this method may be invoked as a service
+	  $tag_modules = patterns_tagmodules_get_index($action, true, true); 
 
 	  // Unsetting it while the module performs operations.
 	  // $tag = $data['tag'];
 	  // unset($data['tag']);
-	
+	/*
   	 $result = module_invoke_all('patterns_validate');
+  	 $rr = module_invoke_all('patterns');
 	  	
+  	 $v = module_exists('patterns_components');
+  	 $a = patterns_utils_is_module_enabled('patterns_components');
+  	 module_load_include('inc', 'patterns_components','components/taxonomy')
+  	 $o = function_exists('taxonomy_patterns');
+  	*/
   	 
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
 	  else {
+
 	  	$module = $tag_modules[$tag]['module'];
-	  	$result = module_invoke($module, 'patterns_validate');
 	  	
-    	
-  		//if (!patterns_error_check_results($validation)) {
-    	//	$result['generic_errors'][] = $results['msg'];
-  		//	debug($results);	
-  		//}
+	  	$hook = 'validate';
+	  	$func = $module . '_patterns_' . $hook;
+	  	
+	  	if (function_exists($func)) {
+        $validation = $func($key, $tag, $action);
+	  		if (!patterns_error_check_results($validation)) {
+    			$result['generic_errors'][] = $validation['msg'];
+  			}
+	  	}
+	  	
+	  	//$validation = module_invoke($module, 'patterns_validate', $ac);
+	  	
+  		
 	  }
   	
   }

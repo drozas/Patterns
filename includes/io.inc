@@ -68,7 +68,7 @@ function patterns_io_load_components($reset = FALSE, $dryrun = FALSE) {
 
   foreach ($paths as $path) {
     foreach (file_scan_directory($path, '/\.inc$/') as $file) {
-      $components[] = $file->uri;
+      $components[] = $file->uri;      
       if ($dryrun) continue;
       require_once $file->uri;
     }

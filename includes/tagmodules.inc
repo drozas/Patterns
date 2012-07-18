@@ -29,13 +29,22 @@
  *
  * @param bool $reset If TRUE, forces rebuilding the index from all
  *   the components. Defaults FALSE
+ *   
+ * @param bool $reload_components (optional) If TRUE, forces reloading
+ *  the Patterns components from file system
  *
  * @return array $tagmodules Index of tag and modules
+ *
+ * @see patterns_moduletags_get_index()
  */
-function patterns_tagmodules_get_index($data = NULL, $reset = FALSE) {
+function patterns_tagmodules_get_index($data = NULL, $reset = FALSE, $reload_components = FALSE) {
 
   $tagmodules = &drupal_static(__FUNCTION__);
 
+  if ($reload_components) {
+  	patterns_io_load_components();
+  }
+  
   // Index not yet built or forced rebuilt
   if ($reset || empty($tagmodules)) {
     $tagmodules = array();
@@ -175,20 +184,35 @@ function patterns_moduletags_filter($modulestags, $module = NULL, $key = NULL) {
 /**
  * Builds up an associative array of modules and exposed tags.
  *
- * @param mixed $module
- *   (optional) If set, only information about this specific module is returned.
- *   Defaults NULL.
- * @param mixed $key (optional) If set, only the values for that key
- *   from all modules are returned. E.g. (PATTERNS_CREATE, PATTERNS_MODIFY, etc.)
- *   Defaults NULL.
+ * The index is cached, but reloading can be forced.
+ *
+ * @param array $data (optional) An associative array of data, that the
+ *   components can use to build dynamic forms names. Defaults NULL.
+ *   The array usually corresponds to an action in a pattern file, e.g.
+ *
+ *      array('tag'   => 'node',
+ *            'type'  => 'article',
+ *            'title' => 'Test Article',
+ *            'body', => 'lorem ipsum ...',
+ *            );
+ *
+ * @param bool $reset If TRUE, forces rebuilding the index from all
+ *   the components. Defaults FALSE
+ *
+ * @param bool $reload_components (optional) If TRUE, forces reloading
+ *  the Patterns components from file system
  *
  * @return array $moduletags The tagmodules index built according to the parameters.
  *
  * @see patterns_tagmodules_get_index()
  */
-function patterns_moduletags_get_index($data = NULL, $reset = FALSE) {
+function patterns_moduletags_get_index($data = NULL, $reset = FALSE, $reload_components = FALSE) {
   $moduletags = &drupal_static(__FUNCTION__);
 
+  if ($reload_components) {
+  	patterns_io_load_components();
+  }
+  
   // Index not yet built
   if ($reset || empty($moduletags)) {
 
