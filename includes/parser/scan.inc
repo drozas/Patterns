@@ -194,7 +194,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
   if (count($patternscan['tag_errors']) != 0) {
   	$errors = '';
   	foreach ($patternscan['tag_errors'] as $error) {
-  		$errors += $error['action'] . ': ' + $error['tag'] . '(' . $error['message'] . ')' . '</br>';  
+  		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
   	$msgs[] = t('Components reported errors about tags: ') . $errors;
   }
@@ -349,7 +349,6 @@ function _patterns_scan_action($action, $result = array()) {
 	  // because this method may be invoked as a service
 	  $tag_modules = patterns_tagmodules_get_index($action, true, true); 
 
-
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
@@ -357,8 +356,8 @@ function _patterns_scan_action($action, $result = array()) {
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
-	  	if (!patterns_error_check_results($validation)) {
-    		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, $msg => $validation['msg']);
+	  	if ($validation['status'] == PATTERNS_ERR) {
+    		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
   		}
 	  	
 	  }

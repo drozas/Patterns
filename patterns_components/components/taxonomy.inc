@@ -41,21 +41,6 @@ function taxonomy_patterns($data = NULL) {
                         ),
   );
 
-  /* Not used anymore
-
-  $actions['vocabulary_extract_all']  = array(
-    PATTERNS_INFO => t('Create/Modify/Delete Taxonomy Vocabularies'),
-    PATTERNS_MODIFY => array('taxonomy_form_vocabulary'),
-    PATTERNS_FILES => array('modules/taxonomy/taxonomy.admin.inc'),
-  );
-
-  $actions['term_extract_all'] = array(
-    PATTERNS_INFO => t('Create/Modify/Delete Taxonomy Terms'),
-    PATTERNS_MODIFY => array('taxonomy_form_term'),
-    PATTERNS_FILES => array('modules/taxonomy/taxonomy.admin.inc'),
-  );
-  */
-
   return $actions;
 
 }
@@ -204,6 +189,22 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
       $status = PATTERNS_ERR;
       $msg = t("Vocabulary %vocab doesn't exist.", array('%vocab' => $data['vocabulary']));
     }
+  }
+  else if ($tag == 'vocabulary') {
+  	$keys = patterns_api_key_exists(array('name', 'machine_name', 'description'), $data);
+  	$msg = t("The following mandatory keys were missing for tag %tag: ", array('%tag' => $tag));
+  	foreach ($keys as $key => $exist) {
+			if (!$exist) {
+				$status = PATTERNS_ERR;
+				$msg .= $key . ', ';
+			} 
+  	}
+  	$msg = substr($msg, 0, -2);
+  	
+  }
+  else {
+  	$status = PATTERNS_ERR;
+    $msg = t("Unknown tag: %tag.", array('%tag' => $tag));
   }
 
   return patterns_results($status, $msg);

@@ -193,3 +193,25 @@ function patterns_actions() {
                 PATTERNS_INCLUDE => PATTERNS_INCLUDE,
                 );
 }
+
+/**
+ * Given 
+ * 
+ * @return Bool TRUE, if the current page is the public patterns page
+ */
+function patterns_api_key_exists($property = NULL, $action = array()) {
+	$out = array();
+	if (!isset($property)) {
+		return $out;
+	}
+  if (!is_array($property)) {
+  	$property = array($property);
+  }
+	if (count($property) === 0) {
+		return $out;
+	}
+	foreach ($property as $p) {
+		$out[$p] = array_key_exists($p, $action);
+	}
+	return $out;
+}
