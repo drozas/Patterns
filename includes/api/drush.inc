@@ -73,8 +73,7 @@ include 'includes/module.inc';
       );
     }
   }
-  
-    //die(var_dump($modules_to_enable));
+
   if(!empty($modules_to_enable)) {
       $form['modules_to_enable'] = array (
         '#type' => 'fieldset',
@@ -203,7 +202,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
         ),
       );
       // check if we have enough rights - otherwise ask for authorization
-      if (fileowner($project_real_location) == fileowner(conf_path()) && false ) {
+      if (fileowner($project_real_location) == fileowner(conf_path())) {
 
       }
       // Otherwise, go through the regular workflow to prompt for FTP/SSH
@@ -234,7 +233,6 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
     array($modules_to_enable, $enable_dependencies)
   );
     
-  // die(var_dump($operations));
   // create batch with gathered operations and start it
   $batch = array(
     'title' => t('Installing modules'),
@@ -244,8 +242,6 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
     'file' =>  drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc',
     //'file' => drupal_get_path('module', 'update') . '/update.authorize.inc',
   );
-  //var_dump($batch);
- // die();
 
 
   if ($authorize) {
@@ -256,7 +252,6 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
     return;
   }
   else {
-   //die('nay');
      batch_set($batch);
     // Invoke the batch via authorize.php.
     system_authorized_batch_process();
@@ -264,7 +259,6 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
 }
 
 function patterns_drush_batch($filetransfer, $batch) {
-  var_dump($batch);
   foreach($batch['operations'] as &$op) {
     if($op[0] != 'patterns_drush_batch_module_enable')
       $op[1][3] = $filetransfer;
@@ -282,13 +276,10 @@ function patterns_drush_callback($filetransfer, $arguments_array) {
  * module_enable wrapper for batch
  */
 function patterns_drush_batch_module_enable($module_list, $enable_dependencies, &$context) {
-  //echo 'module list <br>';
- // echo var_dump($module_list);
 
 $context['finished'] = 1.0;
   //include('')
   module_enable($module_list);//, $enable_dependencies);
- // echo 'reaching';
  $context['results']['log']['Return'][] = array('message' =>  l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
   return;
 }
