@@ -31,6 +31,9 @@ function patterns_theme() {
       'render element' => 'form',
      // 'file' => 'simpletest.pages.inc',
     ),
+//    'patterns_modules_page_form' => array(
+//      'arguments' => array('form' => NULL),
+//    ),
   );
 }
 
@@ -358,3 +361,50 @@ function theme_patterns_category_table($patterns) {
     
   return $form;
 }
+/*
+function theme_patterns_modules_page_form($form) {
+
+   // $row = array();
+  //  $row[] = drupal_render($form['']['enable_dependencies']);//. var_dump($form['']['enable_dependencies']);//a';//array('data' => drupal_render($form['step']));
+  //  $rows[] = $row;
+    
+   $rows = array();
+   $f = $form['']['modules'];
+   foreach( element_children($f) as $k) {
+     $row = array();
+     $row[] = $f[$k]['module']['#value'] . $form['']['step']['#value'];
+     $row[] = $f[$k]['available']['#markup'];
+     $row[] = $f[$k]['drupal_version']['#value'];
+     $row[] = array('class' => array('checkbox'), 'data' => drupal_render($f[$k]['enable']));
+     $row[] = array('class' => array('checkbox'), 'data' => drupal_render($f[$k]['download']));
+     
+     $rows[] = $row;
+   }
+ 
+    // Individual table headers.
+    $header = array();
+    //$header[] = array(’data’ => t(’Featured’), ‘class’ => ‘checkbox’);
+    $header[] = t('Name');
+    $header[] = t('Status');
+    $header[] = t('Core Version');
+    $header[] = t('Enable?');
+    $header[] = t('Download?');
+    //$header[] = t(’Created on’);
+ 
+    $output;
+    $f = $form[''];
+    $output = drupal_render($f['step']);
+    $output .= drupal_render($f['redirect']);
+    $output .= drupal_render($f['information']);
+    $output .= drupal_render($f['available']);
+    $output .= theme('table', array('header' => $header, 'rows' => $rows));
+
+    $output .= drupal_render($f['enable_dependencies']);
+    $output .= drupal_render($f['submit_dl']);
+    $output .= drupal_render($f['submit_en']);
+    $output .= drupal_render($f['submit_dlen']);
+    unset($form['']);
+    var_dump($form);
+    return $output;
+}
+*/

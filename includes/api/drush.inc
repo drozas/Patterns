@@ -3,6 +3,7 @@
 module_load_include('inc', 'api');
 module_load_include('inc', 'update', 'update.manager');
 include drupal_get_path('module', 'update') . '/update.authorize.inc';
+include 'includes/module.inc';
 
 /*
  * $modules is an array of tuples (module name, drupal version)
@@ -243,17 +244,19 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
     'file' =>  drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc',
     //'file' => drupal_get_path('module', 'update') . '/update.authorize.inc',
   );
-  var_dump($batch);
+  //var_dump($batch);
  // die();
 
 
   if ($authorize) {
+    drupal_set_message('PHP does not have the rights to download to the modules folder', 'error');
+    return;
     system_authorized_init('patterns_drush_batch', drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc', array($batch), t('Installing modules'));
     $form_state['redirect'] = system_authorized_get_url();
     return;
   }
   else {
-   die('nay');
+   //die('nay');
      batch_set($batch);
     // Invoke the batch via authorize.php.
     system_authorized_batch_process();
@@ -281,12 +284,12 @@ function patterns_drush_callback($filetransfer, $arguments_array) {
 function patterns_drush_batch_module_enable($module_list, $enable_dependencies, &$context) {
   //echo 'module list <br>';
  // echo var_dump($module_list);
-// die();
+
 $context['finished'] = 1.0;
   //include('')
- // @module_enable($module_list);//, $enable_dependencies);
+  module_enable($module_list);//, $enable_dependencies);
  // echo 'reaching';
- _update_batch_create_message($context['results']['log']['Return'], l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
+ $context['results']['log']['Return'][] = array('message' =>  l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
   return;
 }
  /**
@@ -325,63 +328,3 @@ function patterns_drush_get_release_history_xml($name, $drupal_version) {
   return $xml;
 }
 
-/*
- * Pick most appropriate release from XML list.
- *
- * @param array $request
- *   An array of version specifications as returned by pm_parse_project_version().
- * @param resource $xml
- *   A handle to the XML document.
- */
-
-/*
-function pm_parse_release($request, $xml) {
-  $GET_DEV_VERSION = FALSE;
-  
-  // If that did not work, we will get the first published release for the
-  // recommended major version.
-  if ($recommended_major = $xml->xpath("/project/recommended_major")) {
-    $xpath_releases = "/project/releases/release[status='published'][version_major=" . (string)$recommended_major[0] . "]";
-    $releases = @$xml->xpath($xpath_releases);
-  }
-  
-  // If there are recommended releases (no 'version_extra' elements), then use
-  // only recommended releases.  Otherwise, use all; in this case, the
-  // recommended release defaults to the latest published release with the
-  // right recommended major version number.
-  $recommended_releases = array();
-  if (!empty($releases)) {
-    foreach ($releases as $one_release) {
-      if (!array_key_exists('version_extra', $one_release)) {
-        $recommended_releases[] = $one_release;
-      }
-    }
-  }
-  if (!empty($recommended_releases)) {
-    $releases = $recommended_releases;
-  }
-  $release_type = 'recommended';
-
-  if ($GET_DEV_VERSION) {
-    $releases = @$xml->xpath("/project/releases/release[status='published'][version_extra='dev']");
-    $release_type = 'development';
-  }
-  if (drush_get_option('select', FALSE) || empty($releases)) {
-    if (empty($releases)) {
-      //drush_print(dt('There is no !type release for project !project.', array('!type' => $release_type, '!project' => $request['name'])));
-    }
-    $options = _drush_pm_download_releases_choice($xml, $request['name'], drush_get_option('all', FALSE), drush_get_option('dev', FALSE));
-    $choice = drush_choice($options, dt('Choose one of the available releases:'));
-    if ($choice) {
-      $releases = $xml->xpath("/project/releases/release[status='published'][version='" . $choice . "']");
-    }
-    else {
-      return FALSE;
-    }
-  }
-
-  // First published release for the recommended major version is just the
-  // first value in $releases.
-  return (array)$releases[0];
-}
-*/

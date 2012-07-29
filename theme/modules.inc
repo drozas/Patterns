@@ -194,12 +194,13 @@ function patterns_modules_page_form($form, &$form_state, $pid) {
     '#value' => t('Enable'),
     '#submit' => array('patterns_modules_page_submit'),
   );
-  
+  /*
   $form['submit_dlen'] = array(
     '#type' => 'submit',
     '#value' => t('Download & Enable'),
     '#submit' => array('patterns_modules_page_submit'),
   );
+  */
   $form['#redirect'] = 'patterns_modules_page_submit';
   return $form;
 }
