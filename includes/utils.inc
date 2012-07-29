@@ -5,7 +5,7 @@
  */
 
 
-function patterns_utils_is_macro_enabled(){
+function patterns_utils_is_macro_enabled() {
   $list = module_list();
   return (isset($list["macro"])) ? TRUE : FALSE;
 }
@@ -24,9 +24,9 @@ function patterns_utils_is_macro_enabled(){
  *
  *
  */
-function patterns_utils_if_invalid_go_back($pattern = NULL,
-                                           $back = '/admin/patterns/',
-                                           $options = array()) {
+function patterns_utils_if_invalid_go_back( $pattern = NULL,
+                                            $back = '/admin/patterns/',
+                                            $options = array()) {
 
   $id = $pattern; // store a reference to the original parameter
   if (isset($options['numeric'])) {
@@ -164,50 +164,80 @@ function patterns_utils_init_from_pattern($key, $pattern, $value = NULL, $fallba
 
 /**
  * Helper function to find out whether a module is currently installed
- * 
+ *
  * @param mixed $module String representing the name of the module
- * 
+ *
  * @return Bool TRUE If the module is currently installed
  */
 function patterns_utils_is_module_available($module = NULL) {
-	if (is_null($module)) return FALSE;
-	$modules = system_rebuild_module_data();
-	return (isset($modules[$module])) ? TRUE : FALSE;
+  if (is_null($module)) return FALSE;
+  $modules = system_rebuild_module_data();
+  return (isset($modules[$module])) ? TRUE : FALSE;
 }
 
 /**
  * Helper function to find out whether a module is currently enabled
- * 
+ *
  * @param mixed $module String representing the name of the module
- * 
+ *
  * @return Bool TRUE If the module is currently enabled
  */
 function patterns_utils_is_module_enabled($module = NULL) {
-	if (is_null($module)) return FALSE;
-	$modules = module_list();
-	return isset($modules[$module]) ? TRUE : FALSE;
+  if (is_null($module)) return FALSE;
+  $modules = module_list();
+  return isset($modules[$module]) ? TRUE : FALSE;
 }
 
 /**
  * Checks whether the public patterns page has been enabled.
- * 
+ *
  * @return Bool TRUE, if a valid url was specified for the
- * 	 public patterns page.
+ *   public patterns page.
  */
 function patterns_utils_is_public_page_enabled() {
-	return (variable_get('patterns_public_url', '') != '') ? TRUE : FALSE;
+  return (variable_get('patterns_public_url', '') != '') ? TRUE : FALSE;
 }
 
 /**
  * Checks whether the current page is the public patterns page
- * 
+ *
  * @return Bool TRUE, if the current page is the public patterns page
  */
 function patterns_utils_is_public_page() {
-	$f = variable_get('site_frontpage', '');
-	$p = variable_get(PATTERNS_PUBLIC_URL, '');
-	if ($f == $p) {
-		return drupal_is_front_page();
+  $f = variable_get('site_frontpage', '');
+  $p = variable_get(PATTERNS_PUBLIC_URL, '');
+  if ($f == $p) {
+    return drupal_is_front_page();
+  }
+  return (request_path() == $p) ? TRUE : FALSE;
+}
+
+/**
+ * Enhanced version of array_key_exists with support for array of keys
+ * 
+ * Returns an associative array where to each key is associated the 
+ * logical value TRUE if it was found in the test array, FALSE otherwise.
+ * 
+ * @param mixed|Array $key
+ * 	The key or set of keys to test
+ * @return Array $out
+ * 	Associative array of boolean values for each key
+ * 
+ * @see array_key_exists
+ */
+function patterns_utils_key_exists($key = NULL, $array = array()) {
+	$out = array();
+	if (!isset($key)) {
+		return $out;
 	}
-	return (request_path() == $p) ? TRUE : FALSE; 
+  if (!is_array($key)) {
+  	$key = array($key);
+  }
+	if (count($key) === 0) {
+		return $out;
+	}
+	foreach ($key as $k) {
+		$out[$k] = array_key_exists($k, $array);
+	}
+	return $out;
 }

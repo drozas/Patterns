@@ -42,9 +42,18 @@ function patterns_editor_create_page($pid = NULL) {
   */
 function patterns_editor($form_id, $pattern = array()) {
 
+
   $pattern = patterns_get_pattern_obj($pattern);
 
   $form = drupal_get_form($form_id, $pattern);
+  
+  if(($form_id == "patterns_quickrun" || $form_id == "patterns_import_source") && !patterns_parser_ready()){ 
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+    return $form;
+  }
+
   $editor  = drupal_render($form);
   if (!patterns_load_co2($form['format']['#default_value'])) {
     $co2 = l(t('Codemirror'), 'http://codemirror.net/');
@@ -61,6 +70,16 @@ function patterns_editor($form_id, $pattern = array()) {
  * Display the page for editing a pattern.
  */
 function patterns_edit_page($pid = NULL) {
+
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+    return $form;
+  }
+
   $pattern = patterns_utils_if_invalid_go_back($pid);
 
   if (!$pattern->file) {
@@ -259,7 +278,9 @@ function patterns_load_co2($format = PATTERNS_FORMAT_YAML) {
     drupal_add_css($co2_css_theme);
     drupal_add_js($co2_js);
 
-    if ($format !== PATTERNS_FORMAT_UNKNOWN) {
+    // TODO: enable PHP mode for codemirror as well.
+    // At the moment it does not work
+    if ($format !== PATTERNS_FORMAT_UNKNOWN && $format !== 'php') {
       $co2_mode = $co2_path . '/mode/' . $format . '/' . $format . '.js';
       drupal_add_js($co2_mode);
     }

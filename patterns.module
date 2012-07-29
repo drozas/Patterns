@@ -98,41 +98,41 @@ function patterns_menu() {
 
   $first_install = variable_get(PATTERNS_FIRST_INSTALL, TRUE);
   if ($first_install) {
-  	module_load_include('inc', 'patterns', 'includes/forms/first_install');
+    module_load_include('inc', 'patterns', 'includes/forms/first_install');
 
-  	$items['admin/patterns'] = array(
-	    'title' => 'Patterns',
-	    'description' => 'Patterns was just installed or important updates have been found',
-	    'page callback' => 'patterns_first_install_page',
-	    'access arguments' => array('administer patterns'),
-  	);
-  	
-  	return $items;
+    $items['admin/patterns'] = array(
+      'title' => 'Patterns',
+      'description' => 'Patterns was just installed or important updates have been found',
+      'page callback' => 'patterns_first_install_page',
+      'access arguments' => array('administer patterns'),
+    );
+
+    return $items;
   }
-  
-  
+
+
   $items['admin/patterns'] = array(
     'title' => 'Patterns',
     'description' => 'Administer patterns available for your site',
     'page callback' => 'patterns_list',
     'access arguments' => array('administer patterns'),
   );
-  
+
   $items['admin/patterns/list'] = array(
     'title' => 'List',
     'type' => MENU_DEFAULT_LOCAL_TASK,
     'weight' => -10,
   );
-  
+
   if (patterns_utils_is_public_page_enabled()) {
     $items[variable_get('patterns_public_url', '')] = array(
-	    'title' => 'Public',
-	    'type' => MENU_LOCAL_TASK,
-    	'description' => 'Patterns',
+      'title' => 'Public',
+      'type' => MENU_LOCAL_TASK,
+      'description' => 'Patterns',
       'page callback' => 'patterns_list_public',
-    	'access arguments' => array('public patterns'),
-	    'weight' => -9,
-	  );
+      'access arguments' => array('public patterns'),
+      'weight' => -9,
+    );
   }
 
   // MAIN ROUTES
@@ -245,7 +245,7 @@ function patterns_menu() {
     'access arguments' => array('get patterns'),
     'access callback' => TRUE,
     'type' => MENU_CALLBACK,
-  );
+  );	 
 
   // IMPORT
 
@@ -277,13 +277,6 @@ function patterns_menu() {
     'access arguments' => array('administer patterns'),
     'type' => MENU_LOCAL_TASK,
   );
-  $items['admin/patterns/export'] = array(
-    'title' => 'Export',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('patterns_export'),
-    'access arguments' => array('administer patterns'),
-    'type' => MENU_LOCAL_TASK,
-  );
 
   // PUBLISH / UNPUBLISH
 
@@ -307,7 +300,7 @@ function patterns_menu() {
     'title' => 'Info',
     'page callback' => 'patterns_info_page',
     'access arguments' => array('administer patterns'),
-  	'weight' => 15,
+    'weight' => 15,
     'type' => MENU_LOCAL_TASK,
   );
 
@@ -358,9 +351,16 @@ function patterns_menu() {
  * First function to be called for displaying the pattern list page.
  */
 function patterns_list() {
+  $form = array();
+  
+  if (!patterns_parser_ready()) {
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+  }
 
-	drupal_add_js('misc/ajax.js');
-	  
+  drupal_add_js('misc/ajax.js');
+
   drupal_add_css(drupal_get_path('module', 'patterns') . '/css/patterns.css');
   drupal_add_js(drupal_get_path('module', 'patterns') . '/js/patterns.js');
 
@@ -373,8 +373,8 @@ function patterns_list() {
     '#type' => 'button',
     '#value' => t('Refresh All'),
     '#attributes' => array('style' => 'float:right',
-                           'id' => 'refresh-all',
-                           ),
+                            'id' => 'refresh-all',
+                          ),
   );
 
   $form['commands']['create'] = array(
@@ -431,6 +431,16 @@ function patterns_list_public() {
  * @ingroup forms
  */
 function patterns_enable_pattern($form, &$form_state, $pid) {
+
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+    return $form;
+  }
+
 
   $pattern = patterns_utils_if_invalid_go_back($pid);
 
@@ -690,7 +700,7 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
 
   // Disable the modules enabled just for executing the pattern
   if (!empty($installed_modules['installed'])) {
-  	patterns_disable_modules($installed_modules['installed']);
+    patterns_disable_modules($installed_modules['installed']);
   }
 
   return TRUE;
@@ -708,15 +718,15 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
  * @param string $action
  *   The action to be executed. One of {'create', 'modify', 'delete'}.
  * @param array $data
- *   (optional) The data supplied as an associative array. Defaults to NULL.
+ *   (optional) The data supplied as an associative array. Defaults NULL.
  * @param mixed $form_id
- *   (optional) The name of the form to be used. Defaults to NULL.
- * @param array $a
- *   (optional) Extra parameters to pass. Defaults to NULL.
+ *   (optional) The name of the form to be used. Defaults NULL.
+ * @param array $extra
+ *   (optional) Extra parameters to pass to the function. Defaults NULL.
  *
  * @return array $return An array packed by patterns_results().
  */
-function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$a = NULL) {
+function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$extra = NULL) {
 
   $tag_modules = patterns_tagmodules_get_index($data); // TODO: check the parameters
 
@@ -729,15 +739,15 @@ function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$a = N
     $func = $module . '_patterns_' . $hook;
     if (function_exists($func)) {
       if ($form_id) { // We are past hook_patterns_build().
-        $return = $func($action, $form_id, $data, $a);
+        $return = $func($action, $form_id, $data, $extra);
       }
       else {
-        $return = $func($action, $tag, $data, $a);
+        $return = $func($action, $tag, $data, $extra);
       }
     }
     else {
-      $msg = t('Required patterns callback function %func does not exist.', array('%func' => $func));
-      $return = patterns_results(PATTERNS_ERR, $msg);
+      $msg = t('Function %func not found. Hook %hook skipped', array('%func' => $func, '%hook' => $hook));
+      $return = patterns_results(PATTERNS_SUCCESS, $msg);
     }
   }
   else {

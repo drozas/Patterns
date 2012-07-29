@@ -44,13 +44,13 @@ function system_patterns($data) {
     PATTERNS_CREATE => array(),
     PATTERNS_MODIFY => array(), // TODO: ??
     PATTERNS_DELETE => array(),
-    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables',),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
   );
 
 //  $actions['variable'] = $actions['variables']; // Alias, not available any more
 
  /* $actions['date'] = array('descr' => t('Create/edit/delete types of date and time'),
-  	PATTERNS_CREATE => array('system_configure_date_formats_form','system_add_date_format_type_form'),
+    PATTERNS_CREATE => array('system_configure_date_formats_form','system_add_date_format_type_form'),
     PATTERNS_MODIFY => array('system_configure_date_formats_form','system_date_time_settings'),
     PATTERNS_DELETE => array('system_delete_date_format_type_form'),
     PATTERNS_FILES =>$files
@@ -60,20 +60,7 @@ function system_patterns($data) {
 
 }
 
-function system_patterns_actions($data) {
-  return array(
-        'system_modules' => t('System: Enable or disable module'),
-        'set_active_theme' => t('System: Set active theme'),
-        'form' => t('System: Execute form'),
-        'call_php_func_form' => t('Call PHP function: Call function'),
-        'variables' => t('System: Set or delete variables'),
-        'variable' => t('System: Set or delete variable'),
-/*        'system_add_date_format_type_form' => t('Create a type of date and time'),
-        'system_date_time_settings' => t('Edit the types of date and time'),
-        'system_delete_date_format_type_form' => t('Delete a type of date and time'),
-        'system_configure_date_formats_form' => t('Create/edit formats of date and time'),*/
-  );
-}
+
 
 function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   // Taken from the Devel module.
@@ -127,23 +114,23 @@ function system_patterns_prepare($action, $tag, &$data) {
     unset($data['disable']);
   }/*
     elseif($tag=='date'){
-  	if(isset($data['format'])){
-			$data['date_format']=$data['format'];
-			unset($data['format']);
-		}
-		if(isset($data['type'])){
-			if(!isset($data['machine_name'])){
-				$data['machine_name']=str_replace(' ', '-', $data['type']);
-			}
-			$data['date_type']=$data['type'];
-			unset($data['type']);
-		}
-	if($action==PATTERNS_MODIFY){
-		if(isset($data['date_type'])&&isset($data['date_format'])){
-			$new='date_format_'.$data['date_type'];
-			$data[$new]=$data['date_format'];
-		}
-	}
+    if(isset($data['format'])){
+      $data['date_format']=$data['format'];
+      unset($data['format']);
+    }
+    if(isset($data['type'])){
+      if(!isset($data['machine_name'])){
+        $data['machine_name']=str_replace(' ', '-', $data['type']);
+      }
+      $data['date_type']=$data['type'];
+      unset($data['type']);
+    }
+  if($action==PATTERNS_MODIFY){
+    if(isset($data['date_type'])&&isset($data['date_format'])){
+      $new='date_format_'.$data['date_type'];
+      $data[$new]=$data['date_format'];
+    }
+  }
   }*/
   elseif ($tag == 'form') {
   }
@@ -415,9 +402,9 @@ function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
 
   /*
   elseif($form_id=='system_delete_date_format_type_form'){
-		$data['confirm']=1;
-		$result=array($data['date_type']);
-	}*/
+    $data['confirm']=1;
+    $result=array($data['date_type']);
+  }*/
   else { // Running a user-provided form through tag 'form'.
     if (isset($data['args'])) {
       $params = $data['args'];
@@ -455,8 +442,8 @@ function modules_execute($action, &$data) {
     }
   }
 
-  $msg = ((count($enabled) > 0) ? t('Module(s) %vars enabled.', array('%vars' => implode(', ', $enabled))) : t('No modules have been enabled.')) . ' ' .
-         ((count($disabled) > 0) ? t('Module(s) %vars disabled.', array('%vars' => implode(', ', $disabled))) : t('No modules have been disabled.'));
+  $msg =  ((count($enabled) > 0) ? t('Module(s) %vars enabled.', array('%vars' => implode(', ', $enabled))) : t('No modules have been enabled.')) . ' ' .
+          ((count($disabled) > 0) ? t('Module(s) %vars disabled.', array('%vars' => implode(', ', $disabled))) : t('No modules have been disabled.'));
   return patterns_results(PATTERN_SUCCESS, $msg);
 }
 

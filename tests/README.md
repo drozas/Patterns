@@ -7,7 +7,7 @@
 
   Patterns is shipped with a `PatternTestCase` abstract class that aims at helping developers of [SimpleTest](http://drupal.org/node/291740).
   
-  Here are some methods that is whorty knowing:
+  Here are some methods that are worth knowing:
   
     - `getPatternsTestDir()`: Returns the path to the tests directory inside the Patterns module.
     - `setUp()`: Loads the patterns and libraries modules plus all those that are passed as parameters; skips the Patterns splash screen.
@@ -21,12 +21,11 @@
 
 The following parts of the Patterns module still need a test. Feel free to contribute! 
 
-  - Lab page
+  - Check if all the pages are loaded without errors
+  - Add specific tests for Lab page, Export page, Public Page
   - YAML parser
   - XML parser
   - PHP parser
   - First Install screen
-  - Export page
-  - Public page
   - Patterns D2D
 	- How tagmodules and modulestag indexes are built

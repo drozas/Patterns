@@ -11,85 +11,61 @@
 function taxonomy_patterns($data = NULL) {
 
   $actions['vocabulary'] = array(
-    PATTERNS_INFO 	=> t('Create/Modify/Delete Taxonomy Vocabularies'),
+    PATTERNS_INFO   => t('Create/Modify/Delete Taxonomy Vocabularies'),
     PATTERNS_CREATE => array('taxonomy_form_vocabulary'),
     PATTERNS_MODIFY => array('taxonomy_form_vocabulary'),
     PATTERNS_DELETE => array('taxonomy_vocabulary_confirm_delete'),
-    PATTERNS_FILES 	=> array('modules/taxonomy/taxonomy.admin.inc'),
+    PATTERNS_FILES  => array('modules/taxonomy/taxonomy.admin.inc'),
     PATTERNS_EXPORT => array(
-    											PATTERNS_EXPORT_ALL => 'taxonomy_patterns_export_all_vocs',
-    											// Commented are more options for extraction
-    											// This is not yet working
-													'Cheat (I am doing terms)' => 'taxonomy_patterns_export_all_terms',	
-													//'Single Vocabulary' => array('callback' => 'taxonomy_patterns_export_single_vocabulary',
-													//														 'arguments' => array('1', '2', '3'),
-    											//),
-											 ),
+                          PATTERNS_EXPORT_ALL => 'taxonomy_patterns_export_all_vocs',
+                          // Commented are more options for extraction
+                          // This is not yet working
+                          // 'Cheat (I am doing terms)' => 'taxonomy_patterns_export_all_terms',
+                          //'Single Vocabulary' => array('callback' => 'taxonomy_patterns_export_single_vocabulary',
+                          //                             'arguments' => array('1', '2', '3'),
+                          //),
+                        ),
   );
 
   $actions['term'] = array(
-    PATTERNS_INFO 	=> t('Create/Modify/Delete Taxonomy Terms'),
+    PATTERNS_INFO   => t('Create/Modify/Delete Taxonomy Terms'),
     PATTERNS_CREATE => array('taxonomy_form_term'),
     PATTERNS_MODIFY => array('taxonomy_form_term'),
     PATTERNS_DELETE => array('taxonomy_term_confirm_delete'),
-    PATTERNS_FILES 	=> array('modules/taxonomy/taxonomy.admin.inc'),
+    PATTERNS_FILES  => array('modules/taxonomy/taxonomy.admin.inc'),
     PATTERNS_EXPORT => array(
-    										 	PATTERNS_EXPORT_ALL => 'taxonomy_patterns_export_all_terms',	
-													//'Single Term' => array('callback' => 'taxonomy_patterns_export_single_vocabulary',
-													//											 'arguments' => 'taxonomy_patterns_get_terms_args',
-    											//),
-											 ),
-  );
-	
-	/* Not used anymore
-	 
-  $actions['vocabulary_extract_all']  = array(
-    PATTERNS_INFO => t('Create/Modify/Delete Taxonomy Vocabularies'),
-    PATTERNS_MODIFY => array('taxonomy_form_vocabulary'),
-    PATTERNS_FILES => array('modules/taxonomy/taxonomy.admin.inc'),
+                          PATTERNS_EXPORT_ALL => 'taxonomy_patterns_export_all_terms',
+                          //'Single Term' => array('callback' => 'taxonomy_patterns_export_single_vocabulary',
+                          //                       'arguments' => 'taxonomy_patterns_get_terms_args',
+                          //),
+                        ),
   );
 
-  $actions['term_extract_all'] = array(
-    PATTERNS_INFO => t('Create/Modify/Delete Taxonomy Terms'),
-    PATTERNS_MODIFY => array('taxonomy_form_term'),
-    PATTERNS_FILES => array('modules/taxonomy/taxonomy.admin.inc'),
-  );
-	*/
-  
   return $actions;
 
 }
 
-// Return a list of forms/actions this component can handle
-function taxonomy_patterns_actions($data) {
-  return array(
-    'taxonomy_form_vocabulary' => t('Taxonomy: Add or edit vocabulary'),
-    'taxonomy_form_term' => t('Taxonomy: Add or edit a term to a vocabulary'),
-    'taxonomy_vocabulary_confirm_delete' => t('Taxonomy: Delete a vocabulary'),
-  );
-}
-
 
 function taxonomy_patterns_export_all_vocs($args = NULL, &$result = NULL) {
-	$info = taxonomy_patterns();
-	$form_id = current($info['vocabulary'][PATTERNS_MODIFY]);
-	$vocs = taxonomy_get_vocabularies();
-	$result = array();
-	foreach ($vocs as $voc) {
-		// It is important to user array merge. Pushing is not enough
-  	$result = array_merge($result, patterns_api_extract_actions($form_id, $voc, 'vocabulary', PATTERNS_MODIFY));
+  $info = taxonomy_patterns();
+  $form_id = current($info['vocabulary'][PATTERNS_MODIFY]);
+  $vocs = taxonomy_get_vocabularies();
+  $result = array();
+  foreach ($vocs as $voc) {
+    // It is important to user array merge. Pushing is not enough
+    $result = array_merge($result, patterns_api_extract_actions($form_id, $voc, 'vocabulary', PATTERNS_MODIFY));
   }
   return $result;
 }
 
 function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
-	$info = taxonomy_patterns();
-	$terms = entity_load('taxonomy_term');
-	$form_id = current($info['term'][PATTERNS_MODIFY]);
-	$result = array();
+  $info = taxonomy_patterns();
+  $terms = entity_load('taxonomy_term');
+  $form_id = current($info['term'][PATTERNS_MODIFY]);
+  $result = array();
   foreach ($terms as $term) {
-  	// It is important to user array merge. Pushing is not enough
-  	$result = array_merge($result, patterns_api_extract_actions($form_id, $term, 'term', PATTERNS_MODIFY));
+    // It is important to user array merge. Pushing is not enough
+    $result = array_merge($result, patterns_api_extract_actions($form_id, $term, 'term', PATTERNS_MODIFY));
   }
   return $result;
 }
@@ -119,7 +95,7 @@ function taxonomy_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE
     $terms = entity_load('taxonomy_term');
     if ($tag == 'vocabulary' && $action == PATTERNS_MODIFY
         && $form_id == 'taxonomy_form_vocabulary') {
-         return array(array_pop($terms));
+      return array(array_pop($terms));
     }
     elseif ($tag == 'term_extract_all') {
       $loop = TRUE;
@@ -133,6 +109,7 @@ function taxonomy_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE
 
 }
 
+
 // Prepare data for processing
 function taxonomy_patterns_prepare($action, $tag, &$data) {
   // dirty fix for the int <-> string problem
@@ -143,6 +120,11 @@ function taxonomy_patterns_prepare($action, $tag, &$data) {
   if (isset($data['old_machine_name']))
     $data['old_machine_name'] = '' . $data['old_machine_name'];
 
+	if (isset($data['descr'])) {
+		$data['description'] = $data['descr'];
+		unset($data['descr']); 
+	}    
+    
   // VOCABULARY
   if ($tag == 'vocabulary') {
     if ($action == PATTERNS_DELETE ) {
@@ -204,9 +186,26 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
       $msg = t("Vocabulary %vocab doesn't exist.", array('%vocab' => $data['vocabulary']));
     }
   }
+  else if ($tag == 'vocabulary') {
+  	$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
+  	$msg = t("The following mandatory keys were missing for tag %tag: ", array('%tag' => $tag));
+  	foreach ($keys as $key => $exist) {
+			if (!$exist) {
+				$status = PATTERNS_ERR;
+				$msg .= $key . ', ';
+			} 
+  	}
+  	$msg = substr($msg, 0, -2);
+  	
+  }
+  else {
+  	$status = PATTERNS_ERR;
+    $msg = t("Unknown tag: %tag.", array('%tag' => $tag));
+  }
 
   return patterns_results($status, $msg);
 }
+
 
 // Return which callback functions to actually use.
 function taxonomy_patterns_callbacks($action, $tag, &$data) {
@@ -215,6 +214,7 @@ function taxonomy_patterns_callbacks($action, $tag, &$data) {
   $result = $desc[$tag][$action];
   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
 }
+
 
 // Prepare for valid processing of this type of component
 function taxonomy_patterns_build($action, $form_id, &$data = NULL, &$a) {

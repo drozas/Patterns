@@ -1,3 +1,32 @@
+7060:
+
+		- All patterns hooks for executing patterns are optional now
+		- Validation is now also on the level of the single tags
+
+************************************************************************************
+
+
+7059:
+
+		- Fixed published patterns bug http://drupal.org/node/1619162
+
+7058:
+
+		- Created Patterns_export submodule.
+		- Patterns_components depends on patterns_export
+
+7057:
+
+		- Added checking in the export function if the component returns
+			an empty array.
+
+7056:
+
+		- PHP parser is working
+		- All parsers can dump comments (PHP parsers ignores them)
+		- All parsers can append to a previous dump
+		- Lab appends information to exported patterns
+
 7055:
 
 		- Tests are now restored

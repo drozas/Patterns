@@ -17,11 +17,6 @@ function toolbar_patterns($data) {
   return $actions;
 }
 
-function toolbar_patterns_actions($data) {
-  return array(
-    'user_admin_permissions' => t('Decide who can use toolbar'),
-    );
-}
 
 /**
  * hook_patterns_prepare()
@@ -89,10 +84,10 @@ function toolbar_patterns_validate($action, $tag, &$data) {
   if (is_array($data['addroles'])) {
     foreach ($data['addroles'] as $key => $value) {
       $rid = db_select('role', 'r')
-               ->fields('r', array('rid'))
-               ->condition('r.name', $value)
-               ->execute()
-               ->fetchField();
+              ->fields('r', array('rid'))
+              ->condition('r.name', $value)
+              ->execute()
+              ->fetchField();
       if ($rid == 3) {
         $status = PATTERNS_ERR;
         $msg = t('administrator should keep static.');
@@ -123,10 +118,10 @@ function toolbar_patterns_validate($action, $tag, &$data) {
   if (is_array($data['delroles'])) {
     foreach ($data['delroles'] as $key => $value) {
       $rid = db_select('role', 'r')
-               ->fields('r', array('rid'))
-               ->condition('r.name', $value)
-               ->execute()
-               ->fetchField();
+              ->fields('r', array('rid'))
+              ->condition('r.name', $value)
+              ->execute()
+              ->fetchField();
       if ($rid == 3) {
         $status = PATTERNS_ERR;
         $msg = t('administrator should keep static.');

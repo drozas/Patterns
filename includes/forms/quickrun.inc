@@ -12,9 +12,15 @@
  */
 function patterns_quickrun($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    return $form;
+  }
+
   $content = '';
 
-  $text = 'The quick run mode should be used only in development environment, for testing, or if you really know what you are doing.';  
+  $text = t('The quick run mode should be used only in development environment, for testing, or if you really know what you are doing.');
   patterns_forms_add_page_header($form, 'Important!', $text);
 
   $options_mode = array(

@@ -131,12 +131,22 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
     return $results;
   }
 
-  $funcs = $results['result'];
-
+  // If no special callback was returned, we use the functions
+  // specified in the hook_patterns for the action
+   if (!isset($results['result']) || empty($results['result'])) {
+  	$funcs = $form_ids;
+  }
+  else {
+  	$funcs = $results['result'];
+  }
+  
   // Build the action
   foreach ($funcs as $func) {
-    if (!in_array($func, $form_ids)) { // Run it as a custom callback function.
-      $result = $func($action, $data); // TODO: error checking
+    if (!in_array($func, $form_ids)) {
+			// TODO: check this case
+			// TODO: error checking
+    	// Run it as a custom callback function.
+      $result = $func($action, $data); 
       if (isset($result['msg'])) {
         drupal_set_message($result['msg']);
       }
@@ -165,6 +175,13 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
         return $results;
       }
 
+	    // If no special callback was returned, we use the data as it is
+      if (!isset($results['result']) || empty($results['result'])) {
+		  	$form_obj = $clone;
+		  }
+		  else {
+		  	$form_obj = $results['result'];
+		  }
 
       // Auto include FILES
       if (!empty($tag_info[PATTERNS_FILES])) {
@@ -172,9 +189,6 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
           require_once($file);
         }
       }
-
-
-      $form_obj = $results['result'];
 
       // We check for the 'storage' and 'submitted' values in the object to see
       // if it is a form_state instead of form_values. There could be a better way

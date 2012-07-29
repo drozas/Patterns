@@ -30,14 +30,7 @@ function block_patterns($data) {
 
 }
 
-function block_patterns_actions($data) {
-  return array(
-    'block_admin_display_form' => t('Block: Change the region or order of a block'),
-    'block_admin_configure' => t('Block: Configure block'),
-    'block_add_block_form' => t('Block: Add block'),
-    'block_custom_block_delete' => t('Block: Delete custom block')
-  );
-}
+
 
 // returns arguments needed for the forms when processing automatically
 // $loop is set if we want to extract all values

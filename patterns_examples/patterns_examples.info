@@ -1,5 +1,5 @@
 name = Patterns Examples
-description = A collection of examples of patterns files. Requires at least one valid patterns parser module must be enabled.
+description = A collection of patterns files. At least one valid patterns parser (e.g. YAML) must be enabled in order to load the example files.
 dependencies[] = patterns
 
 core = 7.x

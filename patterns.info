@@ -5,7 +5,7 @@ dependencies[] = libraries
 
 core = 7.x
 version = 7.x-1.x-dev
-build = 7055
+build = 7060
 package = Patterns
 php = 5.2
 
@@ -29,5 +29,5 @@ files[] = tests/node/content.test
 files[] = tests/node/node.test
 files[] = tests/toolbar/toolbar.test
 files[] = tests/shortcut/shortcut.test
-;files[] = tests/user/user.test
+files[] = tests/user/user.test
 

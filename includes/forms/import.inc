@@ -13,14 +13,18 @@
  */
 function patterns_import_source($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    return $form;
+  }
+
   $def_dir = patterns_path_get_files_dir();
 
-  $form['intro'] = array (
-		'#markup' => t('Cut and paste the content of a pattern file in the text area below to import it in the database.'),
-		'#prefix' => '<div id="intro_export"><strong>Import from Source: </strong>',
-		'#suffix' => '<hr><br/></div>',
-	);
-  
+  $text = t('Cut and paste the content of a pattern file in the text area below to import it in the database.');
+  $title = t('Import from Source');
+  patterns_forms_add_page_header($form, $title, $text);
+
   $form['name'] = array(
     '#type' => 'textfield',
     '#title' => t('Pattern Identifier'),
@@ -75,12 +79,22 @@ function patterns_import_source($form, &$form_state) {
  */
 function patterns_import_file($form, &$form_state) {
 
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+    return $form;
+  }
+
+
   $def_dir = patterns_path_get_files_dir();
-  
-	$text = 'Choose a local file to import in the database.';
-	$title = 'Import from File';
+
+  $text = 'Choose a local file to import in the database.';
+  $title = 'Import from File';
   patterns_forms_add_page_header($form, $title, $text);
-     
+
   $form['#attributes']['enctype'] = 'multipart/form-data';
 
   $form['pattern_uri'] = array(
@@ -132,10 +146,34 @@ function patterns_import_file($form, &$form_state) {
  */
 function patterns_import_url($form, &$form_state) {
 
-	$text = 'Insert the uri of a remote file to be downloaded and imported in the database.';
-	$title = 'Import from URL';
+  //$form = array();
+
+  //if (!patterns_parser_ready()) {
+  //  $form['noparser'] = array(
+  //    '#markup' => t('No Patterns parser found. Impossible to continue. Please enable at least one valid Patterns parser first.'),
+  //    '#prefix' => '<strong>',
+  //    '#suffix' => '</strong></br>',
+  //  );  
+  //  $form['parsers'] = array(
+  //    '#markup' => t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules'))),
+  //  );
+
+  //  return $form;
+  //}
+
+  $form = array();
+
+  if (!patterns_parser_ready()) {
+    $messages = t('No available patterns parser was found.</br>');
+    $messages .= t(' Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+    drupal_set_message($messages,'warning');
+    return $form;
+  }
+
+  $text = 'Insert the uri of a remote file to be downloaded and imported in the database.';
+  $title = 'Import from URL';
   patterns_forms_add_page_header($form, $title, $text);
-	
+
   if (!ini_get('allow_url_fopen')) {
     $form['import_url'] = array(
     // The string 'Feature disabled' is checked inside the test directory
@@ -144,7 +182,7 @@ function patterns_import_url($form, &$form_state) {
     '#markup' => t('directive "allow_url_fopen" must be enabled in your PHP configuration in order to use this feature.'),
     );
     return $form;
-   }
+  }
 
   $def_dir = patterns_path_get_files_dir();
 
@@ -210,8 +248,8 @@ function patterns_import_validate($form, &$form_state) {
   }
 
   if (!patterns_parser_exists($format)) {
-     form_set_error('format', t('The pattern format seems to be invalid.'));
-     return FALSE;
+    form_set_error('format', t('The pattern format seems to be invalid.'));
+    return FALSE;
   }
 
   // Safety assign
@@ -262,8 +300,8 @@ function patterns_import_validate($form, &$form_state) {
   $pattern = patterns_parser_parse($form_state['values']['content'], $format);
 
   if (!$pattern) {
-     form_set_error('content', t('Pattern could not parsed. Please make sure it is well formed.'));
-     return FALSE;
+    form_set_error('content', t('Pattern could not parsed. Please make sure it is well formed.'));
+    return FALSE;
   }
 
 
@@ -288,11 +326,11 @@ function patterns_import_submit($form, &$form_state) {
   $name = $form_state['values']['name'];
   $format = (isset($form_state['values']['format'])) ? $form_state['values']['format'] : PATTERNS_FORMAT_UNKNOWN;
 
-	// Add the extension if missing or invalid
-	if (!_patterns_io_file_has_valid_extension($name)) {
+  // Add the extension if missing or invalid
+  if (!_patterns_io_file_has_valid_extension($name)) {
     $name = $name . '.' . $format;
   }
-  
+
   $content = (isset($form_state['values']['pattern'])) ? $form_state['values']['pattern']
                                                       : $form_state['values']['content'];
 
@@ -322,31 +360,31 @@ function patterns_import_submit($form, &$form_state) {
  * Helper function to be called in one of the import validation handlers.
  */
 function _patterns_import_check_dirs($dir = NULL) {
- // Check Patterns Directory
- if (!_patterns_io_is_patterns_dir_ready($dir, FILE_CREATE_DIRECTORY)) {
-  $message = t("Destination folder does not exist or is not writable: %path<br />", array('%path' => $dir)); // TODO: move this out for performance
-  $link = l(t('status report'), 'admin/reports/status');
-  $message .= t('You might want to check the !link to ensure your files directory exists and is writable.', array('!link' => $link));
-  form_set_error('pattern_file', $message);
-  return FALSE;
- }
+  // Check Patterns Directory.
+  if (!_patterns_io_is_patterns_dir_ready($dir, FILE_CREATE_DIRECTORY)) {
+    $message = t("Destination folder does not exist or is not writable: %path<br />", array('%path' => $dir)); // TODO: move this out for performance
+    $link = l(t('status report'), 'admin/reports/status');
+    $message .= t('You might want to check the !link to ensure your files directory exists and is writable.', array('!link' => $link));
+    form_set_error('pattern_file', $message);
+    return FALSE;
+  }
 }
 
 /**
  * Helper function to be called in one of the import validation handlers.
  */
 function _patterns_import_check_name($name = '') {
- // Name Validation
- $errors_on_name = _patterns_parser_analyze_pattern_name($name);
- if (!empty($errors_on_name)) {
-  form_set_error('name', t('Errors in the name of the pattern: ' . implode(', ', $errors_on_name))); // TODO: use proper t()
-  return FALSE;
- }
+  // Name Validation.
+  $errors_on_name = _patterns_parser_analyze_pattern_name($name);
+  if (!empty($errors_on_name)) {
+    form_set_error('name', t('Errors in the name of the pattern: ' . implode(', ', $errors_on_name))); // TODO: use proper t()
+    return FALSE;
+  }
 
- if ($obj = patterns_db_load_pattern_from_name($name)) {
-  form_set_error('name', t('A pattern file with the same name already exists: !name', array('!name' => $name)));
-  return FALSE;
- }
+  if ($obj = patterns_db_load_pattern_from_name($name)) {
+    form_set_error('name', t('A pattern file with the same name already exists: !name', array('!name' => $name)));
+    return FALSE;
+  }
 }
 
 /**
