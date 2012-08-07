@@ -297,10 +297,9 @@ function patterns_drush_batch_module_enable($module_list, $enable_dependencies, 
   $context['finished'] = 1.0;
   //include('')
   module_enable($module_list);//, $enable_dependencies);
- $context['results']['log']['Return'][] = array('message' =>  l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
+ 	$context['results']['log']['Return'][] = array('message' =>  l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)), 'success' => 'Yuppie!');
   return;
 }
-
 
  /**
  * Download the release history xml for the specified request.
