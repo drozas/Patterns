@@ -50,7 +50,7 @@ function patterns_lab($form, &$form_state) {
     );
     $rows[$pid+1] = $row; // somehow we get (pid -1) in the submit handler
   }
-
+  
   $text = 'In this area you can experiment by mixing several patterns together into a new one. The resulting pattern file can be imported into the database or downloaded as a file.';
   $title = 'Patterns Lab';
   patterns_forms_add_page_header($form, $title, $text);

@@ -1,9 +1,18 @@
 <?php
 
 module_load_include('inc', 'api');
+module_load_include('module', 'update');
 module_load_include('inc', 'update', 'update.manager');
-include drupal_get_path('module', 'update') . '/update.authorize.inc';
-include 'includes/module.inc';
+module_load_include('inc', 'update', 'update.authorize');
+include_once 'includes/module.inc';
+
+//module_load_include('inc', 'api');
+//module_load_include('module', 'update');
+//module_load_include('inc', 'update', 'update.manager');
+//include drupal_get_path('module', 'update') . '/update.authorize.inc';
+
+//include drupal_get_path('module', 'update') . '/update.authorize.inc';
+
 
 /*
  * $modules is an array of tuples (module name, drupal version)
@@ -114,12 +123,13 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
   $authorize = FALSE;
   
   //$output = array();
-  if(!isset($form_state['values']['all']))
+  if (!isset($form_state['values']['all']))
     $form_state['values']['all'] = array();
-  foreach($form_state['values']['all'] as $module => $info) {
-    echo $module;
     
-    if($module == 'submit')
+    foreach($form_state['values']['all'] as $module => $info) {
+    //echo $module;
+    
+    if ($module == 'submit')
       continue;
       
     $drupal_version = $info['drupal_version'];
@@ -132,6 +142,8 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
     $releases = $xml->xpath("/project/releases/release");
     // if none was chosen, do nothing
     $release = $form_state['values']['all'][$module]['radios'] - 1;
+    
+    
     if($release >= 0) {
       unset($context);
       $context['sandbox']['started'] = TRUE;
@@ -153,6 +165,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
       // TODO: more informative error messages
       // TODO: error handling
       $project_location = $extract_directory . '/' . $module;
+      
       try {
         $updater = Updater::factory($project_location);
       }
@@ -180,6 +193,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
       }
     
       $project_real_location = drupal_realpath($project_location);
+      
       // If the owner of the directory we extracted is the same as the
       // owner of our configuration directory (e.g. sites/default) where we're
       // trying to install the code, there's no need to prompt for FTP/SSH
@@ -190,8 +204,10 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
         'updater_name' => get_class($updater),
         'local_url' => $project_real_location,
       );
+      
       module_load_include('inc', 'update', 'update.authorize');
       $filetransfer = new FileTransferLocal(DRUPAL_ROOT);
+      
         // call_user_func_array('update_authorize_run_install_modified', array_merge(array($filetransfer), $arguments));
       $operations[] = array(
         'update_authorize_batch_copy_project',
@@ -201,6 +217,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
             $filetransfer,
         ),
       );
+      
       // check if we have enough rights - otherwise ask for authorization
       if (fileowner($project_real_location) == fileowner(conf_path())) {
 
@@ -221,7 +238,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
   // add operations to enable modules
   $modules_to_enable = array();
   $enable_dependencies = FALSE;
-  if(isset($form_state['values']['modules_to_enable'])) {
+  if (isset($form_state['values']['modules_to_enable'])) {
     foreach($form_state['values']['modules_to_enable'] as $key => $value) {
       if($key != 'enable_dependencies')
         $modules_to_enable[] = $form_state['values']['modules_to_enable'][$key];
@@ -246,7 +263,7 @@ function patterns_drush_dlenable_modules_form_submit($form, &$form_state) {
 
   if ($authorize) {
     drupal_set_message('PHP does not have the rights to download to the modules folder', 'error');
-    return;
+    //return;
     system_authorized_init('patterns_drush_batch', drupal_get_path('module', 'Patterns') . '/includes/api/drush.inc', array($batch), t('Installing modules'));
     $form_state['redirect'] = system_authorized_get_url();
     return;
@@ -277,12 +294,14 @@ function patterns_drush_callback($filetransfer, $arguments_array) {
  */
 function patterns_drush_batch_module_enable($module_list, $enable_dependencies, &$context) {
 
-$context['finished'] = 1.0;
+  $context['finished'] = 1.0;
   //include('')
   module_enable($module_list);//, $enable_dependencies);
  $context['results']['log']['Return'][] = array('message' =>  l('Click here to return.', 'admin/patterns/check/' . variable_get('patterns_pid', 0)));
   return;
 }
+
+
  /**
  * Download the release history xml for the specified request.
  * based on drush's "_drush_pm_get_release_history_xml($request)" function
