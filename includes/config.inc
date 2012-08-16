@@ -126,21 +126,6 @@ function patterns_config_settings($form, &$form_state) {
     '#default_value' => variable_get('patterns_public_url', ''),
   );
 
-  $form['drush'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Drush Integration'),
-    '#collapsible' => TRUE,
-    '#collapsed' => FALSE,
-
-  );
-
-  $form['drush']['patterns_drush_path'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Drush Path'),
-    '#description' => t('If you have drush installed, please specify the path. Otherwise leave it empty'),
-    '#required' => FALSE,
-  );
-
   $form['other'] = array(
     '#type' => 'fieldset',
     '#title' => t('Other'),
