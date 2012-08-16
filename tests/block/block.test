@@ -150,11 +150,11 @@ class PatternsBlockTestCase extends PatternsTestCase {
     $this->assertIdentical($block[0]->custom, '1');
     $this->assertIdentical($block[0]->visibility, '0');
     $this->assertEqual($block[0]->pages, "page2\r\npage3\r\npage4");
-    debug($block);
+    //debug($block);
 
     $block = db_select('block', 'b')
       ->fields('b')->execute()->fetchAll();
-    debug($block);
+    //debug($block);
     $this->drupalGet('admin/structure/block');
     $this->drupalGet('admin/structure/block/manage/block/1/configure');
   }
