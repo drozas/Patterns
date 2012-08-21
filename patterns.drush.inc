@@ -361,11 +361,16 @@ function drush_patterns_form_helper($action) {
  * patterns list command callback.
  */
 function drush_patterns_allow_publish($action) {
-  if ($action == 'enable') {
-    variable_set('patterns_allow_publish', TRUE);
+	if ($action == 'enable') {
+    drush_print("Patterns publishing patterns enabled.");
+		variable_set('patterns_allow_publish', TRUE);
+  }
+  else if ($action == 'disable' ) {
+  	drush_print("Patterns publishing patterns disabled.");
+    variable_set('patterns_allow_publish', FALSE);
   }
   else {
-    variable_set('patterns_allow_publish', FALSE);
+  	drush_print("Unrecognized option.");
   }
 }
 
