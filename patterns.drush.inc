@@ -34,6 +34,21 @@ function patterns_drush_help($section) {
  */
 function patterns_drush_command() {
 
+	$items['patterns-quickrun'] = array(
+    'callback' => 'drush_patterns_quickrun',
+    'description' => 'Load a pattern file and executes it without saving it into the database',
+    'examples' => array(
+      'drush patterns-quickrun file_name [format] [options]' => 'Load a pattern file and executes it without saving it into the database',
+    ),
+    'arguments' => array(
+      'file_name' => 'The path to the a pattern file',
+    	'format' => 'Optional. The format of the pattern. If not specified, it will be determined by the extension.',
+      'format' => 'Optional. Additional options for the pattern execution.'        
+    ),
+    'drupal dependencies' => array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token'),
+    'core' => array('7'),
+  );
+  
   $items['patterns-enable'] = array(
     'callback' => 'drush_patterns_enable',
     'description' => 'Enable the specified pattern name',
@@ -117,6 +132,30 @@ function patterns_drush_command() {
     )
   );
   return $items;
+}
+
+function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	drush_print(dt('Patterns quick-run.'));
+	if ($format === PATTERNS_FORMAT_UNKNOWN) {
+		$format = pathinfo($file, PATHINFO_EXTENSION);
+	}
+	if (!patterns_parser_exists($format)) {
+		drush_print(dt('Unable to identify patterns format. Please specify it.'));
+		return;
+	}
+	drush_print(dt('Format: ' . $format));
+	$result = FALSE;
+	
+	$pattern_string = patterns_parser_parse($file, $format);
+	$pattern = patterns_parser_parse($pattern_string, $format);
+	$param = array('run-subpatterns' => TRUE);
+	$result = patterns_start_engine($pattern, $params);
+	if ($result) {
+		drush_print(dt('Pattern execution started.'));
+	}
+	else {
+		drush_print(dt('An error occurred while processing the pattern file.'));
+	}
 }
 
 /**
