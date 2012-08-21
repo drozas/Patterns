@@ -387,8 +387,13 @@ function drush_patterns_paths() {
  * patterns publish command callback.
  */
 function drush_patterns_publish($pid) {
-  if (is_numeric($pid)) {
-    $result = db_query("UPDATE {patterns} SET public = 1 WHERE pid = %d", $pid);
+	drush_print("Publishing pattern.");
+  $result = patterns_db_publish_pattern($pid);
+  if ($result) {
+  	drush_print("Operation was successful");	
+  }
+  else {
+  	drush_print("An error occurred, patterns was not marked as public.");	
   }
 }
 
@@ -396,8 +401,13 @@ function drush_patterns_publish($pid) {
  * patterns unpublish command callback.
  */
 function drush_patterns_unpublish($pid) {
-  if (is_numeric($pid)) {
-    $result = db_query("UPDATE {patterns} SET public = 0 WHERE pid = %d", $pid);
+	drush_print("Unpublishing a pattern.");
+  $result = patterns_db_unpublish_pattern($pid);
+  if ($result) {
+  	drush_print("Operation was successful");	
+  }
+  else {
+  	drush_print("An error occurred, patterns public status could not be changed.");	
   }
 }
 
