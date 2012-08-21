@@ -26,7 +26,7 @@
  * @see _patterns_scan_analyze_patternscan()
  *
  */
-function patterns_scan_pattern($pattern, $include = FALSE) {
+function patterns_scan_pattern($pattern, $include = FALSE) {	
   $generic_error = t('pattern not loaded correctly');
   $result = array(
                   'info' => 0,

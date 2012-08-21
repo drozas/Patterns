@@ -337,7 +337,7 @@ function patterns_validate_service() {
  *   FALSE if there were errors (in which case the errors will be displayed).
  */
 function patterns_parser_get_pattern_details($pattern, $recursive = FALSE, &$pids = array()) {
-  $scan = patterns_scan_pattern($pattern->pattern);
+	$scan = patterns_scan_pattern($pattern->pattern);
   // This will display errors if there are any.
   if (!_patterns_scan_validate_patternscan($scan, TRUE)) return FALSE;
 

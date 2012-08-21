@@ -38,12 +38,13 @@ function patterns_drush_command() {
     'callback' => 'drush_patterns_quickrun',
     'description' => 'Load a pattern file and executes it without saving it into the database',
     'examples' => array(
-      'drush patterns-quickrun file_name [format] [options]' => 'Load a pattern file and executes it without saving it into the database',
+      'drush patterns-quickrun file_name [format] [options] [mode]' => 'Load a pattern file and executes it without saving it into the database',
     ),
     'arguments' => array(
       'file_name' => 'The path to the a pattern file',
     	'format' => 'Optional. The format of the pattern. If not specified, it will be determined by the extension.',
-      'format' => 'Optional. Additional options for the pattern execution.'        
+      'params' => 'Optional. Additional options for the pattern execution.',
+    	'mode' => 'Optional. Execute via batch or php',        
     ),
     'drupal dependencies' => array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token'),
     'core' => array('7'),
@@ -134,7 +135,7 @@ function patterns_drush_command() {
   return $items;
 }
 
-function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params, $mode = 'php') {
 	drush_print(dt('Patterns quick-run.'));
 	if ($format === PATTERNS_FORMAT_UNKNOWN) {
 		$format = pathinfo($file, PATHINFO_EXTENSION);
@@ -145,11 +146,11 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN) {
 	}
 	drush_print(dt('Format: ' . $format));
 	$result = FALSE;
-	
-	$pattern_string = patterns_parser_parse($file, $format);
-	$pattern = patterns_parser_parse($pattern_string, $format);
+	$pattern['pattern'] = patterns_parser_load($file, $format);
+	$pattern = patterns_get_pattern_obj($pattern);
 	$param = array('run-subpatterns' => TRUE);
-	$result = patterns_start_engine($pattern, $params);
+	$result = patterns_start_engine($pattern, $params, $mode);
+	
 	if ($result) {
 		drush_print(dt('Pattern execution started.'));
 	}
