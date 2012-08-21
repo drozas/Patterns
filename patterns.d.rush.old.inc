@@ -297,7 +297,7 @@ function drush_patterns_enable($id, $subpattern_mode = 'first-update') {
  */
 function drush_patterns_list() {
   $patterns = patterns_io_get_patterns();
-	$patterns = $patterns[PATTERNS_STATUS_OK];
+
   $pipe = array();
   $rows[] = array(dt('Id'), dt('Name'), dt('Title'), dt('Status'), dt('Version'));
   foreach ($patterns as $pid => $pattern) {
