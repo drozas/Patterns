@@ -373,7 +373,7 @@ function drush_patterns_allow_publish($action) {
  * patterns list command callback.
  */
 function drush_patterns_paths() {
-  $paths = patterns_paths();
+  $paths = patterns_path_get_patterns_dirs();
   drush_print("Paths to look for patterns:");
   foreach ($paths as $path) {
     drush_print("- $path", 4);
