@@ -160,14 +160,14 @@ function patterns_drush_command() {
 function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php', $params = array()) {
 	drush_print(dt('Patterns quick-run.'));
 	if (!drush_file_not_empty($file)) {
-		drupal_set_message(dt('File does not exists or is not readable. Aborting.'), 'error');
+		drush_set_error(dt('File does not exists or is not readable. Aborting.'));
 		return;
 	}
 	if ($format === PATTERNS_FORMAT_UNKNOWN) {
 		$format = pathinfo($file, PATHINFO_EXTENSION);
 	}
 	if (!patterns_parser_exists($format)) {
-		drupal_set_message(dt('Unable to identify patterns format. Please specify it.'), 'error');
+		drush_set_error(dt('Unable to identify patterns format. Please specify it as second parameter'));
 		return;
 	}
 	drush_print(dt('Format: ' . $format));
@@ -175,7 +175,7 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
 	$pattern = array();
 	$pattern['pattern'] = patterns_parser_load($file, $format);
 	$pattern = patterns_get_pattern_obj($pattern);
-	$param = array('run-subpatterns' => TRUE);
+	$params = array('run-subpatterns' => TRUE);
 	$result = patterns_start_engine($pattern, $params, $mode);
 	
 	if ($result) {
@@ -197,7 +197,7 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
  * @param string pattern file pathname
  * @param string optional machine readable pattern name
  */
-function drush_patterns_run($pattern_file, $pattern_name = '') {
+function drush_patterns_run($pattern_file, $mode = 'php', $params = array()) {
   /** Since I want to be able to specify a file name in my interface, in
    * order to use the patterns_get_pattern() logic as is, I need to
    * standardize on pattern name, and fire off this "redundant" query to do
@@ -216,7 +216,8 @@ function drush_patterns_run($pattern_file, $pattern_name = '') {
 
     if (!$name) {
       if (drush_confirm(dt("Pattern '$pattern_file' has not been imported. Do you want to import it now? "))) {
-        $name = drush_patterns_import($pattern_file, $pattern_name);
+        $default = "pattern_" . strval(time());
+      	$name = drush_prompt("How would you like to call it?", $default, TRUE);
       }
       else {
         drush_print(dt('patterns-run has been cancelled.'));
@@ -225,11 +226,11 @@ function drush_patterns_run($pattern_file, $pattern_name = '') {
     }
   }
 
-  // makes sure the most recent version is loaded. who wants an old pattern?
-  $patterns = patterns_io_get_patterns();
+  $pattern = patterns_get_pattern($name);
 
   if ($name) {
-    $result = drush_patterns_enable($name, $subpattern_mode);
+    $params = array('run-subpatterns' => TRUE);
+		$result = patterns_start_engine($pattern, $params, $mode);
   }
 
   if (!$result) {
