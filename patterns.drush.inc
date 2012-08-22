@@ -4,6 +4,8 @@
  * Drush Patterns module commands
  */
 
+$dependencies = array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token');
+
 /**
  * Implements hook_drush_help().
  */
@@ -46,7 +48,7 @@ function patterns_drush_command() {
       'params' => 'Optional. Additional options for the pattern execution.',
     	'mode' => 'Optional. Execute via batch or php',        
     ),
-    'drupal dependencies' => array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token'),
+    'drupal dependencies' => $dependencies,
     'core' => array('7'),
   );
   
@@ -59,9 +61,10 @@ function patterns_drush_command() {
     'arguments' => array(
       'id' => 'A pattern id or name',
     ),
-    'drupal dependencies' => array('patterns', 'token'),
+    'drupal dependencies' => $dependencies,
     'core' => array('7'),
   );
+  
   $items['patterns-import'] = array(
     'callback' => 'drush_patterns_import',
     'description' => 'Import the specified pattern file.',
@@ -74,9 +77,10 @@ function patterns_drush_command() {
       'pattern_file' => 'The path to a pattern file, beginning from the Drupal base directory',
       'pattern_name' => 'Enter a pattern name if you wish to override the title field entered in a pattern.'
     ),
-    'drupal dependencies' => array('patterns', 'token'),
+    'drupal dependencies' => $dependencies,
     'core' => array('7'),
   );
+  
   $items['patterns-run'] = array(
     'callback' => 'drush_patterns_run',
     'description' => 'Import and enable the specified pattern file',
@@ -89,13 +93,15 @@ function patterns_drush_command() {
       'pattern_file' => 'The path to a pattern file',
       'pattern_name' => 'An optional machine-readable pattern name to override the one automatically generated from the title field of the pattern'
     ),
-    'drupal dependencies' => array('patterns', 'token'),
+    'drupal dependencies' => $dependencies,
     'core' => array('7'),
   );
+  
   $items['patterns-list'] = array(
     'callback' => 'drush_patterns_list',
     'description' => "List all available patterns."
   );
+  
   $items['patterns-info'] = array(
     'callback' => 'drush_patterns_info',
     'description' => "Show all info on a given pattern.",
@@ -104,38 +110,54 @@ function patterns_drush_command() {
     )
   );
 
-  //NOT CLEANED YET
   $items['patterns-form-helper'] = array(
     'description' => 'Enable/disable patterns form helper',
     'arguments' => array(
       'action' => "Valid values: enable, disable.",
     )
   );
+  
   $items['patterns-allow-publish'] = array(
     'description' => 'Enable/disable patterns publishing',
     'arguments' => array(
       'action' => "Valid values: enable, disable.",
     )
   );
+  
   $items['patterns-paths'] = array(
     'description' => "List all paths patterns will be looked for",
+    'drupal dependencies' => array('patterns'),
   );
+  
   $items['patterns-publish'] = array(
     'description' => "Publish a pattern.",
     'arguments' => array(
       'pid' => "The ID of the pattern to publish.",
-    )
+    ),
+    'drupal dependencies' => array('patterns'),
   );
+  
   $items['patterns-unpublish'] = array(
     'description' => "Unpublish a pattern.",
     'arguments' => array(
       'pid' => "The ID of the pattern to unpublish.",
-    )
+    ),
+    'drupal dependencies' => array('patterns'),
   );
   return $items;
 }
 
-function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params = array(), $mode = 'batch') {
+// Callbacks
+
+/**
+ * Run a pattern file without importing it into the database
+ * 
+ * @param string $file The path to the pattern file
+ * @param string $format Optional. The format of the pattern.
+ * @param string $mode Optional. batch or php. Defaults php.
+ * @param unknown_type $params
+ */
+function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php', $params = array()) {
 	drush_print(dt('Patterns quick-run.'));
 	if (!drush_file_not_empty($file)) {
 		drupal_set_message(dt('File does not exists or is not readable. Aborting.'), 'error');
@@ -165,12 +187,13 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $para
 		drush_print(dt('Pattern execution started.'));
 	}
 	else {
-		drupal_set_message(dt('An error occurred while processing the pattern file.'), 'error');
+		drush_set_error(dt('An error occurred while processing the pattern file.'));
 	}
 }
 
 /**
  * Imports, Enables, and Runs the specified pattern file
+ * 
  * @param string pattern file pathname
  * @param string optional machine readable pattern name
  */
@@ -391,10 +414,6 @@ function drush_patterns_info($id) {
   drush_print($info);
 }
 
-
-
-//NOT CLEANED UP YET
-
 /**
  * patterns list command callback.
  */
@@ -420,7 +439,7 @@ function drush_patterns_allow_publish($action) {
     variable_set('patterns_allow_publish', FALSE);
   }
   else {
-  	drush_print("Unrecognized option.");
+  	drush_set_error(dt("Unrecognized option."));
   }
 }
 
@@ -448,7 +467,7 @@ function drush_patterns_publish($pid) {
   	drush_print("Operation was successful");	
   }
   else {
-  	drush_print("An error occurred, patterns was not marked as public.");	
+  	drush_set_error(dt("An error occurred, patterns was not marked as public."));	
   }
 }
 
@@ -462,9 +481,12 @@ function drush_patterns_unpublish($pid) {
   	drush_print("Operation was successful");	
   }
   else {
-  	drush_print("An error occurred, patterns public status could not be changed.");	
+  	drush_set_error(dt("An error occurred, patterns public status could not be changed."));	
   }
 }
+
+///////////////////////////////////////// OLD BATCH
+
 
 /**
  * This is a fork of patterns_execute_patterns_batch(), and will be adapted
