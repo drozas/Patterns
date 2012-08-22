@@ -339,7 +339,7 @@ function patterns_import_validate($form, &$form_state) {
   $patternscan = patterns_scan_pattern($pattern);
   if (!_patterns_scan_validate_patternscan($patternscan)) {
     $errors_on_scan = _patterns_scan_analyze_patternscan($patternscan);
-    form_set_error('name', t('Error parsing the YAML file: ' . implode(', ', $errors_on_scan))); // TODO: proper t()
+    form_set_error('name', t('Error parsing the file: ' . implode(', ', $errors_on_scan))); // TODO: proper t()
   }
 
 

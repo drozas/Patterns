@@ -65,7 +65,7 @@ function patterns_drush_command() {
     'core' => array('7'),
       );
 
-      $items['patterns-import'] = array(
+  $items['patterns-import'] = array(
     'callback' => 'drush_patterns_import',
     'description' => 'Import the specified pattern file.',
     'examples' => array(
@@ -79,7 +79,24 @@ function patterns_drush_command() {
       ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
-      );
+   );
+   
+   $items['patterns-import-remote'] = array(
+    'callback' => 'drush_patterns_import_remote',
+    'description' => 'Import a remote pattern file.',
+    'examples' => array(
+      'drush patterns-import-remote http://myserver.org/mypattern.yaml' =>
+        'Import a remote pattern file.',
+      'drush patterns-import-remote http://myserver.org/mypattern [format]' =>
+        'Import a remote pattern file and specify the format.',
+    ),
+    'arguments' => array(
+      'uri' => 'The uri to a pattern file',
+      'format' => 'A valid pattern format, e.g. xml or yaml.'
+      ),
+    'drupal dependencies' => $dependencies,
+    'core' => array('7'),
+   );
 
       $items['patterns-run'] = array(
     'callback' => 'drush_patterns_run',
@@ -199,83 +216,9 @@ function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNWON, $mode = 'p
  * @return mixed bool|string FALSE upon failure; the name of the imported
  * pattern upon success
  */
-function drush_patterns_import($pattern_file, $pattern_name = '') {
-	static $patterns_dir = NULL;
-
-	drush_print(dt("Importing new pattern file '$pattern_file'"));
-
-	if (!file_exists($pattern_file)) {
-		drush_set_error(dt("File '$pattern_file' does not exist."));
-		return FALSE;
-	}
-	$form_state = array();
-	$form_state['values'] = array();
-	$pattern_path_info = pathinfo($pattern_file);
-	$result = TRUE;
-	$err_msg = '';
-	if ($pattern_path_info['extension'] == 'yaml') {
-		drush_set_error(dt('Import feature currently supports only XML file format.'), 'warning');
-	}
-	else { //assume xml
-		$xml = file_get_contents($pattern_file);
-		if (!$xml) {
-			drush_set_error(dt("XML pattern file '$pattern_file' is unreadable."));
-			$result = FALSE;
-		}
-	}
-	if (!$result) {
-		drush_set_error(dt("Failed to import '$pattern_file'."));
-		return FALSE;
-	}
-	// no pretty support in simplexml_..., so using DOMDocument
-	$xmldoc = new DOMDocument();
-	$xmldoc->formatOutput = TRUE;
-	$xmldoc->loadXML($xml);
-	$pattern_source = $xmldoc->saveXML();
-
-	if (empty($pattern_name)) {
-		$xpath = new DOMXpath($xmldoc);
-		$query = 'info/title';
-		$entries = $xpath->query($query); //returns DOMNodeList
-		foreach ($entries as $entry) {
-			$pattern_name = $entry->textContent;
-			break;
-		}
-	}
-	/**
-	 * Make sure pattern name is machine readable
-	 *
-	 * would rather do this all in one go, but I can't seem to make the order
-	 * of the replacements work right.
-	 */
-	$pattern_name = preg_replace(array('/^_/', '/[^a-zA-Z0-9\s_]+/'), '', $pattern_name);
-	$pattern_name = preg_replace('/\s+/', '_', $pattern_name);
-	// Mimic the form in patterns_import_source.
-	$form_state['post'] = TRUE;
-	$form_state['values']['xmlsource'] = $pattern_source;
-	$form_state['values']['xmlname'] = $pattern_name;
-	$return = $pattern_name;
-	//Ok. so let's use the patterns API for executing this ad hoc form.
-	patterns_execute_action('patterns_import_source', $form_state, array());
-	$errors = form_get_errors();
-	if ($errors) {
-		$output = '';
-		while (list($field, $err) = each($errors)) {
-			$output .= "[$field]:\t$err\n";
-		}
-		drush_set_error(dt($output));
-		$return = FALSE;
-	}
-	$msgs = drupal_get_messages();
-	if ($msgs) {
-		$output = '';
-		while (list($type, $ms) = each($msgs)) {
-			$output .= "[$type]:\n\t" . implode("\n", $ms) . "\n\n";
-		}
-		drush_print(dt($output));
-	}
-	//give back the name of the pattern upon success, FALSE on errors
-	return $return;
+function drush_patterns_import_remote($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	drush_print(dt("Importing pattern file from remote uri: " . $file));
+	return patterns_io_import_remote($file, $format);
 }
 
 /**
