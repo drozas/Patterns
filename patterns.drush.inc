@@ -179,7 +179,7 @@ function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNWON, $mode = 'p
 	if (!$pattern) {
 		if (drush_file_not_empty($name)) {
 			if (drush_confirm(dt("Pattern '$name' has not been imported. Do you want to import it now? "))) {
-				//patterns_io_save
+				//patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML)
 			}
 		}
 		else {
@@ -188,8 +188,6 @@ function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNWON, $mode = 'p
 		}
 	}
 
-
-	$pattern = patterns_get_pattern($name);
 
 	return $result;
 }
