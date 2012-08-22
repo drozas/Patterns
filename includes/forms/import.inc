@@ -4,6 +4,38 @@
  * Importing Patterns from a file or using an URL.
  */
 
+
+/**
+ * Helper function to be called in one of the import validation handlers.
+ */
+function _patterns_import_check_dirs($dir = NULL) {
+  // Check Patterns Directory.
+  if (!_patterns_io_is_patterns_dir_ready($dir, FILE_CREATE_DIRECTORY)) {
+    $message = t("Destination folder does not exist or is not writable: %path<br />", array('%path' => $dir)); // TODO: move this out for performance
+    $link = l(t('status report'), 'admin/reports/status');
+    $message .= t('You might want to check the !link to ensure your files directory exists and is writable.', array('!link' => $link));
+    form_set_error('pattern_file', $message);
+    return FALSE;
+  }
+}
+
+/**
+ * Helper function to be called in one of the import validation handlers.
+ */
+function _patterns_import_check_name($name = '') {
+  // Name Validation.
+  $errors_on_name = _patterns_parser_analyze_pattern_name($name);
+  if (!empty($errors_on_name)) {
+    form_set_error('name', t('Errors in the name of the pattern: ' . implode(', ', $errors_on_name))); // TODO: use proper t()
+    return FALSE;
+  }
+
+  if ($obj = patterns_db_load_pattern_from_name($name)) {
+    form_set_error('name', t('A pattern file with the same name already exists: !name', array('!name' => $name)));
+    return FALSE;
+  }
+}
+
 /**
  * Form constructor for the Pattern import form.
  *
@@ -352,38 +384,6 @@ function patterns_import_submit($form, &$form_state) {
     drupal_set_message(t('File %name could not be saved on the server. Import failed.', array('%name' => $name)), 'error');
   }
   $form_state['redirect'] = 'admin/patterns';
-}
-
-
-/**
- * Helper function to be called in one of the import validation handlers.
- */
-function _patterns_import_check_dirs($dir = NULL) {
-  // Check Patterns Directory.
-  if (!_patterns_io_is_patterns_dir_ready($dir, FILE_CREATE_DIRECTORY)) {
-    $message = t("Destination folder does not exist or is not writable: %path<br />", array('%path' => $dir)); // TODO: move this out for performance
-    $link = l(t('status report'), 'admin/reports/status');
-    $message .= t('You might want to check the !link to ensure your files directory exists and is writable.', array('!link' => $link));
-    form_set_error('pattern_file', $message);
-    return FALSE;
-  }
-}
-
-/**
- * Helper function to be called in one of the import validation handlers.
- */
-function _patterns_import_check_name($name = '') {
-  // Name Validation.
-  $errors_on_name = _patterns_parser_analyze_pattern_name($name);
-  if (!empty($errors_on_name)) {
-    form_set_error('name', t('Errors in the name of the pattern: ' . implode(', ', $errors_on_name))); // TODO: use proper t()
-    return FALSE;
-  }
-
-  if ($obj = patterns_db_load_pattern_from_name($name)) {
-    form_set_error('name', t('A pattern file with the same name already exists: !name', array('!name' => $name)));
-    return FALSE;
-  }
 }
 
 /**
