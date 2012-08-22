@@ -88,7 +88,6 @@ function patterns_import_file($form, &$form_state) {
     return $form;
   }
 
-
   $def_dir = patterns_path_get_files_dir();
 
   $text = 'Choose a local file to import in the database.';
