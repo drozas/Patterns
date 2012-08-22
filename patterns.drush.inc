@@ -135,17 +135,22 @@ function patterns_drush_command() {
   return $items;
 }
 
-function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params, $mode = 'php') {
+function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params = array(), $mode = 'php') {
 	drush_print(dt('Patterns quick-run.'));
+	if (!drush_file_not_empty($file)) {
+		drupal_set_message(dt('File does not exists or is not readable. Aborting.'), 'error');
+		return;
+	}
 	if ($format === PATTERNS_FORMAT_UNKNOWN) {
 		$format = pathinfo($file, PATHINFO_EXTENSION);
 	}
 	if (!patterns_parser_exists($format)) {
-		drush_print(dt('Unable to identify patterns format. Please specify it.'));
+		drupal_set_message(dt('Unable to identify patterns format. Please specify it.'), 'error');
 		return;
 	}
 	drush_print(dt('Format: ' . $format));
 	$result = FALSE;
+	$pattern = array();
 	$pattern['pattern'] = patterns_parser_load($file, $format);
 	$pattern = patterns_get_pattern_obj($pattern);
 	$param = array('run-subpatterns' => TRUE);
@@ -155,7 +160,7 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $para
 		drush_print(dt('Pattern execution started.'));
 	}
 	else {
-		drush_print(dt('An error occurred while processing the pattern file.'));
+		drupal_set_message(dt('An error occurred while processing the pattern file.'), 'error');
 	}
 }
 
