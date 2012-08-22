@@ -135,7 +135,7 @@ function patterns_drush_command() {
   return $items;
 }
 
-function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params = array(), $mode = 'php') {
+function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $params = array(), $mode = 'batch') {
 	drush_print(dt('Patterns quick-run.'));
 	if (!drush_file_not_empty($file)) {
 		drupal_set_message(dt('File does not exists or is not readable. Aborting.'), 'error');
@@ -157,6 +157,11 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $para
 	$result = patterns_start_engine($pattern, $params, $mode);
 	
 	if ($result) {
+		if ($mode === 'batch') {
+  		$batch = &batch_get();
+  		$batch['progressive'] = FALSE;
+			drush_backend_batch_process();
+		}
 		drush_print(dt('Pattern execution started.'));
 	}
 	else {
