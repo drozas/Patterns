@@ -164,6 +164,19 @@ function patterns_drush_command() {
     return $items;
 }
 
+// Helper functions
+
+function patterns_drush_get_file_format($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	$format = patterns_io_get_format_from_file($name, $format, FALSE);
+	if (!$format) {
+		$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
+		if (!patterns_parser_exists($format)) {
+			return FALSE;
+		}
+	}
+	return $format;
+}
+
 // Callbacks
 
 /**
@@ -176,8 +189,11 @@ function patterns_drush_command() {
  */
 function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php', $params = array()) {
 	drush_print(dt('Patterns quick-run.'));
-	$format = patterns_utils_get_format_from_file($file, $format);
-	if (!$format) return;	
+	$format = patterns_drush_get_file_format($file, $format);
+	if (!$format) {
+		drush_set_error('Invalid pattern format. Aborting');
+		return FALSE;
+	}
 	drush_print(dt('Format: ' . $format));
 
 	return patterns_load_file_and_start_engine($file, $format, $mode, $params);
@@ -189,9 +205,8 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
  * @param string pattern file pathname
  * @param string optional machine readable pattern name
  */
-function drush_patterns_run($name, $mode = 'php', $params = array()) {
+function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php', $params = array()) {
 	drush_print(dt('Running pattern: ' . $name));
-	$format = FALSE;
 	
 	$pattern = patterns_get_pattern($name);
 	if (!$pattern) {
@@ -205,17 +220,10 @@ function drush_patterns_run($name, $mode = 'php', $params = array()) {
 			return FALSE;
 		}
 			
-		$format = patterns_io_get_format_from_file($name, PATTERNS_FORMAT_UNKNOWN, FALSE);
+		$format = patterns_drush_get_file_format($file, $format);
 		if (!$format) {
-			$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
-			if (!$format) {
-				drush_print(dt('patterns-run has been canceled.'));
-				return FALSE;
-			}
-			
-			if (!patterns_parser_exists($format)) {
-				return FALSE;
-			}
+			drush_set_error('Invalid pattern format. Aborting');
+			return FALSE;
 		}
 		$result = patterns_io_import_file($name, $format);
 		if (!$result) {

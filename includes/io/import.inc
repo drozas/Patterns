@@ -67,6 +67,8 @@ function _patterns_io_import_check_name($name = '') {
 /**
  * Gets the pattern format from a file, and checks that it actually exists
  * 
+ * @TODO check if we need to check that file must exists
+ * 
  * @param unknown_type $file
  * @param unknown_type $format
  */
