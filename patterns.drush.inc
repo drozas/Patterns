@@ -190,28 +190,42 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
  * @param string optional machine readable pattern name
  */
 function drush_patterns_run($name, $mode = 'php', $params = array()) {
-
-	// we should also be allowed to specify an existing pattern by name
+	drush_print(dt('Running pattern: ' . $name));
+	$format = FALSE;
+	
 	$pattern = patterns_get_pattern($name);
 	if (!$pattern) {
-		if (drush_file_not_empty($name)) {
-			if (drush_confirm(dt("Pattern '$name' has not been imported. Do you want to import it now? "))) {
-				$format = patterns_io_get_format_from_file($name);
-				if (!$format) {
-					drush_confirm(dt("Unable to recognize the pattern format. Please specify it."))) {
-				}
-				patterns_io_import_file($name)
-				
+		if (!drush_file_not_empty($name)) {
+			drush_set_error(dt('Pattern was not found in the database nor in the file system.'));
+			return FALSE;
+		}
+		
+		if (!drush_confirm(dt("Pattern '$name' has not been imported. Do you want to import it now? "))) {
+			drush_print(dt('patterns-run has been canceled.'));
+			return FALSE;
+		}
+			
+		$format = patterns_io_get_format_from_file($name);
+		if (!$format) {
+			$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
+			if (!$format) {
+				drush_print(dt('patterns-run has been canceled.'));
+				return FALSE;
+			}
+			
+			if (!patterns_parser_exists($format)) {
+				return FALSE;
 			}
 		}
+		$result = patterns_io_import_file($name, $format);
+		if (!$result) {
+			drush_set_error(dt('Importing pattern failed'));
+			return FALSE;
+		}
+		$pattern = patterns_get_pattern(patterns_io_get_name_from_file($name)); 
 	}
-
-	if ($cancel) {
-		drush_print(dt('patterns-run has been canceled.'));
-		return FALSE;
-	}
-
-	return patterns_load_file_and_start_engine($pattern, $format, $mode);
+	
+	return drush_patterns_run_pattern($pattern, $mode, $params);
 }
 
 /**
@@ -418,7 +432,7 @@ function drush_patterns_import_file_remote($file, $format = PATTERNS_FORMAT_UNKN
 // HELPER FUNCTIONS
 
 function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode, $params) {
-	$pattern = patterns_io_load_pattern_from_file($file, $format)
+	$pattern = patterns_io_load_pattern_from_file($file, $format);
 	$params = array('run-subpatterns' => TRUE);
 	drush_patterns_run_pattern($pattern, $mode, $params);
 }
