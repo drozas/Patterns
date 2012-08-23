@@ -205,7 +205,7 @@ function drush_patterns_run($name, $mode = 'php', $params = array()) {
 			return FALSE;
 		}
 			
-		$format = patterns_io_get_format_from_file($name);
+		$format = patterns_io_get_format_from_file($name, PATTERNS_FORMAT_UNKNOWN, FALSE);
 		if (!$format) {
 			$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
 			if (!$format) {
@@ -222,7 +222,15 @@ function drush_patterns_run($name, $mode = 'php', $params = array()) {
 			drush_set_error(dt('Importing pattern failed'));
 			return FALSE;
 		}
-		$pattern = patterns_get_pattern(patterns_io_get_name_from_file($name)); 
+		
+		$name = patterns_io_get_name_from_file($name);
+		// Check if the file has a valid extension
+  	// and in case add the format at the end
+  	if (!_patterns_io_file_has_valid_extension($name)) {
+    	$name = $name . '.' . $format;
+  	}
+		
+		$pattern = patterns_get_pattern($name); 
 	}
 	
 	return drush_patterns_run_pattern($pattern, $mode, $params);

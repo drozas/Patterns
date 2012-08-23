@@ -70,16 +70,16 @@ function _patterns_io_import_check_name($name = '') {
  * @param unknown_type $file
  * @param unknown_type $format
  */
-function patterns_io_get_format_from_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+function patterns_io_get_format_from_file($file, $format = PATTERNS_FORMAT_UNKNOWN, $verbose = TRUE) {
 	if (!file_exists($file) && is_readable($file)) {
-		drupal_set_message(t('File does not exists or is not readable. Aborting.'), 'error');
+		if ($verbose) drupal_set_message(t('File does not exists or is not readable. Aborting.'), 'error');
 		return FALSE;
 	}
-	if ($format === PATTERNS_FORMAT_UNKNOWN) {
+	if ($format == PATTERNS_FORMAT_UNKNOWN) {
 		$format = pathinfo($file, PATHINFO_EXTENSION);
 	}
 	if (!patterns_parser_exists($format)) {
-		drupal_set_message(t('Unknown pattern format: %format. Please check available parsers.', array('%format' => $format)), 'error');
+		if ($verbose) drupal_set_message(t('Unknown pattern format: %format. Please check available parsers.', array('%format' => $format)), 'error');
 		return FALSE;
 	}
 	return $format;
@@ -90,7 +90,6 @@ function patterns_io_get_name_from_file($file) {
 }
 
 function patterns_io_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
-	
   $ready = _patterns_io_import_pre_checkings();
 	if ($ready) {
 		return FALSE;

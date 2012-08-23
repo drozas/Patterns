@@ -105,10 +105,8 @@ function patterns_parser_ready() {
  */
 function patterns_parser_exists($format = PATTERNS_FORMAT_UNKNOWN, $reset = TRUE) {
   if (empty($format) || $format == PATTERNS_FORMAT_UNKNOWN) return FALSE;
-
-  $patterns_formats = patterns_parser_build_formats_index($reset);
-
-  if (!isset($patterns_formats[$format]) || empty($patterns_formats[$format])) {
+	$patterns_formats = patterns_parser_build_formats_index($reset);
+	if (!isset($patterns_formats[$format]) || empty($patterns_formats[$format])) {
     return FALSE;
   }
   return TRUE;
