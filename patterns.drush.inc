@@ -98,7 +98,7 @@ function patterns_drush_command() {
     'core' => array('7'),
    );
 
-      $items['patterns-run'] = array(
+   $items['patterns-run'] = array(
     'callback' => 'drush_patterns_run',
     'description' => 'Import and enable the specified pattern file',
     'examples' => array(
@@ -189,24 +189,29 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
  * @param string pattern file pathname
  * @param string optional machine readable pattern name
  */
-function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNWON, $mode = 'php', $params = array()) {
+function drush_patterns_run($name, $mode = 'php', $params = array()) {
 
 	// we should also be allowed to specify an existing pattern by name
 	$pattern = patterns_get_pattern($name);
 	if (!$pattern) {
 		if (drush_file_not_empty($name)) {
 			if (drush_confirm(dt("Pattern '$name' has not been imported. Do you want to import it now? "))) {
-				//patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML)
+				$format = patterns_io_get_format_from_file($name);
+				if (!$format) {
+					drush_confirm(dt("Unable to recognize the pattern format. Please specify it."))) {
+				}
+				patterns_io_import_file($name)
+				
 			}
-		}
-		else {
-			drush_print(dt('patterns-run has been cancelled.'));
-			return FALSE;
 		}
 	}
 
+	if ($cancel) {
+		drush_print(dt('patterns-run has been canceled.'));
+		return FALSE;
+	}
 
-	return $result;
+	return patterns_load_file_and_start_engine($pattern, $format, $mode);
 }
 
 /**
@@ -369,13 +374,7 @@ function drush_patterns_unpublish($pid) {
 	}
 }
 
-// HELPER FUNCTIONS
-
-function patterns_load_file_and_start_engine($file, $format, $mode, $params) {
-	$pattern = array();
-	$pattern['pattern'] = patterns_parser_load($file, $format);
-	$pattern = patterns_get_pattern_obj($pattern);
-	$params = array('run-subpatterns' => TRUE);
+function drush_patterns_run_pattern($pattern, $mode = 'php', $params = array()) {
 	$result = patterns_start_engine($pattern, $params, $mode);
 	if ($result) {
 		if ($mode === 'batch') {
@@ -413,4 +412,13 @@ function drush_patterns_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
 function drush_patterns_import_file_remote($file, $format = PATTERNS_FORMAT_UNKNOWN) {
 	drush_print(dt("Importing pattern file from remote uri: " . $file));
 	return patterns_io_import_file_remote($file, $format);
+}
+
+
+// HELPER FUNCTIONS
+
+function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode, $params) {
+	$pattern = patterns_io_load_pattern_from_file($file, $format)
+	$params = array('run-subpatterns' => TRUE);
+	drush_patterns_run_pattern($pattern, $mode, $params);
 }

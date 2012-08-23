@@ -573,3 +573,26 @@ function patterns_io_list_components_dirs($reset = FALSE) {
   return module_invoke_all('patterns_components');
 }
 
+/**
+ * Creates a pattern object from a file
+ * 
+ * The returned object is as if the pattern would be loaded
+ * from the database with patterns_get_pattern()
+ * 
+ * @param string $file
+ * 	The path to the file containing the pattern
+ * @param string $format Optional.
+ * 	A valid pattern format
+ * @return stdClass $pattern The pattern object.
+ * 	 
+ */
+function patterns_io_load_pattern_from_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	$pattern = array();
+	$content = patterns_parser_load($file, $format);
+	if (!$content) {
+		return FALSE;
+	}
+	$pattern['pattern'] = $content;
+	$pattern = patterns_get_pattern_obj($pattern);
+	return $pattern;
+}
