@@ -41,13 +41,13 @@ function patterns_drush_command() {
     'description' => 'Load a pattern file and executes it without saving it into the database',
     'examples' => array(
       'drush patterns-quickrun file_name [format] [options] [mode]' => 'Load a pattern file and executes it without saving it into the database',
-	),
+		),
     'arguments' => array(
       'file_name' => 'The path to the a pattern file',
     	'format' => 'Optional. The format of the pattern. If not specified, it will be determined by the extension.',
       'params' => 'Optional. Additional options for the pattern execution.',
     	'mode' => 'Optional. Execute via batch or php',        
-	),
+		),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
 	);
@@ -63,7 +63,7 @@ function patterns_drush_command() {
       ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
-      );
+  );
 
   $items['patterns-import'] = array(
     'callback' => 'drush_patterns_import_file',
@@ -71,12 +71,12 @@ function patterns_drush_command() {
     'examples' => array(
       'drush patterns-import path/to/patterns/file.[xml/yaml]' =>
         'Import the specified pattern file.',
-      'drush patterns import path/to/pattern/file.[xml/yaml] pattern_name' => 'Import the specified pattern file and give it a machine readable name'
+      	'drush patterns-import path/to/pattern/file.[xml/yaml] pattern_name' => 'Import the specified pattern file and give it a machine readable name'
       ),
     'arguments' => array(
-      'pattern_file' => 'The path to a pattern file, beginning from the Drupal base directory',
-      'pattern_name' => 'Enter a pattern name if you wish to override the title field entered in a pattern.'
-      ),
+      'file' => 'The path to a pattern file',
+      'format' => 'A valid pattern format, e.g. xml or yaml.'
+    ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
    );
@@ -93,7 +93,7 @@ function patterns_drush_command() {
     'arguments' => array(
       'uri' => 'The uri to a pattern file',
       'format' => 'A valid pattern format, e.g. xml or yaml.'
-      ),
+    ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
    );
@@ -389,21 +389,6 @@ function patterns_load_file_and_start_engine($file, $format, $mode, $params) {
 		drush_set_error(dt('An error occurred while processing the pattern file.'));
 	}
 	return $result;
-}
-
-function patterns_utils_get_format_from_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
-	if (!drush_file_not_empty($file)) {
-		drush_set_error(dt('File does not exists or is not readable. Aborting.'));
-		return FALSE;
-	}
-	if ($format === PATTERNS_FORMAT_UNKNOWN) {
-		$format = pathinfo($file, PATHINFO_EXTENSION);
-	}
-	if (!patterns_parser_exists($format)) {
-		drush_set_error(dt('Unable to identify patterns format. Please specify it as second parameter'));
-		return FALSE;
-	}
-	return $format;
 }
 
 /**
