@@ -446,7 +446,7 @@ function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTE
     patterns_io_remove_pattern_from_fs($path);
     return FALSE;
   }
-
+  
   patterns_db_save_pattern($pattern, $path, $name, $format);
   $link = l($name, 'admin/patterns/edit/' . $name);
   drupal_set_message(t('Pattern !name was saved in %path.', array('!name' => $link, '%path' => $path, )));

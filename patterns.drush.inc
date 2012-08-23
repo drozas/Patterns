@@ -66,7 +66,7 @@ function patterns_drush_command() {
       );
 
   $items['patterns-import'] = array(
-    'callback' => 'drush_patterns_import',
+    'callback' => 'drush_patterns_import_file',
     'description' => 'Import the specified pattern file.',
     'examples' => array(
       'drush patterns-import path/to/patterns/file.[xml/yaml]' =>
@@ -82,7 +82,7 @@ function patterns_drush_command() {
    );
    
    $items['patterns-import-remote'] = array(
-    'callback' => 'drush_patterns_import_remote',
+    'callback' => 'drush_patterns_import_file_remote',
     'description' => 'Import a remote pattern file.',
     'examples' => array(
       'drush patterns-import-remote http://myserver.org/mypattern.yaml' =>
@@ -207,18 +207,6 @@ function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNWON, $mode = 'p
 
 
 	return $result;
-}
-
-/**
- * Imports the specified patterns file
- * @param string path to the patterns file
- * @param string optional machine readable name for the pattern you are importing
- * @return mixed bool|string FALSE upon failure; the name of the imported
- * pattern upon success
- */
-function drush_patterns_import_remote($file, $format = PATTERNS_FORMAT_UNKNOWN) {
-	drush_print(dt("Importing pattern file from remote uri: " . $file));
-	return patterns_io_import_remote($file, $format);
 }
 
 /**
@@ -416,6 +404,30 @@ function patterns_utils_get_format_from_file($file, $format = PATTERNS_FORMAT_UN
 		return FALSE;
 	}
 	return $format;
+}
+
+/**
+ * Imports the specified patterns file
+ * @param string path to the patterns file
+ * @param string optional machine readable name for the pattern you are importing
+ * @return mixed bool|string FALSE upon failure; the name of the imported
+ * pattern upon success
+ */
+function drush_patterns_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	drush_print(dt("Importing local pattern file: " . $file));
+	return patterns_io_import_file($file, $format);
+}
+
+/**
+ * Imports the specified patterns file
+ * @param string path to the patterns file
+ * @param string optional machine readable name for the pattern you are importing
+ * @return mixed bool|string FALSE upon failure; the name of the imported
+ * pattern upon success
+ */
+function drush_patterns_import_file_remote($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	drush_print(dt("Importing pattern file from remote uri: " . $file));
+	return patterns_io_import_file_remote($file, $format);
 }
 
 ///////////////////////////////////////// OLD BATCH

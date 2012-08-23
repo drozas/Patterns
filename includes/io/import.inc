@@ -5,6 +5,25 @@
  */
 
 
+function _patterns_io_import_pre_checkings() {
+	if (!patterns_parser_ready()) {
+   	$messages = t('No available patterns parser found. ');
+    $messages.= t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
+   	drupal_set_message($messages, 'error');
+   	return FALSE;
+  }
+
+  $destination = patterns_path_get_files_dir();
+
+  // If not automatically returns
+  $diready = _patterns_import_check_dirs($destination);
+  if (!$diready) {
+  	return FALSE;
+  }
+	
+  return FALSE;
+}
+
 function _patterns_io_import_validate_content($pattern) {
   $patternscan = patterns_scan_pattern($pattern);
   if (!_patterns_scan_validate_patternscan($patternscan)) {
@@ -60,7 +79,7 @@ function patterns_io_get_format_from_file($file, $format = PATTERNS_FORMAT_UNKNO
 		$format = pathinfo($file, PATHINFO_EXTENSION);
 	}
 	if (!patterns_parser_exists($format)) {
-		drupal_set_message(t('Unknown pattern format: %format. Please check available parsers.', array('%format' => $format)));
+		drupal_set_message(t('Unknown pattern format: %format. Please check available parsers.', array('%format' => $format)), 'error');
 		return FALSE;
 	}
 	return $format;
@@ -72,66 +91,22 @@ function patterns_io_get_name_from_file($file) {
 
 function patterns_io_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
 	
-  if (!patterns_parser_ready()) {
-    $messages = t('No available patterns parser found. ');
-    $messages.= t('Go to the !modules page to enable more Patterns parsers.', array('!modules' => l(t('modules'), 'admin/modules')));
-    return patterns_results(PATTERNS_ERROR, $messages);
-  }
-
-  $destination = patterns_path_get_files_dir();
-
-  // If not automatically returns
-  _patterns_import_check_dirs($destination);
-  
-  $name = pathinfo($file, PATHINFO_BASENAME);
-  
-  _patterns_import_check_name($name);
-
-  // Retreiving the format
-  
-	$format = patterns_io_import_get_format($file, $format);
-	
-	if (!$format) {
-		return patterns_results(PATTERNS_ERROR, t('The pattern format seems to be invalid.'));
-	}
-  
-
-
-
-  // Parse
-  $pattern = patterns_parser_parse($pattern, $format);
-
-  if (!$pattern) {
-    //drut('Pattern could not parsed. Please make sure it is well formed.'));
-    return FALSE;
-  }
-
-
-
-
-
-  $success = patterns_io_save_pattern($pattern, $name, $format, $destination, $content);
-  
-}
-
-
-function patterns_io_import_remote($uri, $format = PATTERNS_FORMAT_UNKNOWN) {
-	if (!ini_get('allow_url_fopen')) {
-  	drupal_set_message(t('allow_url_fopen must be enabled in your php configuration in order to open remote file.'), 'error');
-  	return FALSE;
+  $ready = _patterns_io_import_pre_checkings();
+	if ($ready) {
+		return FALSE;
 	}
 	
-	$format = patterns_io_get_format_from_file($uri, $format);
+	$format = patterns_io_get_format_from_file($file, $format);
 	if (!$format) {
 		return FALSE;
 	}
 	
-	$name = patterns_io_get_name_from_file($uri);
+	$name = patterns_io_get_name_from_file($file);
 	if (!$name) {
 		return FALSE;
 	}
 	
-	$content = file_get_contents($uri);
+	$content = file_get_contents($file);
   if (!$content) {
   	drupal_set_message(t('An error occurred while opening remote file.'), 'error');
   	return FALSE;
@@ -147,4 +122,15 @@ function patterns_io_import_remote($uri, $format = PATTERNS_FORMAT_UNKNOWN) {
   	return FALSE;
   }
   return patterns_io_save_pattern($pattern, $name, $format);
+    
+}
+
+
+function patterns_io_import_file_remote($uri, $format = PATTERNS_FORMAT_UNKNOWN) {
+	if (!ini_get('allow_url_fopen')) {
+  	drupal_set_message(t('allow_url_fopen must be enabled in your php configuration in order to open remote file.'), 'error');
+  	return FALSE;
+	}
+	
+	return patterns_io_import_file($uri, $format);
 }
