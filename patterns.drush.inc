@@ -167,7 +167,7 @@ function patterns_drush_command() {
 // Helper functions
 
 function patterns_drush_get_file_format($file, $format = PATTERNS_FORMAT_UNKNOWN) {
-	$format = patterns_io_get_format_from_file($name, $format, FALSE);
+	$format = patterns_io_get_format_from_file($file, $format, FALSE);
 	if (!$format) {
 		$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
 		if (!patterns_parser_exists($format)) {
