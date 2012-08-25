@@ -91,7 +91,7 @@ function patterns_io_get_name_from_file($file) {
 	return pathinfo($file, PATHINFO_BASENAME);
 }
 
-function patterns_io_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+function patterns_io_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN, $name = NULL) {
   $ready = _patterns_io_import_pre_checkings();
 	if ($ready) {
 		return FALSE;
@@ -102,9 +102,11 @@ function patterns_io_import_file($file, $format = PATTERNS_FORMAT_UNKNOWN) {
 		return FALSE;
 	}
 	
-	$name = patterns_io_get_name_from_file($file);
-	if (!$name) {
-		return FALSE;
+	if (is_null($name)) {
+		$name = patterns_io_get_name_from_file($file);
+		if (!$name) {
+			return FALSE;
+		}
 	}
 	
 	$content = file_get_contents($file);
