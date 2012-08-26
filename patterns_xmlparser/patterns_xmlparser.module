@@ -112,7 +112,6 @@ function patterns_xmlparser_array_to_xml($array, &$xml) {
     	}
     	// HTML character may generate a warning. We don't care
     	@$xml->addChild("$key","$value");
-    	
     }
   }
 }
