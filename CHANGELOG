@@ -1,3 +1,10 @@
+7070:
+		- Multilevel validation
+		- Patterns can be exported in different ways: zip, file, to db
+7065:
+
+		- Partial drush integration 
+
 7060:
 
 		- All patterns hooks for executing patterns are optional now
