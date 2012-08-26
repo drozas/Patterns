@@ -110,7 +110,9 @@ function patterns_xmlparser_array_to_xml($array, &$xml) {
     	if (is_numeric($key) || empty($key)) {
     		$key = 'value';
     	}
-    	$xml->addChild("$key","$value");
+    	// HTML character may generate a warning. We don't care
+    	@$xml->addChild("$key","$value");
+    	
     }
   }
 }
