@@ -77,3 +77,18 @@ function patterns_path_get_components_dirs() {
 
   return $patterns_paths;
 }
+
+/**
+ * Returns the temporary files system folder
+ * 
+ */
+function patterns_path_get_tmp_dir($create = TRUE) {
+  $directory = &drupal_static(__FUNCTION__, '');
+  if (empty($directory)) {
+    $directory = drupal_realpath('temporary://') . '/patterns-' . _update_manager_unique_identifier() . '/';
+    if ($create && !file_exists($directory)) {
+      mkdir($directory);
+    }
+  }
+  return $directory;
+}

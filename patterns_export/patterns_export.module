@@ -365,8 +365,21 @@ function patterns_export_submit($form, &$form_state) {
   }
 
   // Display the exported pattern
- // drupal_set_message(print_r($pattern, true));
-
+ 	// drupal_set_message(print_r($pattern, true));
+ 	
+  
+ 	//$pattern_string = patterns_parser_dump($pattern, $format);
+  $zip_path = patterns_create_zip($sections, PATTERNS_FORMAT_YAML, NULL, $filename);
+	drupal_set_message($zip_path);
+	
+  if ($zip_path) {
+  	drupal_set_message($zip_path);
+  	//return;
+		patterns_download_zip($zip_path);
+	}
+	
+  return;
+  
   $result = patterns_io_save_pattern($pattern, $filename, $format);
 
   if ($result) {
@@ -494,7 +507,7 @@ function patterns_export_php($tagmodules) {
     }
     else {
       foreach ($func as $f) {
-          $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
+        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
         $sections[$tag] = array_merge($result[$tag], call_user_func($f));
       }
     }
