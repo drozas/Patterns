@@ -341,6 +341,11 @@ function patterns_export_submit($form, &$form_state) {
 //
 //  }
 
+  if (empty($tm_index)) {
+  	drupal_set_message(t('Please select at least one component from which extracting data.'), 'error');
+    return FALSE;
+  }
+  
   list($sections, $modules) = patterns_export_php($tm_index);
 
   // If some sections did not return any data
