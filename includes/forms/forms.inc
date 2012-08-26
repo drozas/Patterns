@@ -187,4 +187,24 @@ function patterns_forms_get_name_selector(&$form = array(), $default = NULL, $op
   return $form;
 }
 
+function patterns_forms_get_export_to_selector(&$form = array(), $options = array()) {
+	$title = (isset($options['title'])) ? $options['title'] : 'Export to';
+	$default = (isset($options['default'])) ? $options['default'] : PATTERNS_EXPORT_TO_DB;
+  $collapsed = (isset($options['collapsed'])) ? $options['collapsed'] : TRUE;
+  $form['export'] = array(
+    '#type' => 'fieldset',
+    '#title' => $title,
+    '#collapsible' => TRUE,
+    '#collapsed' => $collapsed,
+    '#tree' => TRUE,
+  );
 
+  $form['export']['to'] = array(
+    '#type' => 'radios',
+    '#options' => _patterns_lab_get_exp_to_options(),
+    '#title' => t('Action'),
+    '#default_value' => $default,
+  );
+
+  return $form;
+}

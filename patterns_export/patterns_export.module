@@ -258,12 +258,14 @@ function patterns_export_page1($form, &$form_state) {
   patterns_forms_get_info_section($form, array(), array('collapsed' => TRUE));
 
   patterns_forms_get_formats_selector($form,
-                                              patterns_forms_get_default_format(),
-                                              'Export data in this format',
-                                              FALSE
+																			patterns_forms_get_default_format(),
+                                      'Export data in this format',
+                                      FALSE
   );
-
+  
   patterns_forms_get_name_selector($form);
+
+  patterns_forms_get_export_to_selector($form);
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -353,8 +355,6 @@ function patterns_export_submit($form, &$form_state) {
     drupal_set_message(t('Export did not return any data.'), 'error');
     return FALSE;
   }
-
-
 
   // Modules that needs to be enabled
   // to run the pattern
