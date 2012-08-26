@@ -186,7 +186,7 @@ function patterns_export_page1($form, &$form_state) {
     return $form;
   }
 
-  $text = 'In this area you can export the current configuration of your web site to a new pattern file that will be inserted in the database.';
+  $text = 'In this area you can export the current configuration of your web site to a new pattern file that can be inserted in the database, or downloaded.';
   $title = 'Export (experimental!)';
   patterns_forms_add_page_header($form, $title, $text);
 
@@ -292,7 +292,7 @@ function patterns_export_submit($form, &$form_state) {
 
   // Sets the category for the info
   // category: " . $modules_with_components[$form_state['values']['module']]
-  $pattern = patterns_api_add_info_section($form_state['values']['info']);
+  //$pattern = patterns_api_add_info_section($form_state['values']['info']);
 
   if (isset($form_state['values']['all']) && $form_state['values']['all'] != 0) {
     // Individual modules have selected and the tagmodules index needs to be
@@ -356,43 +356,77 @@ function patterns_export_submit($form, &$form_state) {
     return FALSE;
   }
 
-  // Modules that needs to be enabled
-  // to run the pattern
+  $form_state['redirect'] = 'admin/patterns/export';
+    
+ 	patterns_export_finalize_export($form_state['values']['export']['to'],
+ 																	$sections,
+ 																	$form_state['values']['info'],
+ 																	$modules, 
+ 																	$format, 
+ 																	$filename);
+	
+
+}
+
+function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
+	$pattern = patterns_api_add_info_section($info);
+	// Modules that needs to be enabled to run the pattern
   patterns_api_add_modules_section($modules, $pattern);
 
   foreach ($sections as $s => $values) {
     $pattern[$s] = $values;
   }
-
   // Display the exported pattern
  	// drupal_set_message(print_r($pattern, true));
- 	
-  
- 	//$pattern_string = patterns_parser_dump($pattern, $format);
-  $zip_path = patterns_create_zip($sections, PATTERNS_FORMAT_YAML, NULL, $filename);
-	drupal_set_message($zip_path);
-	
-  if ($zip_path) {
-  	drupal_set_message($zip_path);
-  	//return;
-		patterns_download_zip($zip_path);
-	}
-	
-  return;
-  
-  $result = patterns_io_save_pattern($pattern, $filename, $format);
-
-  if ($result) {
-    drupal_set_message(t('Pattern succesfully imported.'));
-  }
-
-
-  //patterns_export_batch($tm_index);
-
-  $form_state['redirect'] = 'admin/patterns/export';
-
+  return $pattern;
 }
 
+function patterns_export_to_zip($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL, $path = NULL) {
+	
+  $zip_path = patterns_create_zip($sections, $format, $path, $filename);
+	
+  if (!$zip_path) {
+  	return FALSE;
+	}
+	
+	drupal_set_message($zip_path);
+	patterns_download_zip($zip_path);
+	
+}
+
+function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
+ 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
+	patterns_io_save_pattern($pattern, $filename, $format);
+}
+
+
+function patterns_export_to_file($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
+	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
+	$pattern = patterns_parser_dump($pattern, $format);
+	patterns_download_file($pattern, $filename . '.' . $format);
+}
+
+
+function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, 
+																					$sections = array(),
+																					$info = array(),
+																					$modules = array(),  
+																					$format, 
+																					$filename = NULL) {
+																						
+	if ($action == PATTERNS_EXPORT_TO_FILE) {
+		 patterns_export_to_file($sections, $info, $modules, $format, $filename);
+	}
+	else if ($action == PATTERNS_EXPORT_TO_DB) {
+		 patterns_export_to_db($sections, $info, $modules, $format, $filename);
+	}
+	else if ($action == PATTERNS_EXPORT_TO_ZIP) {
+		patterns_export_to_zip($sections, $info, $modules, $format, $filename); // TODO: let users decide the path
+	}
+	else {
+		drupal_set_message(t('Unknown export option: %option', array($action)));
+	}
+}
 
 function patterns_export_exec($modules, $info = array()) {
  	// Sets the category for the info
