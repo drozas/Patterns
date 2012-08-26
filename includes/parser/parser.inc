@@ -266,15 +266,20 @@ function patterns_parser_is_valid_action_name($action = NULL) {
  *
  * @param mixed $pattern Pattern array or content of a pattern file.
  * @param mixed $format The format of the file to validate against.
+ * @param integer $level Optional. The level of validation required.
  *
  * @return bool TRUE if valid, FALSE otherwise.
  */
-function patterns_validate_pattern($pattern, $format = PATTERNS_FORMAT_UNKNOWN) {
-  $pattern = patterns_parser_parse($pattern, $format);
+function patterns_validate_pattern($pattern, $format = PATTERNS_FORMAT_UNKNOWN, $level = PATTERNS_VALIDATE_ALL) {
+  if ($level == PATTERNS_VALIDATE_SKIP) return TRUE;
+  
+	$pattern = patterns_parser_parse($pattern, $format);
   if (!$pattern) return FALSE;
-
-  $scan = patterns_scan_pattern($pattern);
-  return _patterns_scan_validate_patternscan($scan);
+	
+  if ($level == PATTERNS_VALIDATE_FORMAT) return TRUE;
+	
+  $scan = patterns_scan_pattern($pattern, FALSE, $level);
+  return _patterns_scan_validate_patternscan($scan, FALSE, $level);
 }
 
 /**
@@ -337,7 +342,7 @@ function patterns_validate_service() {
 function patterns_parser_get_pattern_details($pattern, $recursive = FALSE, &$pids = array()) {
 	$scan = patterns_scan_pattern($pattern->pattern);
   // This will display errors if there are any.
-  if (!_patterns_scan_validate_patternscan($scan, TRUE)) return FALSE;
+  if (!_patterns_scan_validate_patternscan($scan, FALSE, PATTERNS_VALIDATE_ALL, TRUE)) return FALSE;
 
   $details = array();
 

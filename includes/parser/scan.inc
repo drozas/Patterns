@@ -26,7 +26,7 @@
  * @see _patterns_scan_analyze_patternscan()
  *
  */
-function patterns_scan_pattern($pattern, $include = FALSE) {	
+function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VALIDATE_ALL) {	
   $generic_error = t('pattern not loaded correctly');
   $result = array(
                   'info' => 0,
@@ -111,7 +111,7 @@ function patterns_scan_pattern($pattern, $include = FALSE) {
         // Incremente the count of valid actions
         $section_info[$action_name] = $section_info[$action_name]+1;
       }
-      $result = _patterns_scan_action($action, $result);
+      $result = _patterns_scan_action($action, $result, $level);
     }
 
     $section_info_str = '(' . PATTERNS_CREATE . ':' . $section_info[PATTERNS_CREATE] . ', ' .
@@ -138,7 +138,7 @@ function patterns_scan_pattern($pattern, $include = FALSE) {
  *
  * @return TRUE if valid, FALSE otherwise
  */
-function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
+function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $level = PATTERNS_VALIDATE_ALL) {
   $msgs = array();
 
   if ($patternscan['info'] == 0 && !$include) {
@@ -180,6 +180,8 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
     $msgs[] = t('Extra actions have been found on one level: %found.',
             array('%found' => implode(', ', $extraactions)));
   }
+  
+  
 
   // TODO: This is not yet working properly. Check when it is applicable!
   if (count($patternscan['missing_tag']) != 0) {
@@ -188,28 +190,46 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
     }
   }
   
+  if (count($patternscan['empties']) > 0) {
+    $msgs[] = t('Pattern contains empty sections or actions:') . ' ' . implode(', ', $patternscan['empties']);
+  }
+  
+  // INCLUDE LEVEL
+  ////////////////
+ 	if ($level < PATTERNS_VALIDATE_INCLUDE) {
+  	return $msgs;
+  }
+  
+	if (count($patternscan['include_scans']) > 0) {
+    foreach ($patternscan['include_scans'] as $i) {
+      //$msgs[] = print_r($patternscan['includes'], true);
+      $msgs = array_merge($msgs, _patterns_scan_analyze_patternscan($i, TRUE));
+    }
+  }
+  
+  // TAG EXISTS LEVEL
+  ///////////////////
+  if ($level < PATTERNS_VALIDATE_TAG_EXISTS) {
+  	return $msgs;
+  }
+  
   if (count($patternscan['unknown_tag']) != 0) {
   	$utags = implode(', ', $patternscan['unknown_tag']);
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
   }
-
+  
+  // FULL VALIDATION
+  ///////////////////
+  if ($level < PATTERNS_VALIDATE_ALL) {
+  	return $msgs;
+  }
+  
   if (count($patternscan['tag_errors']) != 0) {
   	$errors = '';
   	foreach ($patternscan['tag_errors'] as $error) {
   		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
   	$msgs[] = t('Components reported errors about tags: ') . $errors;
-  }
-  
-  if (count($patternscan['empties']) > 0) {
-    $msgs[] = t('Pattern contains empty sections or actions:') . ' ' . implode(', ', $patternscan['empties']);
-  }
-
-  if (count($patternscan['include_scans']) > 0) {
-    foreach ($patternscan['include_scans'] as $i) {
-      //$msgs[] = print_r($patternscan['includes'], true);
-      $msgs = array_merge($msgs, _patterns_scan_analyze_patternscan($i, TRUE));
-    }
   }
 
   return $msgs;
@@ -223,8 +243,8 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE) {
  *
  * @return bool TRUE if valid, FALSE otherwise.
  */
-function _patterns_scan_validate_patternscan($patternscan, $display_errors = FALSE) {
-  $analysis = _patterns_scan_analyze_patternscan($patternscan);
+function _patterns_scan_validate_patternscan($patternscan, $include = FALSE, $level = PATTERNS_VALIDATE_ALL, $display_errors = FALSE) {
+  $analysis = _patterns_scan_analyze_patternscan($patternscan, $include, $level);
   if (empty($analysis)) {
     return TRUE;
   }
@@ -289,7 +309,7 @@ function _patterns_scan_is_action($action = NULL) {
  * @see _patterns_scan_analyze_patternscan()
  *
  */
-function _patterns_scan_action($action, $result = array()) {
+function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VALIDATE_ALL) {
 
   $key = key($action);
   $action = current($action);
@@ -343,7 +363,7 @@ function _patterns_scan_action($action, $result = array()) {
   }
   
   // Try to validate the tag with the component
-  else {
+  else if ($level >= PATTERNS_VALIDATE_TAG_EXISTS) {
   	
   	$tag = $action['tag'];
   	
@@ -354,7 +374,7 @@ function _patterns_scan_action($action, $result = array()) {
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
-	  else {
+	  else if ($level >= PATTERNS_VALIDATE_ALL) {
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
