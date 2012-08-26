@@ -15,6 +15,11 @@
 
 module_load_include('inc', 'patterns_export', 'export');
 
+/**
+ * Implements hook_menu_alter()
+ * 
+ * Adds a tab in the main Patterns menu
+ */
 function patterns_export_menu_alter(&$items) {
 
   $items['admin/patterns/export'] = array(
@@ -28,7 +33,14 @@ function patterns_export_menu_alter(&$items) {
   return $items;
 }
 
-
+/**
+ * Helper function to build the form of exportable components
+ * 
+ * @param string $module The name of the module
+ * @param string $tag The name of the tag
+ * 
+ * @return string A valid input name for a checkbox input
+ */
 function _patterns_export_build_input_name($module, $tag) {
   return 'ext[' . $module . '][options][' . $tag . ']';
 }
@@ -132,14 +144,11 @@ function _patterns_export_if_invalid_step_goback($step = 0,
 
 
 /**
- * Forms to create a yaml file based on a module
+ * Forms to export the current web site configuration
  * 
- * Displays forms to choose a module (which implements the pattern hooks) and
- * the forms which we get from module_patterns,
- * then submits the forms and captures the form submissions with the Macro module.
- * From this, yaml file gets generated
+ * Displays a form from which any number of export functions can be
+ * selected to generate the exported pattern file
  */
-
 function patterns_export($form, &$form_state) {
 
   $form = array();
@@ -278,9 +287,7 @@ function patterns_export_page1($form, &$form_state) {
 
 
 /**
- *
- * TODO: add doc
- * TODO: improve performance
+ * Submit hook of the export form
  */
 function patterns_export_submit($form, &$form_state) {
 
@@ -288,11 +295,6 @@ function patterns_export_submit($form, &$form_state) {
   $format   = $form_state['values']['format'];
   $filename = $form_state['values']['pattern_name'];
   // TODO: Loop here and create a modules section
-
-
-  // Sets the category for the info
-  // category: " . $modules_with_components[$form_state['values']['module']]
-  //$pattern = patterns_api_add_info_section($form_state['values']['info']);
 
   if (isset($form_state['values']['all']) && $form_state['values']['all'] != 0) {
     // Individual modules have selected and the tagmodules index needs to be
@@ -323,23 +325,7 @@ function patterns_export_submit($form, &$form_state) {
     }
 
     $tm_index = array_intersect_key($tm_index, $exports);
-    //$tm_index = array_combine($tm_index, $exports);
   }
-
-//  if (isset($form_state['values']['options']) && !empty($form_state['values']['options'])) {
-//    $cmp = $form_state['values']['options'];
-//    $tm_index = array($cmp => $tm_index[$cmp]);
-//
-//    if (isset($form_state['values'][$cmp]) && !empty($form_state['values'][$cmp])) {
-//      $tag = $form_state['values'][$cmp];
-//      $func = $tm_index[$cmp][PATTERNS_EXPORT][$tag];
-//      $tm_index[$cmp][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL] = $func;
-//    }
-//    //else {
-//    //  $tm_index[$cmp] = array($tag => $tm_index[$cmp][PATTERNS_EXPORT_ALL]);
-//    //}
-//
-//  }
 
   if (empty($tm_index)) {
   	drupal_set_message(t('Please select at least one component from which extracting data.'), 'error');
@@ -371,6 +357,15 @@ function patterns_export_submit($form, &$form_state) {
  																	$filename);
 }
 
+/**
+ * Merges modules info and sections in one pattern
+ * 
+ * @param array $sections The sections of the pattern
+ * @param array $info The info section of the pattern
+ * @param array $modules The modules section of the pattern
+ * 
+ * @return array $pattern The merged pattern
+ */
 function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
 	$pattern = patterns_api_add_info_section($info);
 	// Modules that needs to be enabled to run the pattern
@@ -384,6 +379,17 @@ function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
   return $pattern;
 }
 
+/**
+ * Exports patterns as a donwlodable Zip archive
+ * 
+ * @param array $sections The sections of the pattern
+ * @param array $info The info section of the pattern
+ * @param array $modules The modules section of the pattern
+ * @param string $format The pattern format
+ * @param string $filename (optional) The final name of file 
+ * @param string $path (optional) 
+ *   The path of the temporary directory in which the zip file will be saved
+ */
 function patterns_export_to_zip($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL, $path = NULL) {
 	
   $zip_path = patterns_create_zip($sections, $format, $path, $filename);
@@ -394,20 +400,49 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
 	patterns_download_zip($zip_path);
 }
 
+/**
+ * Exports a pattern by importing it into the database
+ * 
+ * @param array $sections The sections of the pattern
+ * @param array $info The info section of the pattern
+ * @param array $modules The modules section of the pattern
+ * @param string $format The pattern format
+ * @param string $filename (optional) The final name of file 
+ */
 function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
  	$filename.= $format; 
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
 	patterns_io_save_pattern($pattern, $filename, $format);
 }
 
-
-function patterns_export_to_file($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
+/**
+ * Exports a pattern as a donwlodable text file
+ * 
+ * @param array $sections The sections of the pattern
+ * @param array $info The info section of the pattern
+ * @param array $modules The modules section of the pattern
+ * @param string $format The pattern format
+ * @param string $filename The final name of file 
+ */
+function patterns_export_to_file($sections = array(), $info = array(), $modules = array(), $format, $filename) {
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
 	$pattern = patterns_parser_dump($pattern, $format);
 	patterns_download_file($pattern, $filename . '.' . $format);
 }
 
-
+/**
+ * Initializes the appropriate action to export a collection
+ * of patterns
+ * 
+ * @param string $action The type of export action
+ * @param array $sections The sections of the pattern
+ * @param array $info The info section of the pattern
+ * @param array $modules The modules section of the pattern
+ * @param string $format The pattern format
+ * @param string $filename (optional) The final name of file 
+ * @param string $path (optional) 
+ *   The path of the temporary directory in which the zip file will be saved
+ */
 function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, 
 																					$sections = array(),
 																					$info = array(),
@@ -429,93 +464,16 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 	}
 }
 
-function patterns_export_exec($modules, $info = array()) {
- 	// Sets the category for the info
-  // category: " . $modules_with_components[$form_state['values']['module']]
-  $pattern = patterns_api_add_info_section($info);
-
-  if (isset($form_state['values']['all']) && $form_state['values']['all'] != 0) {
-    // Individual modules have selected and the tagmodules index needs to be
-    // refactored.
-    $exports = array();
-    foreach ($form_state['values']['ext'] as $module => $data) {
-
-      foreach ($data['options'] as $tag => $enabled) {
-        if (empty($enabled)) {
-          continue;
-        }
-        $exports[$tag] = array();
-        // Loop along all enabled export functions
-        foreach ($data[$tag]['options'] as $export_key => $func) {
-          if (!empty($func)) {
-            $tm_index[$tag]['__to_export__'][] = $tm_index[$tag][PATTERNS_EXPORT][$func];
-          }
-        }
-
-        // If no sub-tag was selected (should not be the case)
-        // then we execute EXPORT_ALL (if available)
-        if (empty($tm_index[$tag]['__to_export__'])) {
-          if (isset($tm_index[$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL])) {
-            $tm_index[$tag]['__to_export__'] = $tm_index[$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
-          }
-        }
-      }
-    }
-
-    $tm_index = array_intersect_key($tm_index, $exports);
-    //$tm_index = array_combine($tm_index, $exports);
-  }
-
-//  if (isset($form_state['values']['options']) && !empty($form_state['values']['options'])) {
-//    $cmp = $form_state['values']['options'];
-//    $tm_index = array($cmp => $tm_index[$cmp]);
-//
-//    if (isset($form_state['values'][$cmp]) && !empty($form_state['values'][$cmp])) {
-//      $tag = $form_state['values'][$cmp];
-//      $func = $tm_index[$cmp][PATTERNS_EXPORT][$tag];
-//      $tm_index[$cmp][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL] = $func;
-//    }
-//    //else {
-//    //  $tm_index[$cmp] = array($tag => $tm_index[$cmp][PATTERNS_EXPORT_ALL]);
-//    //}
-//
-//  }
-
-  list($sections, $modules) = patterns_export_php($tm_index);
-
-  // If some sections did not return any data
-  // we remove them. We don't remove the modules!
-  foreach ($sections as $s => $value) {
-    if (empty($value)) {
-      unset($sections[$s]);
-    }
-  }
-
-  if (empty($sections)) {
-    drupal_set_message(t('Export did not return any data.'), 'error');
-    return FALSE;
-  }
-
-
-
-  // Modules that needs to be enabled
-  // to run the pattern
-  patterns_api_add_modules_section($modules, $pattern);
-
-  foreach ($sections as $s => $values) {
-    $pattern[$s] = $values;
-  }
-
-  // Display the exported pattern
- // drupal_set_message(print_r($pattern, true));
-
-  $result = patterns_io_save_pattern($pattern, $filename, $format);
-
-  if ($result) {
-    drupal_set_message(t('Pattern succesfully imported.'));
-  }
-}
-
+/**
+ * Constructs the abstract representation of the exported pattern
+ * 
+ * Returns the array of needed modules, and the actions of the 
+ * pattern.
+ * 
+ * @param array $tagmodules An index of modules and tag to export
+ * @return array $result An array containing modules and actions
+ * 
+ */
 function patterns_export_php($tagmodules) {
 
   $result = array();

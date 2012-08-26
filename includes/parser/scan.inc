@@ -13,9 +13,12 @@
 /**
  * Scans a pattern and returns a brief summary of its properties.
  *
- * @param array $pattern Pattern array obtained by parsing pattern file.
- * @param bool $include (optional) If TRUE, actions can be found outside
- *   of sections. Default FALSE.
+ * @param array $pattern 
+ * 	 Pattern array obtained by parsing pattern file.
+ * @param bool $include (optional) 
+ * 	 If TRUE, actions can be found outside of sections. Default FALSE.
+ * @param integer $level (optional) 
+ * 	 The level of of the analysis. Defaults PATTERNS_VALIDATE_ALL
  *
  * @return array $result Summary of the pattern.
  *
@@ -130,11 +133,14 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
  * Analyze the result of a call to patterns_scan_pattern, and check whether
  * the pattern was valid.
  *
- * @param array $analysis Obtained from  patterns_scan_pattern.
- * @param bool $include (optional) If TRUE, it means that the pattern
- *   to scan is an include, and a laxer scan is performed. E.g.
- *   Info section can be missing, actions can be outside of a section.
- *   Default FALSE.
+ * @param array $analysis 
+ * 	 The analysis array obtained from  patterns_scan_pattern.
+ * @param bool $include (optional)
+ * 	 If TRUE, it means that the pattern to scan is an include, 
+ * 	 and a laxer scan is performed. E.g. Info section can be missing, 
+ * 	 actions can be outside of a section. Default FALSE.
+ * @param integer $level (optional) 
+ * 	 The level of of the analysis. Defaults PATTERNS_VALIDATE_ALL
  *
  * @return TRUE if valid, FALSE otherwise
  */
@@ -239,7 +245,16 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
  * Analyze the result of a call to patterns_scan_pattern, and check whether
  * the pattern was valid.
  *
- * @param array $analysis Obtained from  patterns_scan_pattern.
+ * @param array $patternscan 
+ * 	 The analysis array obtained from  patterns_scan_pattern.
+ * @param bool $include (optional)
+ * 	 If TRUE, it means that the pattern to scan is an include, 
+ * 	 and a laxer scan is performed. E.g. Info section can be missing, 
+ * 	 actions can be outside of a section. Default FALSE.
+ * @param integer $level (optional) 
+ * 	 The level of of the analysis. Defaults PATTERNS_VALIDATE_ALL
+ * @param $display_errors (optional)
+ * 	 If TRUE, errors are displayed with drupal_set_message. Defaults FALSE
  *
  * @return bool TRUE if valid, FALSE otherwise.
  */
@@ -297,12 +312,12 @@ function _patterns_scan_is_action($action = NULL) {
  * Scans an action and add the result of the scan to the $result
  * array.
  *
- * @param mixed $key The type of action (e.g. create, modify, delete,
- *   include).
  * @param array $action The action to scan
  * @param array $result (optional) The array in which inserting
  *   the scan results.
- *
+ * @param integer $level (optional) 
+ * 	 The level of of the analysis. Defaults PATTERNS_VALIDATE_ALL
+ * 
  * @return array $result The results of the scan.
  *
  * @see patterns_scan_pattern()

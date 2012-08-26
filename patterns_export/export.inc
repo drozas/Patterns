@@ -9,7 +9,6 @@
  * TODO: finish Export documentation
  * TODO: code cleanup
  * TODO: Export through the Batch API
- * TODO: Export to File / DataBase as for the Patterns Lab
  */
 
 /**
@@ -23,13 +22,19 @@ function patterns_api_extract_actions($form, $args = array(), $tag = NULL, $acti
 }
 
 /**
- * Extract the current state of a form.
- * TODO: Enter description here ...
- * @param unknown_type $form
- * @param unknown_type $args
- * @param unknown_type $action
+ * Constructs patterns actions based on the current state of a form 
+ * 
+ * @param string $form_id The name of the form
+ * @param array $args (optional)
+ *   Extra arguments to be passed to the form
+ * @param string $tag (optional) 
+ * 	 The tag associated with the action
+ * @param string $action (optional)
+ *   The pattern action (CREATE / MODIFY / DELETE). Defaults PATTERNS_MODIFY
+ *   
+ * @return array $result The pattern action
  */
-function patterns_export_actions_from_form($form, $args = array(), $tag = NULL, $action = PATTERNS_MODIFY) {
+function patterns_export_actions_from_form($form_id, $args = array(), $tag = NULL, $action = PATTERNS_MODIFY) {
 
   set_error_handler("patterns_export_error_handler", E_ERROR | E_CORE_ERROR | E_COMPILE_ERROR | E_USER_ERROR);
   // Move this inside the Macro module
@@ -42,7 +47,7 @@ function patterns_export_actions_from_form($form, $args = array(), $tag = NULL, 
   $args = (!is_array($args)) ? array($args) : $args;
 
   $form_state['build_info']['args'] = $args;
-  drupal_form_submit($form, $form_state);
+  drupal_form_submit($form_id, $form_state);
 
   $result = macro_get_macro();
 
@@ -62,10 +67,12 @@ function patterns_export_actions_from_form($form, $args = array(), $tag = NULL, 
 }
 
 /**
- * Implements of hook_form_alter().
- * needed for deactivating actual submission of the forms when submitting, i.e.
+ * Implements of hook_form_alter()
+ * 
+ * Needed for deactivating actual submission of the forms when submitting, i.e.
  * we only want to know what gets submitted without the submission getting
  * processed
+ * 
  */
 function patterns_export_form_alter(&$form, $form_state, $form_id) {
   // Add the record callback on submit and delete all others
@@ -76,7 +83,7 @@ function patterns_export_form_alter(&$form, $form_state, $form_id) {
 }
 
 /**
- * In case error happens and script gets halted.
+ * Halts script execution in case of error
  */
 function patterns_export_error_handler($errno, $errstr) {
   variable_set('macro_enabled', FALSE);
