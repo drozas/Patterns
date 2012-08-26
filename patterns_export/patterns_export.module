@@ -364,8 +364,6 @@ function patterns_export_submit($form, &$form_state) {
  																	$modules, 
  																	$format, 
  																	$filename);
-	
-
 }
 
 function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
@@ -377,7 +375,7 @@ function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
     $pattern[$s] = $values;
   }
   // Display the exported pattern
- 	drupal_set_message(print_r($pattern, true));
+ 	//drupal_set_message(print_r($pattern, true));
   return $pattern;
 }
 
@@ -392,7 +390,7 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
 }
 
 function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
- 	$filename.= $$format; 
+ 	$filename.= $format; 
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
 	patterns_io_save_pattern($pattern, $filename, $format);
 }

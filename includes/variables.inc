@@ -64,7 +64,7 @@ define('PATTERNS_EXPORT_MODE_ID', 'id');
 define('PATTERNS_EXPORT_MODE_NAME', 'name');
 
 define('PATTERNS_VALIDATE_ALL', 10);			// tag has valid content
-define('PATTERNS_VALIDATE_TAG_EXIST', 5);	// tags exist
+define('PATTERNS_VALIDATE_TAG_EXISTS', 5);	// tags exist
 define('PATTERNS_VALIDATE_INCLUDE', 3);		// syntax check for included patterns
 define('PATTERNS_VALIDATE_SYNTAX', 2);		// basic syntax is correct (info, modules, and 1 section)
 define('PATTERNS_VALIDATE_FORMAT', 1);		// can be parsed
