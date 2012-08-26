@@ -34,9 +34,9 @@ function shortcut_patterns($data = NULL) {
     PATTERNS_MODIFY => array('shortcut_set_edit_form'),
     PATTERNS_DELETE => array('shortcut_set_delete_form'),
     PATTERNS_FILES => $files,
-    PATTERNS_EXPORT => array(
-                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_set',
-                          ),
+//    PATTERNS_EXPORT => array(
+//                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_set',
+//                          ),
     );
   $actions['shortcut_link'] = array(
     PATTERNS_INFO => t('add a new link to one shortcut_set'),
