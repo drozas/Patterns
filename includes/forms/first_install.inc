@@ -69,5 +69,6 @@ function patterns_first_install_validate($form, &$form_state) {
 
 function patterns_first_install_submit($form, &$form_state) {
   variable_set(PATTERNS_FIRST_INSTALL, FALSE);
-  menu_rebuild();
+  // Not in DR8
+  //menu_rebuild();
 }
