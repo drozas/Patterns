@@ -174,7 +174,6 @@ function patterns_moduletags_filter($moduletags, $module = NULL, $key = NULL) {
   // All the values of key=$key from all tags
   if (!empty($key)) {
     $out = array();
-    drush_print(print_r($moduletags, true));
     foreach ($moduletags as $module => $tag) {
     	foreach($tag as $actions) {
 	    	if (isset($actions[$key])) {
