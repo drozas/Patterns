@@ -156,25 +156,31 @@ function patterns_tagmodules_filter($tagmodules, $tag = NULL, $key = NULL) {
  *
  * @return array $tagmodules The filtered tagmodules array
  */
-function patterns_moduletags_filter($modulestags, $module = NULL, $key = NULL) {
-  if (empty($modulestags)) return array();
+function patterns_moduletags_filter($moduletags, $module = NULL, $key = NULL) {
+  if (empty($moduletags)) return array();
 
   // Part of tag
   if (!empty($module) && !empty($key)) {
-    return $moduletags[$module][$key];
+  	foreach($moduletags[$module] as $actions) {
+	    if (isset($actions[$key])) {
+	    	return $actions[$key];
+	    }	
+    }
   }
   // Full tag
   if (!empty($module)) {
     return $moduletags[$module];
   }
-
   // All the values of key=$key from all tags
   if (!empty($key)) {
     $out = array();
-    foreach ($moduletags as $module => $value) {
-      if (isset($value[$key])) {
-        $out[$module] = $value[$key];
-      }
+    drush_print(print_r($moduletags, true));
+    foreach ($moduletags as $module => $tag) {
+    	foreach($tag as $actions) {
+	    	if (isset($actions[$key])) {
+	        $out[$module] = $actions[$key];
+	      }	
+    	}
     }
     return $out;
   }
@@ -218,7 +224,7 @@ function patterns_moduletags_get_index($data = NULL, $reset = FALSE, $reload_com
 
     $moduletags = array();
     foreach (module_implements('patterns') as $component) {
-      _patterns_moduletags_add_module($moduletags, $component, $data);
+      _patterns_moduletags_add_module($component, $moduletags, $data);
       //$tags = module_invoke($component, 'patterns', $data);
       //$moduletags[$component] = $tags;
     }
