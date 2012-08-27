@@ -3,9 +3,9 @@ description = Enables simple adding/removing features to your site with minimal 
 dependencies[] = token
 dependencies[] = libraries
 
-core = 7.x
-version = 7.x-1.x-dev
-build = 7060
+core = 8.x
+version = 8.x-1.x-dev
+build = 8000
 package = Patterns
 php = 5.2
 

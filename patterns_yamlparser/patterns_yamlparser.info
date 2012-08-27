@@ -3,7 +3,7 @@ description = YAML Parser for Patterns files. Requires Spyc library to be instal
 dependencies[] = patterns
 dependencies[] = libraries
 
-core = 7.x
-version = 7.x-1.x-dev
+core = 8.x
+version = 8.x-1.x-dev
 package = Patterns
 php = 5.2

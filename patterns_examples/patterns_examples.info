@@ -2,7 +2,7 @@ name = Patterns Examples
 description = A collection of patterns files. At least one valid patterns parser (e.g. YAML) must be enabled in order to load the example files.
 dependencies[] = patterns
 
-core = 7.x
-version = 7.x-1.x-dev
+core = 8.x
+version = 8.x-1.x-dev
 package = Patterns
 php = 5.2
