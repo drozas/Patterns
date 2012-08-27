@@ -16,7 +16,7 @@ class PatternsIndexesTestCase extends PatternsTestCase {
 
   public function setUp($user_modules = array(), $first = FALSE) {
 
-    $modules = array('patterns_components', 'pathauto');
+    $modules = array('patterns_components', 'pathauto', 'date');
 
     // Enable any modules required for the tests.
     parent::setUp($modules);
@@ -55,7 +55,7 @@ class PatternsIndexesTestCase extends PatternsTestCase {
   		$nc++;
   	}
   	
-  	$this->assertEqual(count($moduletags), $nc, t('Moduletags index should have length %nc', array('%nc' => $nc)));
+  	$this->assertEqual(count($moduletags), $nc, t('Moduletags index should have length %nc, %found found', array('%nc' => $nc, '%found' => count($moduletags))));
 		
 	}
 }
