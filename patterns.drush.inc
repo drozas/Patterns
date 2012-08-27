@@ -197,11 +197,12 @@ function drush_patterns_export() {
 	$o = patterns_export_list_export_functions();
 	
 	drush_print(print_r($o, true));
-	return;
 	
   $out = array_shift($args);
   if (empty($args)) {
     drush_print(dt('Exporting all components'));
+    patterns_export_start_engine($out, patterns_tagmodules_get_index());
+    return TRUE;
 	}
 	
 	print_r($args);
