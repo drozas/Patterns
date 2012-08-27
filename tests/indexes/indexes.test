@@ -16,7 +16,7 @@ class PatternsIndexesTestCase extends PatternsTestCase {
 
   public function setUp($user_modules = array(), $first = FALSE) {
 
-    $modules = array('patterns_components');
+    $modules = array('patterns_components', 'pathauto');
 
     // Enable any modules required for the tests.
     parent::setUp($modules);
@@ -32,9 +32,30 @@ class PatternsIndexesTestCase extends PatternsTestCase {
   }
 
   public function testTagmodules() {
-  	$tagmodules = patterns_tagmodules_get_index();
+  	$tagmodules = patterns_tagmodules_get_index(NULL, TRUE, TRUE);
   	
-  	$this->assertNotNull($tagmodules);
+  	$this->assertNotNull($tagmodules, 'Tagmodules should not be NULL');
+  	
 	}
 	
+  public function testModuletags() {
+  	$moduletags = patterns_moduletags_get_index(NULL, TRUE, TRUE);
+  	
+  	$components = patterns_io_list_components(TRUE);
+  	$nc = count($components);
+  
+  	$this->assertNotNull($moduletags, 'Moduletags index should not be NULL');
+  	$this->assertEqual(count($moduletags), $nc, t('Moduletags index should have length equal of the number of available components'));
+  	
+  	$nc = 9;
+  	if (patterns_utils_is_module_enabled('date')) {
+  		$nc++;
+  	}
+  	if (patterns_utils_is_module_enabled('pathauto')) {
+  		$nc++;
+  	}
+  	
+  	$this->assertEqual(count($moduletags), $nc, t('Moduletags index should have length %nc', array('%nc' => $nc)));
+		
+	}
 }
