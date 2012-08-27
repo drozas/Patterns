@@ -326,7 +326,16 @@ function patterns_export_submit($form, &$form_state) {
 
     $tm_index = array_intersect_key($tm_index, $exports);
   }
-
+	$form_state['redirect'] = 'admin/patterns/export';
+	
+  patterns_export_start_engine($filename,
+  														 $tm_index,
+ 															 $form_state['values']['info'],
+ 															 $form_state['values']['export']['to'],
+ 															 $format,
+ 															 'php');
+  
+ 															 /*
   if (empty($tm_index)) {
   	drupal_set_message(t('Please select at least one component from which extracting data.'), 'error');
     return FALSE;
@@ -352,6 +361,39 @@ function patterns_export_submit($form, &$form_state) {
  	patterns_export_finalize_export($form_state['values']['export']['to'],
  																	$sections,
  																	$form_state['values']['info'],
+ 																	$modules, 
+ 																	$format, 
+ 																	$filename);
+ 																	*/
+}
+
+function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php') {
+	$format = patterns_io_get_format_from_file($filename, $format);
+	if (!$format) {
+		return FALSE;
+	}
+	
+	$mode = 'php'; // Enforce php. Only mode allowed now
+	$func = 'patterns_export_' . $mode;
+	
+	list($sections, $modules) = call_user_func($func, $tagmodules);
+
+  // If some sections did not return any data
+  // we remove them. We don't remove the modules!
+  foreach ($sections as $s => $value) {
+    if (empty($value)) {
+      unset($sections[$s]);
+    }
+  }
+
+  if (empty($sections)) {
+    drupal_set_message(t('Export did not return any data.'), 'error');
+    return FALSE;
+  }
+    
+ 	patterns_export_finalize_export($to,
+ 																	$sections,
+ 																	$info,
  																	$modules, 
  																	$format, 
  																	$filename);
@@ -409,8 +451,7 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
  * @param string $format The pattern format
  * @param string $filename (optional) The final name of file 
  */
-function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
- 	$filename.= $format; 
+function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) { 
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
 	patterns_io_save_pattern($pattern, $filename, $format);
 }
@@ -460,7 +501,7 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 		patterns_export_to_zip($sections, $info, $modules, $format, $filename); // TODO: let users decide the path
 	}
 	else {
-		drupal_set_message(t('Unknown export option: %option', array($action)));
+		drupal_set_message(t('Unknown export option: %option', array('%options' => $action)));
 	}
 }
 

@@ -107,8 +107,5 @@ function patterns_export_error_handler($errno, $errstr) {
  */
 function patterns_export_list_export_functions($reset = TRUE) {
   $moduletags = patterns_moduletags_get_index(NULL, $reset, $reset);
-  $oo = patterns_moduletags_filter($moduletags, 'field', PATTERNS_EXPORT);
-     print_r($oo);
-  drush_print(count($oo));
- 
+  return patterns_moduletags_filter($moduletags, NULL, PATTERNS_EXPORT);
 }
