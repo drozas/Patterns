@@ -540,6 +540,21 @@ function _patterns_io_file_has_valid_extension($file = NULL, $formats = NULL) {
   return (in_array($ext, $formats)) ? TRUE : FALSE;
 }
 
+/**
+ * Returns a list with the names of the components.
+ *
+ * @param bool $reset (optional) If TRUE, always forces reloading
+ *   the components from the file system. Defaults FALSE
+ *
+ * @return array Array containing the names of the patterns components
+ * 
+ * @see patterns_io_load_components()
+ */
+function patterns_io_list_components_names($reset = FALSE) {
+  $components = patterns_io_load_components($reset, TRUE);
+  $func = function($c){ return pathinfo($c, PATHINFO_FILENAME); };
+  return array_map($func, $components);
+}
 
 /**
  * Returns a list of uris to components files.

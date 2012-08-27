@@ -397,7 +397,7 @@ function drush_patterns_paths() {
  */
 function drush_patterns_components() {
 	drush_print("List of available Patterns components.");
-	$paths = patterns_io_list_components(TRUE);
+	$paths = patterns_io_list_components_names(TRUE);
 	foreach ($paths as $path) {
 		drush_print("- $path", 4);
 	}
