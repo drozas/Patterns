@@ -4,8 +4,6 @@
  * Drush Patterns module commands
  */
 
-$dependencies = array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token');
-
 /**
  * Implements hook_drush_help().
  */
@@ -36,6 +34,11 @@ function patterns_drush_help($section) {
  */
 function patterns_drush_command() {
 
+	$dependencies = array('patterns', 'patterns_components', 'patterns_phpparser', 'patterns_yamlparser', 'patterns_xmlparser', 'token');
+	$deps_export = $dependencies;
+	array_push($deps_export, 'patterns_export');
+	
+	
 	$items['patterns-quickrun'] = array(
     'callback' => 'drush_patterns_quickrun',
     'description' => 'Load a pattern file and executes it without saving it into the database',
@@ -65,6 +68,17 @@ function patterns_drush_command() {
     'core' => array('7'),
   );
 
+  $items['patterns-export'] = array(
+    'description' => 'Import the specified pattern file.',
+    'examples' => array(
+      'drush patterns-export path/to/patterns/file.[xml/yaml]' =>
+        'Import the specified pattern file.',
+      	'drush patterns-import path/to/pattern/file.[xml/yaml] pattern_name' => 'Import the specified pattern file and give it a machine readable name'
+     ),
+    'drupal dependencies' => $deps_export,
+    'core' => array('7'),
+   );
+   
   $items['patterns-import'] = array(
     'callback' => 'drush_patterns_import_file',
     'description' => 'Import the specified pattern file.',
@@ -114,70 +128,81 @@ function patterns_drush_command() {
     'core' => array('7'),
       );
 
-      $items['patterns-list'] = array(
+   $items['patterns-list'] = array(
     'callback' => 'drush_patterns_list',
     'description' => "List all available patterns."
-    );
+   );
 
-    $items['patterns-info'] = array(
+   $items['patterns-info'] = array(
     'callback' => 'drush_patterns_info',
     'description' => "Show all info on a given pattern.",
     'arguments' => array(
       'id' => "The pattern id or name of the pattern for which to show info.",
     )
-    );
+   );
 
-    $items['patterns-form-helper'] = array(
+   $items['patterns-form-helper'] = array(
     'description' => 'Enable/disable patterns form helper',
     'arguments' => array(
       'action' => "Valid values: enable, disable.",
     )
-    );
+   );
 
-    $items['patterns-allow-publish'] = array(
+   $items['patterns-allow-publish'] = array(
     'description' => 'Enable/disable patterns publishing',
     'arguments' => array(
       'action' => "Valid values: enable, disable.",
     )
-    );
+   );
 
-    $items['patterns-paths'] = array(
-    'description' => "List all paths patterns will be looked for",
+   $items['patterns-paths'] = array(
+    'description' => "List all paths where patterns will be looked for",
     'drupal dependencies' => array('patterns'),
-    );
+   );
+   
+   $items['patterns-components'] = array(
+    'description' => "List all the available patterns components",
+    'drupal dependencies' => array('patterns'),
+   );
 
-    $items['patterns-publish'] = array(
+   $items['patterns-publish'] = array(
     'description' => "Publish a pattern.",
     'arguments' => array(
       'pid' => "The ID of the pattern to publish.",
     ),
     'drupal dependencies' => array('patterns'),
-    );
+   );
 
-    $items['patterns-unpublish'] = array(
+   $items['patterns-unpublish'] = array(
     'description' => "Unpublish a pattern.",
     'arguments' => array(
       'pid' => "The ID of the pattern to unpublish.",
     ),
     'drupal dependencies' => array('patterns'),
-    );
-    return $items;
-}
-
-// Helper functions
-
-function patterns_drush_get_file_format($file, $format = PATTERNS_FORMAT_UNKNOWN) {
-	$format = patterns_io_get_format_from_file($file, $format, FALSE);
-	if (!$format) {
-		$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
-		if (!patterns_parser_exists($format)) {
-			return FALSE;
-		}
-	}
-	return $format;
+   );
+   
+	return $items;
 }
 
 // Callbacks
+
+
+function drush_patterns_export() {
+	drush_print(dt('Patterns export.'));
+	$args = func_get_args();
+	if (empty($args)) {
+		return drush_set_error(dt('You must specify the output file'));
+	}
+	
+  $out = array_shift($args);
+  if (empty($args)) {
+    drush_print(dt('Exporting all components'));
+	}
+	
+	print_r($args);
+	drush_print($out);
+	
+}
 
 /**
  * Run a pattern file without importing it into the database
@@ -191,8 +216,7 @@ function drush_patterns_quickrun($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode
 	drush_print(dt('Patterns quick-run.'));
 	$format = patterns_drush_get_file_format($file, $format);
 	if (!$format) {
-		drush_set_error('Invalid pattern format. Aborting');
-		return FALSE;
+		return drush_set_error('Invalid pattern format. Aborting');
 	}
 	drush_print(dt('Format: ' . $format));
 
@@ -211,24 +235,20 @@ function drush_patterns_run($name, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'p
 	$pattern = patterns_get_pattern($name);
 	if (!$pattern) {
 		if (!drush_file_not_empty($name)) {
-			drush_set_error(dt('Pattern was not found in the database nor in the file system.'));
-			return FALSE;
+			return drush_set_error(dt('Pattern was not found in the database nor in the file system.'));
 		}
 		
 		if (!drush_confirm(dt("Pattern '$name' has not been imported. Do you want to import it now? "))) {
-			drush_print(dt('patterns-run has been canceled.'));
-			return FALSE;
+			return drush_print(dt('patterns-run has been canceled.'));
 		}
 			
 		$format = patterns_drush_get_file_format($file, $format);
 		if (!$format) {
-			drush_set_error('Invalid pattern format. Aborting');
-			return FALSE;
+			return drush_set_error('Invalid pattern format. Aborting');
 		}
 		$result = patterns_io_import_file($name, $format);
 		if (!$result) {
-			drush_set_error(dt('Importing pattern failed'));
-			return FALSE;
+			return drush_set_error(dt('Importing pattern failed'));
 		}
 		
 		$name = patterns_io_get_name_from_file($name);
@@ -260,8 +280,7 @@ function drush_patterns_enable($id, $subpattern_mode = 'first-update') {
 	$pattern = patterns_get_pattern($id);
 
 	if (!$pattern) {
-		drush_set_error(dt("Cannot enable pattern '$id' as it could not be found in the list of registered patterns. Did you import it first?"));
-		return FALSE;
+		return drush_set_error(dt("Cannot enable pattern '$id' as it could not be found in the list of registered patterns. Did you import it first?"));
 	}
 
 	/** defaulting to batch mode & always running subpatterns
@@ -276,8 +295,7 @@ function drush_patterns_enable($id, $subpattern_mode = 'first-update') {
 	$result = patterns_execute_pattern_drush($pattern, array('run-subpatterns' => $subpattern_mode, 'pid' => $pattern->pid, 'confirm' => 1, 'op' => 'Confirm', 'submit' => 'Confirm'));
 
 	if (!$result) {
-		drush_set_error(dt("Enabling pattern '$pattern->pid:$pattern->name' failed"));
-		return FALSE;
+		return drush_set_error(dt("Enabling pattern '$pattern->pid:$pattern->name' failed"));
 	}
 	drush_print(dt("Success! Enabled pattern '$pattern->pid:$pattern->name'"));
 	return TRUE;
@@ -308,8 +326,7 @@ function drush_patterns_list() {
 function drush_patterns_info($id) {
 	$pattern = patterns_get_pattern($id);
 	if (!$pattern) {
-		drush_set_error(dt("There is no pattern registered with id or name '$id'"));
-		return FALSE;
+		return drush_set_error(dt("There is no pattern registered with id or name '$id'"));
 	}
 	$info = "";
 	$info .= sprintf("  %-18s: %s\n", 'PID', $pattern->pid);
@@ -363,11 +380,11 @@ function drush_patterns_allow_publish($action) {
 }
 
 /**
- * patterns list command callback.
+ * List of patterns path command callback.
  */
 function drush_patterns_paths() {
+	drush_print("List of path containing Patterns files.");
 	$paths = patterns_path_get_patterns_dirs();
-	drush_print("Paths to look for patterns:");
 	foreach ($paths as $path) {
 		drush_print("- $path", 4);
 	}
@@ -375,6 +392,18 @@ function drush_patterns_paths() {
 	drush_print_pipe(implode(', ', $paths));
 }
 
+/**
+ * List of patterns path command callback.
+ */
+function drush_patterns_components() {
+	drush_print("List of available Patterns components.");
+	$paths = patterns_io_list_components(TRUE);
+	foreach ($paths as $path) {
+		drush_print("- $path", 4);
+	}
+
+	drush_print_pipe(implode(', ', $paths));
+}
 
 /**
  * patterns publish command callback.
@@ -447,8 +476,55 @@ function drush_patterns_import_file_remote($file, $format = PATTERNS_FORMAT_UNKN
 
 // HELPER FUNCTIONS
 
+function patterns_drush_get_file_format($file, $format = PATTERNS_FORMAT_UNKNOWN) {
+	$format = patterns_io_get_format_from_file($file, $format, FALSE);
+	if (!$format) {
+		$format = drush_prompt(dt("Unable to recognize the pattern format. Please specify it")); 
+		if (!patterns_parser_exists($format)) {
+			return FALSE;
+		}
+	}
+	return $format;
+}
+
 function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode, $params) {
 	$pattern = patterns_io_load_pattern_from_file($file, $format);
 	$params = array('run-subpatterns' => TRUE);
 	drush_patterns_run_pattern($pattern, $mode, $params);
+}
+
+function patterns_drush_filter_components($components) {
+
+
+    foreach ($components as $c) {
+      // Find the components.
+      $all_components = array_keys($pool[$source]);
+      // See if there's any matches.
+      $matches = preg_grep('/' . $preg_component_pattern . '/', $all_components);
+      if (sizeof($matches) > 0) {
+        // If we have multiple matches and the components string wasn't a
+        // pattern, check if one of the matches is equal to the pattern, and
+        // use that, or error out.
+        if (sizeof($matches) > 1 and $preg_component_pattern[0] != '^') {
+          if (in_array($component_pattern, $matches)) {
+            $matches = array($component_pattern);
+          }
+          else {
+            return drush_set_error('', dt('Ambiguous component "!component", matches !matches', array('!component' => $component_pattern, '!matches' => join(', ', $matches))));
+          }
+        }
+        if (!is_array($selected[$source])) {
+          $selected[$source] = array();
+        }
+        $selected[$source] += array_intersect_key($pool[$source], array_flip($matches));
+      }
+      else {
+        // No matches. If the source was a pattern, just carry on, else
+        // error out. Allows for patterns like :*field*
+        if ($preg_source_pattern[0] != '^') {
+          return drush_set_error('', dt('No !state !source components match "!component"', array('!state' => $state_string, '!component' => $component_pattern, '!source' => $source)));
+        }
+      }
+    }
+
 }
