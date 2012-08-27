@@ -194,6 +194,11 @@ function drush_patterns_export() {
 		return drush_set_error(dt('You must specify the output file'));
 	}
 	
+	$o = patterns_export_list_export_functions();
+	
+	drush_print(print_r($o, true));
+	return;
+	
   $out = array_shift($args);
   if (empty($args)) {
     drush_print(dt('Exporting all components'));
@@ -493,38 +498,50 @@ function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UN
 	drush_patterns_run_pattern($pattern, $mode, $params);
 }
 
+/**
+ * Validate, and filters user input for export components
+ * 
+ * The input is of the type
+ * 
+ * 		component:export_func_id
+ * 
+ * and returns an array of component => export_func_name
+ * 
+ * @param array $out
+ */
 function patterns_drush_filter_components($components) {
-
-
+	$out = array();
+	
     foreach ($components as $c) {
       // Find the components.
-      $all_components = array_keys($pool[$source]);
-      // See if there's any matches.
-      $matches = preg_grep('/' . $preg_component_pattern . '/', $all_components);
-      if (sizeof($matches) > 0) {
-        // If we have multiple matches and the components string wasn't a
-        // pattern, check if one of the matches is equal to the pattern, and
-        // use that, or error out.
-        if (sizeof($matches) > 1 and $preg_component_pattern[0] != '^') {
-          if (in_array($component_pattern, $matches)) {
-            $matches = array($component_pattern);
-          }
-          else {
-            return drush_set_error('', dt('Ambiguous component "!component", matches !matches', array('!component' => $component_pattern, '!matches' => join(', ', $matches))));
-          }
-        }
-        if (!is_array($selected[$source])) {
-          $selected[$source] = array();
-        }
-        $selected[$source] += array_intersect_key($pool[$source], array_flip($matches));
+      $all_components = patterns_io_list_components_names(TRUE);
+      list($component, $export_func) = explode('.', $c);
+      
+      if (!in_array($component, $all_components)) {
+      	drush_set_error(dt('Component not found: ' . $component));
+      	continue;
       }
-      else {
-        // No matches. If the source was a pattern, just carry on, else
-        // error out. Allows for patterns like :*field*
-        if ($preg_source_pattern[0] != '^') {
-          return drush_set_error('', dt('No !state !source components match "!component"', array('!state' => $state_string, '!component' => $component_pattern, '!source' => $source)));
-        }
+      
+      $info = call_user_func($component . '_patterns');
+      
+      if (empty($info)) {
+      	drush_set_error(dt('An error occurred while retrieving information from ' . $component));
+      	continue;
       }
+      
+      if (!isset($info[PATTERNS_EXPORT]) || empty($info[PATTERNS_EXPORT])) {
+      	drush_set_error(dt('Component ' . $component . ' has no export function defined.'));
+      	continue;
+      }
+      
+      if (!empty($export_func) && !isset($info[PATTERNS_EXPORT][$export_func])) {
+				drush_set_error(dt('Export function ' . $export_func . ' not found in component ' . $component . ' has no export function defined.'));
+      	continue;      	
+      }
+      
+  		$out[$component][] = $info[PATTERNS_EXPORT][$export_func];
     }
+    
+	return $out;
 
 }

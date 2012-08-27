@@ -1,0 +1,40 @@
+<?php
+
+/**
+ * @file
+ * General SimpleTests for Patterns. Also, a Pattern running base class which uses QuickRun.
+ */
+
+class PatternsIndexesTestCase extends PatternsTestCase {
+  public static function getInfo() {
+    return array(
+      'name' => 'Indexes test',
+      'description' => 'Tests whether tagmodules and moduletags behave as expected.',
+      'group' => 'Patterns',
+    );
+  }
+
+  public function setUp($user_modules = array(), $first = FALSE) {
+
+    $modules = array('patterns_components');
+
+    // Enable any modules required for the tests.
+    parent::setUp($modules);
+
+    // TODO: how to ensure that Spyc is installed?
+
+    // Create users.
+    $this->adm_user = $this->drupalCreateUser(array('administer site configuration'));
+    $this->pat_user = $this->drupalCreateUser(array('administer patterns'));
+    $this->std_user = $this->drupalCreateUser(array());
+
+
+  }
+
+  public function testTagmodules() {
+  	$tagmodules = patterns_tagmodules_get_index();
+  	
+  	$this->assertNotNull($tagmodules);
+	}
+	
+}

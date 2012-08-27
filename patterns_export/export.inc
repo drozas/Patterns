@@ -93,3 +93,22 @@ function patterns_export_error_handler($errno, $errstr) {
   // Normal error handler should take over from here.
   return FALSE;
 }
+
+
+/**
+ * Returns a list with the names of the components.
+ *
+ * @param bool $reset (optional) If TRUE, always forces reloading
+ *   the components from the file system. Defaults FALSE
+ *
+ * @return array Array containing the names of the patterns components
+ * 
+ * @see patterns_io_load_components()
+ */
+function patterns_export_list_export_functions($reset = TRUE) {
+  $moduletags = patterns_moduletags_get_index(NULL, $reset, $reset);
+  $oo = patterns_moduletags_filter($moduletags, 'field', PATTERNS_EXPORT);
+     print_r($oo);
+  drush_print(count($oo));
+ 
+}
