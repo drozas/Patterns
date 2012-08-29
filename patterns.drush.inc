@@ -189,14 +189,18 @@ function patterns_drush_command() {
 
 function drush_patterns_export() {
 	drush_print(dt('Patterns export.'));
+	
+	if (!patterns_utils_is_module_enabled('patterns_export')) {
+		drush_set_error(dt('Please enable module patterns_export first'));
+		return FALSE;
+	}
+	
 	$args = func_get_args();
 	if (empty($args)) {
 		return drush_set_error(dt('You must specify the output file'));
 	}
 	
-	$o = patterns_export_list_export_functions();
-	
-	drush_print(print_r($o, true));
+	$exports = patterns_export_list_export_functions();
 	
   $out = array_shift($args);
   if (empty($args)) {
@@ -204,10 +208,7 @@ function drush_patterns_export() {
     patterns_export_start_engine($out, patterns_tagmodules_get_index());
     return TRUE;
 	}
-	
-	print_r($args);
-	drush_print($out);
-	
+
 }
 
 /**
