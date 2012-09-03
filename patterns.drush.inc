@@ -209,8 +209,11 @@ function drush_patterns_export() {
     return TRUE;
 	}
 	
-	$a = patterns_drush_filter_components($args);
-	drush_print(print_r($a, true));
+	$export_functions = patterns_drush_filter_components($args);
+	patterns_export_start_engine($out, $export_functions);
+  return TRUE;
+  
+	//drush_print(print_r($export_functions, true));
 
 }
 

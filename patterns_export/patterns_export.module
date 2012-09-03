@@ -291,12 +291,18 @@ function patterns_export_page1($form, &$form_state) {
  */
 function patterns_export_submit($form, &$form_state) {
 
-  $tm_index = patterns_tagmodules_get_index();
+  $tm_index = patterns_moduletags_get_index();
   $format   = $form_state['values']['format'];
   $filename = $form_state['values']['pattern_name'];
   // TODO: Loop here and create a modules section
 
-  if (isset($form_state['values']['all']) && $form_state['values']['all'] != 0) {
+  // Create the array of exports functions.
+  // Can either be the full module_tags index, 
+  // or we must go through all the checkbox and build the array from scratch
+  if (isset($form_state['values']['all']) || $form_state['values']['all'] != 0) {
+  	$exports = $tm_index;
+  }
+  else {
     // Individual modules have selected and the tagmodules index needs to be
     // refactored.
     $exports = array();
@@ -306,30 +312,37 @@ function patterns_export_submit($form, &$form_state) {
         if (empty($enabled)) {
           continue;
         }
-        $exports[$tag] = array();
+        
+        $exports[$module][$tag][PATTERNS_EXPORTS] = array();
+        
         // Loop along all enabled export functions
         foreach ($data[$tag]['options'] as $export_key => $func) {
           if (!empty($func)) {
-            $tm_index[$tag]['__to_export__'][] = $tm_index[$tag][PATTERNS_EXPORT][$func];
+            $exports[$module][$tag][PATTERNS_EXPORTS][] = $tm_index[$module][$tag][PATTERNS_EXPORT][$func];
           }
         }
-
+				
         // If no sub-tag was selected (should not be the case)
         // then we execute EXPORT_ALL (if available)
-        if (empty($tm_index[$tag]['__to_export__'])) {
-          if (isset($tm_index[$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL])) {
-            $tm_index[$tag]['__to_export__'] = $tm_index[$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
+        if (empty($exports[$module][$tag][PATTERNS_EXPORT])) {
+          if (isset($tm_index[$module][$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL])) {
+          	$exports[$module][$tag][PATTERNS_EXPORTS][] = $tm_index[$module][$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
           }
         }
+        
+        // Add necessary information
+        
+        if (isset($tm_index[$tag][PATTERNS_FILES])) {
+        	$exports[$module][$tag][PATTERNS_FILES] = $tm_index[$module][$tag][PATTERNS_FILES]; 
+        }      
       }
     }
-
-    $tm_index = array_intersect_key($tm_index, $exports);
   }
+  
 	$form_state['redirect'] = 'admin/patterns/export';
 	
   patterns_export_start_engine($filename,
-  														 $tm_index,
+  														 $exports,
  															 $form_state['values']['info'],
  															 $form_state['values']['export']['to'],
  															 $format,
@@ -516,6 +529,49 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
  * 
  */
 function patterns_export_php($tagmodules) {
+	//drush_print(print_r($tagmodules, true));
+
+  $result = array();
+  $modules = array();
+  foreach ($tagmodules as $module) {
+	  foreach ($module as $tag => $values) {
+	   	if (!isset($values[PATTERNS_EXPORT])) {
+	        continue;
+	    }
+	
+	    if (isset($values[PATTERNS_FILES])) {
+	      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
+	      foreach ($files as $file) {
+	        require_once $file;
+	      }
+	    }
+	
+	    // TODO: the name of the component may be different from the
+	    // the name of the module to enable. Cover this case
+	    array_push($modules, $module);
+	    
+	    
+	    if (!is_array($values[PATTERNS_EXPORT])) {
+	      $sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
+	    }
+	    else {
+	      foreach ($values[PATTERNS_EXPORT] as $f) {
+	        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
+	        $sections[$tag] = array_merge($result[$tag], call_user_func($f));
+	      }
+	    }
+	
+	  }
+  }
+
+  $result[] = $sections;
+  $result[] = $modules;
+
+  return $result;
+}
+
+
+function patterns_export_php_old($tagmodules) {
 
   $result = array();
   $modules = array();
