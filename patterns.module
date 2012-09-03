@@ -649,28 +649,15 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   module_load_include('inc', 'patterns', 'includes/core/token');
   module_load_include('inc', 'patterns', 'includes/core/' . $mode);
 
-  $fun = 'patterns_execute_pattern_' . $mode;
-
-  drupal_set_time_limit(0);
-
-  if (!isset($params['quickrun']) || !$params['quickrun']) {
-    if (!is_object($pattern)) {
-      $pattern = patterns_get_pattern($pattern);
-
-      if (!$pattern) {
-        return FALSE;
-      }
-    }
-  }
-  // This is needed for the Patterns installation profile.
-  if (isset($params['run-subpatterns'])) {
-    $pattern->subpatterns_run_mode = $params['run-subpatterns'];
+  if (empty($pattern)) {
+  	drupal_set_message(t('The pattern seems empty...I cannot run it!'));
+  	return FALSE;
   }
   /////////////////////////////////////////
   // Get Patterns details
   $patterns_details = patterns_parser_get_pattern_details($pattern);
   if ($patterns_details === FALSE) {
-    drupal_set_message(t('There were errors while processing a pattern, aborting.'), 'error');
+    drupal_set_message(t('Errors where found in the pattern. Aborting.'), 'error');
     return FALSE;
   }
 
@@ -695,6 +682,21 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   $sections = $pattern_details['sections'];
 
 
+	// Building execution parameters
+  if (!isset($params['quickrun']) || !$params['quickrun']) {
+    if (!is_object($pattern)) {
+      $pattern = patterns_get_pattern($pattern);
+
+      if (!$pattern) {
+        return FALSE;
+      }
+    }
+  }
+  // This is needed for the Patterns installation profile.
+  if (isset($params['run-subpatterns'])) {
+    $pattern->subpatterns_run_mode = $params['run-subpatterns'];
+  }
+
   // Ste: Actions_map seems to be used with includes. Probably we do not need it now.
   //$actions_map = array('patterns' => $pattern_details['info'], 'map' => $pattern_details['actions_map']);
 
@@ -705,7 +707,11 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   //        );
   $actions_map = array('patterns' => $infos, 'map' => NULL); // Fix this.
   ////////////////////////////////////////
-
+	
+  drupal_set_time_limit(0);
+  
+  $fun = 'patterns_execute_pattern_' . $mode;
+  
   // Execute the Pattern using the selected mode.
   $fun($pattern, $params, $patterns_details, $actions_map);
 

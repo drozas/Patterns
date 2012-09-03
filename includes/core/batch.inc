@@ -26,7 +26,8 @@ module_load_include('inc', 'patterns', 'includes/core/common');
  * @param $actions_map
  *
  * @return
- * @TODO Doc.
+ * 
+ * @TODO Do we still need to pass $pattern here?
  */
 function patterns_execute_pattern_batch($pattern, $params, $patterns_details, $actions_map) {
   $pattern_details = current($patterns_details);
