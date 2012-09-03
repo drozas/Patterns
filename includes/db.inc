@@ -143,9 +143,8 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
   $description  = patterns_utils_init_from_pattern('description', $pattern);
   $format       = patterns_utils_init_from_pattern('format', $pattern, $format, PATTERNS_FORMAT_YAML);
 
-  // Check if it is valid pattern
-  // TODO: validate different formats
-  if (patterns_validate_pattern($pattern)) {
+  // Check if it is valid pattern: only syntax is validated, not the tags
+  if (patterns_validate_pattern($pattern, PATTERNS_VALIDATE_INCLUDE)) {
     $status = PATTERNS_STATUS_OK;
   }
   else {

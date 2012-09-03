@@ -426,7 +426,7 @@ function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTE
       $original = $content;
     }
   }
-
+  
   $path = file_unmanaged_save_data($original, $path_original, FILE_EXISTS_REPLACE);
   if (!$path) {
     drupal_set_message(t('An error occurred while saving the file to %path. A file with the same name exists.', array('%path' => $path_original)), 'error');
@@ -448,6 +448,7 @@ function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTE
   }
   
   patterns_db_save_pattern($pattern, $path, $name, $format);
+  
   $link = l($name, 'admin/patterns/edit/' . $name);
   drupal_set_message(t('Pattern !name was saved in %path.', array('!name' => $link, '%path' => $path, )));
 

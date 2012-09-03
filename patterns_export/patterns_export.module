@@ -390,7 +390,7 @@ function patterns_export_start_engine($filename, $tagmodules = array(), $info = 
     drupal_set_message(t('Export did not return any data.'), 'error');
     return FALSE;
   }
-    
+	    
  	patterns_export_finalize_export($to,
  																	$sections,
  																	$info,
