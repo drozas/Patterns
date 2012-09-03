@@ -564,19 +564,28 @@ function patterns_drush_filter_components($components) {
       
     	// If no export function was specified, get all export functions for the tag 
       if (empty($export_func)) {
-      	foreach ($info[$tag][PATTERNS_EXPORT] as $func) {
-      		$out[$component][] = $func;
+      	foreach ($info[$tag][PATTERNS_EXPORT] as $func_name => $func) {
+      		$out[$component][$tag][PATTERNS_EXPORT][$func_name] = $func;
       	}	
+      	// add files
+      	if (isset($info[$tag][PATTERNS_FILES])) {
+        	$out[$component][$tag][PATTERNS_FILES] = $info[$module][$tag][PATTERNS_FILES]; 
+        } 
+      	
       	continue;
       }
       
       if (!isset($info[$tag][PATTERNS_EXPORT][$export_func])) {
-      	drush_print(print_r($info[$tag][PATTERNS_EXPORT], true));
-				drush_set_error(dt('Component "' . $component . '", tag "' . $tag . '" has no xport function "' . $export_func . '"'));
+      	drush_set_error(dt('Component "' . $component . '", tag "' . $tag . '" has no xport function "' . $export_func . '"'));
       	continue;      	
       }
       
-  		$out[$component][] = $info[$tag][PATTERNS_EXPORT][$export_func];
+  		$out[$component][$tag][PATTERNS_EXPORT][$export_func] = $info[$tag][PATTERNS_EXPORT][$export_func];
+  		
+  		// add files
+  		if (isset($info[$tag][PATTERNS_FILES])) {
+      	$out[$component][$tag][PATTERNS_FILES] = $info[$tag][PATTERNS_FILES]; 
+      } 
     }
     
 	return $out;

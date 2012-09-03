@@ -332,7 +332,7 @@ function patterns_export_submit($form, &$form_state) {
         
         // Add necessary information
         
-        if (isset($tm_index[$tag][PATTERNS_FILES])) {
+        if (isset($tm_index[$module][$tag][PATTERNS_FILES])) {
         	$exports[$module][$tag][PATTERNS_FILES] = $tm_index[$module][$tag][PATTERNS_FILES]; 
         }      
       }
@@ -533,7 +533,7 @@ function patterns_export_php($tagmodules) {
 
   $result = array();
   $modules = array();
-  foreach ($tagmodules as $module) {
+  foreach ($tagmodules as $module_name => $module) {
 	  foreach ($module as $tag => $values) {
 	   	if (!isset($values[PATTERNS_EXPORT])) {
 	        continue;
@@ -548,7 +548,7 @@ function patterns_export_php($tagmodules) {
 	
 	    // TODO: the name of the component may be different from the
 	    // the name of the module to enable. Cover this case
-	    array_push($modules, $module);
+	    array_push($modules, $module_name);
 	    
 	    
 	    if (!is_array($values[PATTERNS_EXPORT])) {
