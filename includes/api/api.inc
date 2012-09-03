@@ -77,7 +77,7 @@ function patterns_api_is_valid_component_name($component = NULL) {
  *   the modules section, or FALSE if an error occurred
  */
 function patterns_api_add_modules_section($modules = NULL, &$pattern = array(), $ow = FALSE) {
-  if (is_null($modules)) return FALSE;
+  if (empty($modules)) return FALSE;
   if (isset($pattern['modules']) && !$ow) return FALSE;
   $modules = (is_array($modules)) ? $modules : array($modules);
   $pattern['modules'] = array_unique($modules);
@@ -99,7 +99,7 @@ function patterns_api_add_modules_section($modules = NULL, &$pattern = array(), 
  *   overwritten. Defaults FALSE.
  */
 function patterns_api_add_section($section_name = NULL, &$pattern = array(), $ow = FALSE) {
-  if (is_null($section_name)) return FALSE;
+  if (empty($section_name)) return FALSE;
   if (patterns_api_is_reserved_word($section_name)) return FALSE;
   if (isset($pattern[$section_name]) && !$ow) return FALSE;
 
