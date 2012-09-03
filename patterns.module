@@ -454,6 +454,17 @@ function patterns_enable_pattern($form, &$form_state, $pid) {
     );
   }
 
+  if (!patterns_validate_pattern($pattern)) {
+  	$link = l('syntax and content', '/admin/patterns/edit/' . $pid);
+  	$form['invalid'] = array(
+    	'#markup' => t('This pattern is invalid. Please check !stuff before running it', array('!stuff' => $link)),
+   		'#prefix' => '<div id="important"><strong>Ooops! </strong>',
+      //'#suffix' => '</strong></br></br></div>',
+  	);
+  	
+  	return $form;
+  }
+  
   $form['pid'] = array(
     '#type' => 'value',
     '#value' => $pid,
