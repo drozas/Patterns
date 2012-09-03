@@ -208,6 +208,9 @@ function drush_patterns_export() {
     patterns_export_start_engine($out, patterns_tagmodules_get_index());
     return TRUE;
 	}
+	
+	$a = patterns_drush_filter_components($args);
+	drush_print(print_r($a, true));
 
 }
 
@@ -517,7 +520,9 @@ function patterns_drush_filter_components($components) {
     foreach ($components as $c) {
       // Find the components.
       $all_components = patterns_io_list_components_names(TRUE);
-      list($component, $export_func) = explode('.', $c);
+      drush_print(print_r($all_components, true));
+      
+      list($component, $tag, $export_func) = explode('.', $c);
       
       if (!in_array($component, $all_components)) {
       	drush_set_error(dt('Component not found: ' . $component));
@@ -531,17 +536,44 @@ function patterns_drush_filter_components($components) {
       	continue;
       }
       
-      if (!isset($info[PATTERNS_EXPORT]) || empty($info[PATTERNS_EXPORT])) {
-      	drush_set_error(dt('Component ' . $component . ' has no export function defined.'));
+      // If no tag was specified, get all export functions
+      if (empty($tag)) {
+      	foreach($info as $t) {
+      		if (!isset($t[PATTERNS_EXPORT]) || empty($t[PATTERNS_EXPORT])) {
+      		 	continue;
+      		}
+      		foreach ($t[PATTERNS_EXPORT] as $func) {
+      			$out[$component][] = $func;
+      		}
+      	}	
       	continue;
       }
       
-      if (!empty($export_func) && !isset($info[PATTERNS_EXPORT][$export_func])) {
-				drush_set_error(dt('Export function ' . $export_func . ' not found in component ' . $component . ' has no export function defined.'));
+      if (!isset($info[$tag])) {
+      	drush_set_error(dt('Component "' . $component . '" has no tag "' . $tag . '" defined.'));
+      	continue;
+      }
+      
+      if (!isset($info[$tag][PATTERNS_EXPORT]) || empty($info[$tag][PATTERNS_EXPORT])) {
+      	drush_set_error(dt('Component "' . $component . '", tag "' . $tag . '" has no export function defined.'));
+      	continue;
+      }
+      
+    	// If no export function was specified, get all export functions for the tag 
+      if (empty($export_func)) {
+      	foreach ($info[$tag][PATTERNS_EXPORT] as $func) {
+      		$out[$component][] = $func;
+      	}	
+      	continue;
+      }
+      
+      if (!isset($info[$tag][PATTERNS_EXPORT][$export_func])) {
+      	drush_print(print_r($info[$tag][PATTERNS_EXPORT], true));
+				drush_set_error(dt('Component "' . $component . '", tag "' . $tag . '" has no xport function "' . $export_func . '"'));
       	continue;      	
       }
       
-  		$out[$component][] = $info[PATTERNS_EXPORT][$export_func];
+  		$out[$component][] = $info[$tag][PATTERNS_EXPORT][$export_func];
     }
     
 	return $out;
