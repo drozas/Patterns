@@ -519,12 +519,18 @@ function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UN
  */
 function patterns_drush_filter_components($components) {
 	$out = array();
-	
-    foreach ($components as $c) {
-      // Find the components.
-      $all_components = patterns_io_list_components_names(TRUE);
-      drush_print(print_r($all_components, true));
+	// Find the components.
+  $all_components = patterns_io_list_components_names(TRUE);
+  //drush_print(print_r($all_components, true));
       
+    foreach ($components as $c) {
+    	$func = NULL;
+    	$func_name = NULL;
+    	$t = NULL;
+    	$tag = NULL;
+    	$tag_name = NULL;
+    	$export_func = NULL;
+    	
       list($component, $tag, $export_func) = explode('.', $c);
       
       if (!in_array($component, $all_components)) {
@@ -541,14 +547,20 @@ function patterns_drush_filter_components($components) {
       
       // If no tag was specified, get all export functions
       if (empty($tag)) {
-      	foreach($info as $t) {
+      	foreach($info as $tag => $t) {
       		if (!isset($t[PATTERNS_EXPORT]) || empty($t[PATTERNS_EXPORT])) {
       		 	continue;
       		}
-      		foreach ($t[PATTERNS_EXPORT] as $func) {
-      			$out[$component][] = $func;
+      		foreach ($t[PATTERNS_EXPORT] as $func_name => $func) {
+
+      			$out[$component][$tag][PATTERNS_EXPORT][$func_name] = $func; 
       		}
-      	}	
+      		
+      		// add files
+      		if (isset($t[PATTERNS_FILES])) {
+      			$out[$component][$tag][PATTERNS_FILES] = $t[PATTERNS_FILES]; 
+      		}
+      	}		
       	continue;
       }
       
@@ -569,7 +581,7 @@ function patterns_drush_filter_components($components) {
       	}	
       	// add files
       	if (isset($info[$tag][PATTERNS_FILES])) {
-        	$out[$component][$tag][PATTERNS_FILES] = $info[$module][$tag][PATTERNS_FILES]; 
+        	$out[$component][$tag][PATTERNS_FILES] = $info[$tag][PATTERNS_FILES]; 
         } 
       	
       	continue;

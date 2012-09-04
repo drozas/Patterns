@@ -380,7 +380,7 @@ function patterns_export_submit($form, &$form_state) {
  																	*/
 }
 
-function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php') {
+function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_FILE, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php') {
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
 		return FALSE;
@@ -538,9 +538,10 @@ function patterns_export_php($tagmodules) {
 	   	if (!isset($values[PATTERNS_EXPORT])) {
 	        continue;
 	    }
-	
+			
 	    if (isset($values[PATTERNS_FILES])) {
 	      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
+
 	      foreach ($files as $file) {
 	        require_once $file;
 	      }
