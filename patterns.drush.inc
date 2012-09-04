@@ -210,8 +210,14 @@ function drush_patterns_export() {
 	}
 	
 	$export_functions = patterns_drush_filter_components($args);
-	patterns_export_start_engine($out, $export_functions);
-  return TRUE;
+	$result = patterns_export_start_engine($out, $export_functions);
+  
+	if (!$result) {
+		drush_set_error(dt('An error occurred while exporting. Export may have failed.'));
+	}
+	else {
+		drush_print(dt('Patterns exported successfully'));
+	}
   
 	//drush_print(print_r($export_functions, true));
 

@@ -404,7 +404,7 @@ function patterns_export_start_engine($filename, $tagmodules = array(), $info = 
     return FALSE;
   }
 	    
- 	patterns_export_finalize_export($to,
+ 	return patterns_export_finalize_export($to,
  																	$sections,
  																	$info,
  																	$modules, 
@@ -481,7 +481,15 @@ function patterns_export_to_db($sections = array(), $info = array(), $modules = 
 function patterns_export_to_file($sections = array(), $info = array(), $modules = array(), $format, $filename) {
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
 	$pattern = patterns_parser_dump($pattern, $format);
-	patterns_download_file($pattern, $filename . '.' . $format);
+	
+	// drush
+	if (patterns_utils_is_cli()) {
+		return file_put_contents($filename, $pattern);
+	}
+	// web server
+	else {
+		patterns_download_file($pattern, $filename . '.' . $format);
+	}
 }
 
 /**
@@ -505,13 +513,13 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 																					$filename = NULL) {
 																						
 	if ($action == PATTERNS_EXPORT_TO_FILE) {
-		 patterns_export_to_file($sections, $info, $modules, $format, $filename);
+		 return patterns_export_to_file($sections, $info, $modules, $format, $filename);
 	}
 	else if ($action == PATTERNS_EXPORT_TO_DB) {
-		 patterns_export_to_db($sections, $info, $modules, $format, $filename);
+		 return patterns_export_to_db($sections, $info, $modules, $format, $filename);
 	}
 	else if ($action == PATTERNS_EXPORT_TO_ZIP) {
-		patterns_export_to_zip($sections, $info, $modules, $format, $filename); // TODO: let users decide the path
+		return patterns_export_to_zip($sections, $info, $modules, $format, $filename); // TODO: let users decide the path
 	}
 	else {
 		drupal_set_message(t('Unknown export option: %option', array('%options' => $action)));

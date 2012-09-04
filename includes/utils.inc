@@ -241,3 +241,14 @@ function patterns_utils_key_exists($key = NULL, $array = array()) {
 	}
 	return $out;
 }
+
+/**
+ * Returns TRUE if patterns is executed via cli
+ * 
+ * Useful for detecting if patterns is running via drush
+ * 
+ * @return Boolean TRUE, if the script is executed in cli
+ */
+function patterns_utils_is_cli() {
+	return php_sapi_name() == "cli";
+}
