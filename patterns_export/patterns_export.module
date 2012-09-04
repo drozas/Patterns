@@ -295,11 +295,11 @@ function patterns_export_submit($form, &$form_state) {
   $format   = $form_state['values']['format'];
   $filename = $form_state['values']['pattern_name'];
   // TODO: Loop here and create a modules section
-
+	
   // Create the array of exports functions.
   // Can either be the full module_tags index, 
   // or we must go through all the checkbox and build the array from scratch
-  if (isset($form_state['values']['all']) || $form_state['values']['all'] != 0) {
+  if (!isset($form_state['values']['all']) || $form_state['values']['all'] == 0) {
   	$exports = $tm_index;
   }
   else {
@@ -313,12 +313,12 @@ function patterns_export_submit($form, &$form_state) {
           continue;
         }
         
-        $exports[$module][$tag][PATTERNS_EXPORTS] = array();
+        $exports[$module][$tag][PATTERNS_EXPORT] = array();
         
         // Loop along all enabled export functions
         foreach ($data[$tag]['options'] as $export_key => $func) {
           if (!empty($func)) {
-            $exports[$module][$tag][PATTERNS_EXPORTS][] = $tm_index[$module][$tag][PATTERNS_EXPORT][$func];
+            $exports[$module][$tag][PATTERNS_EXPORT][] = $tm_index[$module][$tag][PATTERNS_EXPORT][$func];
           }
         }
 				
@@ -326,7 +326,7 @@ function patterns_export_submit($form, &$form_state) {
         // then we execute EXPORT_ALL (if available)
         if (empty($exports[$module][$tag][PATTERNS_EXPORT])) {
           if (isset($tm_index[$module][$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL])) {
-          	$exports[$module][$tag][PATTERNS_EXPORTS][] = $tm_index[$module][$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
+          	$exports[$module][$tag][PATTERNS_EXPORT][] = $tm_index[$module][$tag][PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
           }
         }
         
