@@ -224,6 +224,8 @@ function drush_patterns_export() {
 		return FALSE;
 	}
 
+	patterns_io_load_components(TRUE);
+	
   if (empty($args)) {
     drush_print(dt('Exporting all components'));
     $exports = patterns_moduletags_get_index(NULL, TRUE, TRUE);
