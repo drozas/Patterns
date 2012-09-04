@@ -55,7 +55,7 @@ define('PATTERNS_INCLUDE_ATTACHED', 'attached');
 define('PATTERNS_INCLUDE_ALWAYS', 'always');
 
 define('PATTERNS_EXPORT_TO_FILE', 'file');
-define('PATTERNS_EXPORT_TO_DB', 'database');
+define('PATTERNS_EXPORT_TO_DB', 'db');
 define('PATTERNS_EXPORT_TO_ZIP', 'zip');
 
 define('PATTERNS_EXPORT_MODE_FULL', 'full');
