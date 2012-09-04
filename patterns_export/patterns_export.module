@@ -501,11 +501,18 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 	}
 	else if ($action == PATTERNS_EXPORT_TO_ZIP) {
 		$path = pathinfo($filename, PATHINFO_DIRNAME);
-		// User specified the full path, it want the Zip file to be created there
 		if (!empty($path)) {
-			$path.= '/';
-			$filename = pathinfo($filename, PATHINFO_BASENAME);	
+			// no full path, probably it is from the web interface
+			if ($path == '.') {
+				$path = NULL;
+			}
+			// User specified the full path, it want the Zip file to be created there
+			else {
+				$path.= '/';
+				$filename = pathinfo($filename, PATHINFO_BASENAME);	
+			}
 		}
+		
 		return patterns_export_to_zip($sections, $info, $modules, $format, $filename, $path);
 	}
 	else {

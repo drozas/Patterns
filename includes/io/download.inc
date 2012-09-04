@@ -19,7 +19,6 @@ function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML
 	}
 	
 	$path = (empty($path)) ? patterns_path_get_tmp_dir() : $path;
-  
 	if (!file_prepare_directory($path)) {
 		drupal_set_message(t('Path does not exist or is not writable: %path', array('%path' => $path)), 'error');
 		return FALSE;
@@ -54,6 +53,7 @@ function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML
   	drupal_set_message(t("An error occurred. Path is not readable: %path", array('%path' => $zip_path)), 'error');
     return FALSE; 
   }
+  //drupal_set_message($zip_path);
   
   return $zip_path;
 }
