@@ -144,7 +144,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
   $format       = patterns_utils_init_from_pattern('format', $pattern, $format, PATTERNS_FORMAT_YAML);
 
   // Check if it is valid pattern: only syntax is validated, not the tags
-  if (patterns_validate_pattern($pattern, PATTERNS_VALIDATE_INCLUDE)) {
+  if (patterns_validate_pattern($pattern, $format, PATTERNS_VALIDATE_SYNTAX)) {
     $status = PATTERNS_STATUS_OK;
   }
   else {

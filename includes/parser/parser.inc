@@ -271,7 +271,7 @@ function patterns_parser_is_valid_action_name($action = NULL) {
  * @return bool TRUE if valid, FALSE otherwise.
  */
 function patterns_validate_pattern($pattern, $format = PATTERNS_FORMAT_UNKNOWN, $level = PATTERNS_VALIDATE_ALL) {
-  if ($level == PATTERNS_VALIDATE_SKIP) return TRUE;
+	if ($level == PATTERNS_VALIDATE_SKIP) return TRUE;
   
 	$pattern = patterns_parser_parse($pattern, $format);
   if (!$pattern) return FALSE;

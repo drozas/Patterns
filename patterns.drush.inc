@@ -219,8 +219,7 @@ function drush_patterns_export() {
 		}
 	}
 	
-	
-	$format = patterns_io_get_format_from_file($filename, $format);
+	$format = patterns_io_get_format_from_file($out, $format);
 	if (!$format) {
 		return FALSE;
 	}
