@@ -347,40 +347,15 @@ function patterns_export_submit($form, &$form_state) {
  															 $form_state['values']['export']['to'],
  															 $format,
  															 'php');
-  
- 															 /*
-  if (empty($tm_index)) {
-  	drupal_set_message(t('Please select at least one component from which extracting data.'), 'error');
-    return FALSE;
-  }
-  
-  list($sections, $modules) = patterns_export_php($tm_index);
-
-  // If some sections did not return any data
-  // we remove them. We don't remove the modules!
-  foreach ($sections as $s => $value) {
-    if (empty($value)) {
-      unset($sections[$s]);
-    }
-  }
-
-  if (empty($sections)) {
-    drupal_set_message(t('Export did not return any data.'), 'error');
-    return FALSE;
-  }
-
-  $form_state['redirect'] = 'admin/patterns/export';
-    
- 	patterns_export_finalize_export($form_state['values']['export']['to'],
- 																	$sections,
- 																	$form_state['values']['info'],
- 																	$modules, 
- 																	$format, 
- 																	$filename);
- 																	*/
 }
 
-function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_FILE, $format = PATTERNS_FORMAT_UNKNOWN, $mode = 'php') {
+function patterns_export_start_engine($filename, 
+																			$tagmodules = array(), 
+																			$info = array(), 
+																			$to = PATTERNS_EXPORT_TO_DB, 
+																			$format = PATTERNS_FORMAT_UNKNOWN, 
+																			$mode = 'php') {
+																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
 		return FALSE;
@@ -452,7 +427,13 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
   if (!$zip_path) {
   	return FALSE;
 	}
-	patterns_download_zip($zip_path);
+	
+	// web server
+	if (!patterns_utils_is_cli()) {
+		patterns_download_zip($zip_path);
+	}
+	
+	return TRUE;
 }
 
 /**
@@ -466,7 +447,7 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
  */
 function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) { 
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
-	patterns_io_save_pattern($pattern, $filename, $format);
+	return patterns_io_save_pattern($pattern, $filename, $format);
 }
 
 /**
@@ -519,7 +500,13 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 		 return patterns_export_to_db($sections, $info, $modules, $format, $filename);
 	}
 	else if ($action == PATTERNS_EXPORT_TO_ZIP) {
-		return patterns_export_to_zip($sections, $info, $modules, $format, $filename); // TODO: let users decide the path
+		$path = pathinfo($filename, PATHINFO_DIRNAME);
+		// User specified the full path, it want the Zip file to be created there
+		if (!empty($path)) {
+			$path.= '/';
+			$filename = pathinfo($filename, PATHINFO_BASENAME);	
+		}
+		return patterns_export_to_zip($sections, $info, $modules, $format, $filename, $path);
 	}
 	else {
 		drupal_set_message(t('Unknown export option: %option', array('%options' => $action)));

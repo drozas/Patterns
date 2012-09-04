@@ -109,3 +109,17 @@ function patterns_export_list_export_functions($reset = TRUE) {
   $moduletags = patterns_moduletags_get_index(NULL, $reset, $reset);
   return patterns_moduletags_filter($moduletags, NULL, PATTERNS_EXPORT);
 }
+
+/**
+ * Returns TRUE if a string is a supported export mode
+ * 
+ * @param string $mode The mode to check
+ * @return TRUE, if a string is a supported export mode
+ */
+function patterns_export_is_valid_mode($mode = NULL) {
+	if (empty($mode)) return FALSE;
+	return in_array($mode, array(PATTERNS_EXPORT_TO_DB, 
+																PATTERNS_EXPORT_TO_FILE,
+																PATTERNS_EXPORT_TO_ZIP,
+	));
+}

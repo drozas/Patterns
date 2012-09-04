@@ -18,7 +18,7 @@ function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML
 		return FALSE;
 	}
 	
-	$path = (is_null($path)) ? patterns_path_get_tmp_dir() : $path;
+	$path = (empty($path)) ? patterns_path_get_tmp_dir() : $path;
   
 	if (!file_prepare_directory($path)) {
 		drupal_set_message(t('Path does not exist or is not writable: %path', array('%path' => $path)), 'error');
@@ -26,8 +26,12 @@ function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML
 	}
 	
 	$zip = new ZipArchive();
-  $zip_filename = (is_null($filename)) ? "patterns" . strval(time()) . ".zip" : $filename;
-  $zip_path = $path . '/' . $zip_filename . '.zip';
+  $zip_filename = (empty($filename)) ? "patterns" . strval(time()) . ".zip" : $filename;
+  $zip_path = $path . '/' . $zip_filename;
+  
+  if (strrpos($zip_path, '.zip') !== (strlen($zip_path) - 4)) {
+  	$zip_path.= '.zip';
+  }
    
   if ($zip->open($zip_path, ZIPARCHIVE::CREATE) != TRUE) {
   	exit("Cannot locally create zip-archive. Ask your administrator for help.");

@@ -194,23 +194,46 @@ function drush_patterns_export() {
 		drush_set_error(dt('Please enable module patterns_export first'));
 		return FALSE;
 	}
-	
+  
 	$args = func_get_args();
 	if (empty($args)) {
-		return drush_set_error(dt('You must specify the output file'));
+		return drush_set_error(dt('You must specify the export mode and the output file'));
+	}
+		
+  $mode = array_shift($args);
+	if (!patterns_export_is_valid_mode($mode)) {
+		$modes_string = '[' . PATTERNS_EXPORT_TO_DB;
+		$modes_string.= '|' . PATTERNS_EXPORT_TO_FILE;
+		$modes_string.= '|' . PATTERNS_EXPORT_TO_ZIP . ']';
+		return drush_set_error(dt('You must specify a valid export mode: ' . $modes_string));
 	}
 	
-	$exports = patterns_export_list_export_functions();
+	// out file
+	$out = array_shift($args);
+	$format = PATTERNS_FORMAT_UNKNOWN;
 	
-  $out = array_shift($args);
+	if ($mode === PATTERNS_EXPORT_TO_ZIP) {
+		$format = patterns_io_get_format_from_file(NULL, array_shift($args));
+		if (!$format) {
+			return drush_set_error(dt('You must specify the format when exporting to Zip archive.'));
+		}
+	}
+	
+	
+	$format = patterns_io_get_format_from_file($filename, $format);
+	if (!$format) {
+		return FALSE;
+	}
+
   if (empty($args)) {
     drush_print(dt('Exporting all components'));
-    patterns_export_start_engine($out, patterns_tagmodules_get_index());
-    return TRUE;
+    $exports = patterns_moduletags_get_index(NULL, TRUE, TRUE);
+	}
+	else {
+		$exports = patterns_drush_filter_components($args);
 	}
 	
-	$export_functions = patterns_drush_filter_components($args);
-	$result = patterns_export_start_engine($out, $export_functions);
+	$result = patterns_export_start_engine($out, $exports, $info, $mode, $format, 'php');
   
 	if (!$result) {
 		drush_set_error(dt('An error occurred while exporting. Export may have failed.'));
