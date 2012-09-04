@@ -65,18 +65,18 @@ function _patterns_io_import_check_name($name = '') {
 }
 
 /**
- * Gets the pattern format from a file, and checks that it actually exists
+ * Extracts and validates the pattern format from a file string
  * 
- * @TODO check if we need to check that file must exists
+ * The pattern format can be specified as parameter, and it this case
+ * the first parameter will be ignored. The formata will be anyway
+ * validated.
  * 
- * @param unknown_type $file
- * @param unknown_type $format
+ * @param string $file A path to a file
+ * @param string $format Optional. Enforces the format type
+ * @return string|bool $format The pattern format, or FALSE, if the format
+ *   is invalid 
  */
 function patterns_io_get_format_from_file($file, $format = PATTERNS_FORMAT_UNKNOWN, $verbose = TRUE) {
-	if (!file_exists($file) && is_readable($file)) {
-		if ($verbose) drupal_set_message(t('File does not exists or is not readable. Aborting.'), 'error');
-		return FALSE;
-	}
 	if ($format == PATTERNS_FORMAT_UNKNOWN) {
 		$format = pathinfo($file, PATHINFO_EXTENSION);
 	}
