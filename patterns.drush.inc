@@ -15,14 +15,14 @@
  */
 function patterns_drush_help($section) {
 	switch ($section) {
-		case 'drush:patterns-list':
-			return dt("List all available patterns.");
+		case 'drush:patterns':
+			return dt("List all available patterns. Patterns in the trash bin do not appear in this list.");
 			break;
 		case 'drush:patterns-info':
 			return dt("Show all info on a given pattern.");
 			break;
 		case 'drush:patterns-quickrun':
-			return dt("Load a pattern file and run it without saving it into the database.");
+			return dt("Read a pattern file and run it without saving it into the database.");
 			break;	
 		case 'drush:patterns-run':
 			return dt('Run a pattern file. If the pattern is not found in the database, it will try to import it.');
@@ -31,7 +31,10 @@ function patterns_drush_help($section) {
 			return dt('Import a pattern file into the database.');
 			break;
 		case 'drush:patterns-export':
-			return dt("Export data from the patterns components to file, zip archive, or database.");
+			$text = "Export data from the patterns components to file, zip archive, or database ([file|db|zip]). ";
+			$text.= "Zip compression requires ZipArchive class to be installed.";
+			$text.= "It is possible to select which components to extract following the syntax: 'component.tag.export'. ";
+			return dt($text);
 			break;	
 	}
 }
@@ -55,7 +58,12 @@ function patterns_drush_command() {
   );
 	*/
 	
-	// configuration
+	// configuration / information
+	
+	$items['patterns'] = array(
+    'callback' => 'drush_patterns',
+    'description' => "List all available patterns."
+  );
 	
   $items['patterns-paths'] = array(
     'description' => "List all paths where patterns will be looked for",
@@ -65,11 +73,6 @@ function patterns_drush_command() {
   $items['patterns-components'] = array(
     'description' => "List all the available patterns components",
     'drupal dependencies' => array('patterns'),
-  );
-	
-	$items['patterns-list'] = array(
-    'callback' => 'drush_patterns_list',
-    'description' => "List all available patterns."
   );
 
   $items['patterns-info'] = array(
@@ -90,7 +93,7 @@ function patterns_drush_command() {
   $items['patterns-publish'] = array(
     'description' => "Publish a pattern.",
     'arguments' => array(
-      'pid' => "The ID of the pattern to publish.",
+      'id' => "The id or the name of the pattern to publish.",
     ),
     'drupal dependencies' => array('patterns'),
   );
@@ -98,7 +101,7 @@ function patterns_drush_command() {
   $items['patterns-unpublish'] = array(
     'description' => "Unpublish a pattern.",
     'arguments' => array(
-      'pid' => "The ID of the pattern to unpublish.",
+      'id' => "The id or the name of the pattern to unpublish.",
     ),
     'drupal dependencies' => array('patterns'),
   );
@@ -128,9 +131,9 @@ function patterns_drush_command() {
     'description' => 'Import and enable the specified pattern file',
     'examples' => array(
       'drush patterns-run path/to/patterns/file.xml' =>
-        'Reads file.xml, parses it using the XMLParser, imports it into the database and runs it',
+        'Parses file.xml using the XMLParser, imports it into the database and runs it',
       'drush patterns-run path/to/pattern/file yaml batch' => 
-      	'Reads file, parses it using the YAMLParser, imports it into the database and runs it in batch mode',
+      	'Parses file using the YAMLParser, imports it into the database and runs it in batch mode',
 			'drush patterns-run 2' => 
       	'Runs the pattern stored in the database with id 2',
 			'drush patterns-run pattern_in_db.yaml' => 
@@ -149,15 +152,15 @@ function patterns_drush_command() {
 	   
   $items['patterns-import'] = array(
     'callback' => 'drush_patterns_import_file',
-    'description' => 'Import the specified pattern file.',
+    'description' => 'Import a pattern local file into the database.',
     'examples' => array(
-      'drush patterns-import path/to/patterns/file.[xml/yaml]' =>
-        'Import the specified pattern file.',
-      	'drush patterns-import path/to/pattern/file.[xml/yaml] pattern_name' => 'Import the specified pattern file and give it a machine readable name'
+      'drush patterns-import path/to/patterns/file.xml' =>
+        'Parses file.xml using the XMLParser, and saves the results into the database.',
+      	'drush patterns-import path/to/pattern/file' => 'Import the specified pattern file and give it a machine readable name'
       ),
     'arguments' => array(
       'file' => 'The path to a pattern file',
-      'format' => 'A valid pattern format, e.g. xml or yaml.'
+      'format' => 'Optional. A valid pattern format, e.g. xml or yaml. If not specified, it will be determined by the file extension.'
     ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
@@ -165,16 +168,16 @@ function patterns_drush_command() {
  
   $items['patterns-import-remote'] = array(
     'callback' => 'drush_patterns_import_file_remote',
-    'description' => 'Import a remote pattern file.',
+    'description' => 'Import a remote pattern file into the database.',
     'examples' => array(
       'drush patterns-import-remote http://myserver.org/mypattern.yaml' =>
-        'Import a remote pattern file.',
-      'drush patterns-import-remote http://myserver.org/mypattern [format]' =>
-        'Import a remote pattern file and specify the format.',
+        'Opens the remote location, parses mypattern.yaml using the YAMLParser, and saves the results into the database.',
+      'drush patterns-import-remote http://myserver.org/mypattern yaml' =>
+        'Opens the remote location, parses mypattern using the YAMLParser, and saves the results into the database.',
     ),
     'arguments' => array(
       'uri' => 'The uri to a pattern file',
-      'format' => 'A valid pattern format, e.g. xml or yaml.'
+      'format' => 'Optional. A valid pattern format, e.g. xml or yaml. If not specified, it will be determined by the file extension.'
     ),
     'drupal dependencies' => $dependencies,
     'core' => array('7'),
@@ -183,10 +186,21 @@ function patterns_drush_command() {
   $items['patterns-export'] = array(
     'description' => 'Export data from all or a selection of patterns components to a file, a zip file, or saves it into the database.',
     'examples' => array(
-      'drush patterns-export path/to/patterns/file.[xml/yaml]' =>
-        'Import the specified pattern file.',
-      	'drush patterns-import path/to/pattern/file.[xml/yaml] pattern_name' => 'Import the specified pattern file and give it a machine readable name'
+      'drush patterns-export file path/to/patterns/file.yaml' =>
+        'Exports from *all* available components to the specified file. The file is *not* imported in the database.',
+      'drush patterns-export db exported.xml taxonomy' => 
+      	'Exports from all tags of the component "taxonomy" and saves the results in the database under the machine_name of exported.xml.',
+  		'drush patterns-export zip path/to/exported.zip yaml taxonomy.term' => 
+  			'Exports from tag "term" of the component "taxonomy" and saves the results in the zip archive exported.zip containing patterns in YAML format.',
+			'drush patterns-export file path/to/exported.yaml taxonomy.term.all color block.block' => 
+  			'Exports from export_function "all" in tag "term" of the component "taxonomy", from all tags of the component "color", and from tag "block" of component "block". Results are saved to file exported.yaml.',  
      ),
+     'arguments' => array(
+     	'action' => 'The export action: export to a file, to a zip archive, or import the result of the export into the database',
+      'file_name' => 'The path to a pattern file',
+      'format' => 'Optional. To use only in combination with the export to zip action. A valid pattern format, e.g. xml or yaml. If not specified, it will be determined by the file extension.',
+ 			'exports' => 'Optional. A combination of components, tags, and export functions, that determine the content of the exported file',
+    ),
     'drupal dependencies' => $deps_export,
     'core' => array('7'),
   );
@@ -200,7 +214,7 @@ function patterns_drush_command() {
 /**
  * patterns list command callback.
  */
-function drush_patterns_list() {
+function drush_patterns() {
 	$patterns = patterns_io_get_patterns();
 	$patterns = $patterns[PATTERNS_STATUS_OK];
 	$pipe = array();
@@ -261,11 +275,11 @@ function drush_patterns_form_helper($action) {
  * patterns list command callback.
  */
 function drush_patterns_allow_publish($action) {
-	if ($action == 'enable') {
+	if (in_array($action, 'enable', 'en', 'yes', 'y')) {
 		drush_print("Patterns publishing patterns enabled.");
 		variable_set('patterns_allow_publish', TRUE);
 	}
-	else if ($action == 'disable' ) {
+	else if (in_array($action, 'disable', 'dis', 'no', 'n')) {
 		drush_print("Patterns publishing patterns disabled.");
 		variable_set('patterns_allow_publish', FALSE);
 	}
@@ -420,6 +434,11 @@ function drush_patterns_export() {
 	$format = PATTERNS_FORMAT_UNKNOWN;
 	
 	if ($mode === PATTERNS_EXPORT_TO_ZIP) {
+		if (!class_exists('ZipArchive')) {
+			drush_set_error(dt('Zip extension not found.'));
+			return FALSE;
+		}
+		
 		$format = patterns_io_get_format_from_file(NULL, array_shift($args));
 		if (!$format) {
 			return drush_set_error(dt('You must specify the format when exporting to Zip archive.'));
@@ -452,23 +471,6 @@ function drush_patterns_export() {
   
 	//drush_print(print_r($export_functions, true));
 
-}
-
-
-function drush_patterns_run_pattern($pattern, $mode = 'php', $params = array()) {
-	$result = patterns_start_engine($pattern, $params, $mode);
-	if ($result) {
-		if ($mode === 'batch') {
-			$batch = &batch_get();
-			$batch['progressive'] = FALSE;
-			drush_backend_batch_process();
-		}
-		drush_print(dt('Pattern execution started.'));
-	}
-	else {
-		drush_set_error(dt('An error occurred while processing the pattern file.'));
-	}
-	return $result;
 }
 
 /**
@@ -509,6 +511,22 @@ function patterns_drush_get_file_format($file, $format = PATTERNS_FORMAT_UNKNOWN
 		}
 	}
 	return $format;
+}
+
+function drush_patterns_run_pattern($pattern, $mode = 'php', $params = array()) {
+	$result = patterns_start_engine($pattern, $params, $mode);
+	if ($result) {
+		if ($mode === 'batch') {
+			$batch = &batch_get();
+			$batch['progressive'] = FALSE;
+			drush_backend_batch_process();
+		}
+		drush_print(dt('Pattern execution started.'));
+	}
+	else {
+		drush_set_error(dt('An error occurred while processing the pattern file.'));
+	}
+	return $result;
 }
 
 function patterns_load_file_and_start_engine($file, $format = PATTERNS_FORMAT_UNKNOWN, $mode, $params) {
