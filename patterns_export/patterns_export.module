@@ -13,8 +13,8 @@
  * TODO: Export through the Batch API
  */
 
+module_load_include('inc', 'patterns_export', 'api');
 module_load_include('inc', 'patterns_export', 'core');
-module_load_include('inc', 'patterns_export', 'export');
 module_load_include('inc', 'patterns_export', 'finalize');
 
 
@@ -237,29 +237,13 @@ function patterns_export_start_engine($filename,
 	}
 	
 	$mode = 'php'; // Enforce php. Only mode allowed now
+	if (!in_array($mode, array('php', 'batch'))) {
+		return FALSE;
+	}
+	
 	$func = 'patterns_export_' . $mode;
 	
-	list($sections, $modules) = call_user_func($func, $tagmodules);
-
-  // If some sections did not return any data
-  // we remove them. We don't remove the modules!
-  foreach ($sections as $s => $value) {
-    if (empty($value)) {
-      unset($sections[$s]);
-    }
-  }
-
-  if (empty($sections)) {
-    drupal_set_message(t('Export did not return any data.'), 'error');
-    return FALSE;
-  }
-	    
- 	return patterns_export_finalize_export($to,
- 																	$sections,
- 																	$info,
- 																	$modules, 
- 																	$format, 
- 																	$filename);
+	return $func($filename, $tagmodules, $info, $to, $format);
 }
 
 /**
@@ -300,6 +284,37 @@ function patterns_export_validate($form, &$form_state) {
 }
 
 // Helper functions
+
+
+/**
+ * Returns a list with the names of the components.
+ *
+ * @param bool $reset (optional) If TRUE, always forces reloading
+ *   the components from the file system. Defaults FALSE
+ *
+ * @return array Array containing the names of the patterns components
+ * 
+ * @see patterns_io_load_components()
+ */
+function patterns_export_list_export_functions($reset = TRUE) {
+  $moduletags = patterns_moduletags_get_index(NULL, $reset, $reset);
+  return patterns_moduletags_filter($moduletags, NULL, PATTERNS_EXPORT);
+}
+
+/**
+ * Returns TRUE if a string is a supported export mode
+ * 
+ * @param string $mode The mode to check
+ * @return TRUE, if a string is a supported export mode
+ */
+function patterns_export_is_valid_mode($mode = NULL) {
+	if (empty($mode)) return FALSE;
+	return in_array($mode, array(PATTERNS_EXPORT_TO_DB, 
+																PATTERNS_EXPORT_TO_FILE,
+																PATTERNS_EXPORT_TO_ZIP,
+	));
+}
+
 
 /**
  * Helper function to build the form of exportable components

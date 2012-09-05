@@ -1,5 +1,29 @@
 <?php
 
+function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
+	
+	list($sections, $modules) = patterns_export_core_php($tagmodules);
+
+  // If some sections did not return any data
+  // we remove them. We don't remove the modules!
+  foreach ($sections as $s => $value) {
+    if (empty($value)) {
+      unset($sections[$s]);
+    }
+  }
+
+  if (empty($sections)) {
+    drupal_set_message(t('Export did not return any data.'), 'error');
+    return FALSE;
+  }
+	    
+ 	return patterns_export_finalize_export($to,
+ 																	$sections,
+ 																	$info,
+ 																	$modules, 
+ 																	$format, 
+ 																	$filename);
+}
 
 /**
  * Constructs the abstract representation of the exported pattern
@@ -11,8 +35,7 @@
  * @return array $result An array containing modules and actions
  * 
  */
-function patterns_export_php($tagmodules) {
-	//drush_print(print_r($tagmodules, true));
+function patterns_export_core_php($tagmodules) {
 
   $result = array();
   $modules = array();

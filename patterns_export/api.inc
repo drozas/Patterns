@@ -7,7 +7,6 @@
 
 /**
  * TODO: finish Export documentation
- * TODO: code cleanup
  * TODO: Export through the Batch API
  */
 
@@ -82,34 +81,4 @@ function patterns_export_error_handler($errno, $errstr) {
   restore_error_handler();
   // Normal error handler should take over from here.
   return FALSE;
-}
-
-
-/**
- * Returns a list with the names of the components.
- *
- * @param bool $reset (optional) If TRUE, always forces reloading
- *   the components from the file system. Defaults FALSE
- *
- * @return array Array containing the names of the patterns components
- * 
- * @see patterns_io_load_components()
- */
-function patterns_export_list_export_functions($reset = TRUE) {
-  $moduletags = patterns_moduletags_get_index(NULL, $reset, $reset);
-  return patterns_moduletags_filter($moduletags, NULL, PATTERNS_EXPORT);
-}
-
-/**
- * Returns TRUE if a string is a supported export mode
- * 
- * @param string $mode The mode to check
- * @return TRUE, if a string is a supported export mode
- */
-function patterns_export_is_valid_mode($mode = NULL) {
-	if (empty($mode)) return FALSE;
-	return in_array($mode, array(PATTERNS_EXPORT_TO_DB, 
-																PATTERNS_EXPORT_TO_FILE,
-																PATTERNS_EXPORT_TO_ZIP,
-	));
 }
