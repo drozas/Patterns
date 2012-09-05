@@ -34,7 +34,7 @@ function patterns_drush_help($section) {
 			$text = "Export data from the patterns components to file, zip archive, or database ([file|db|zip]). ";
 			$text.= "Zip compression requires ZipArchive class to be installed.";
 			$text.= "It is possible to select which components to extract following the syntax: 'component.tag.export'. ";
-			$text.= "The relative path of extracted files is computed from the Drupal root directory. Absolute paths can be used to point to external paths."
+			$text.= "The relative path of extracted files is computed from the Drupal root directory. Absolute paths can be used to point to external paths. ";
 			return dt($text);
 			break;	
 	}
