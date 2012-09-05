@@ -1,7 +1,73 @@
 <?php
 
 
-function patterns_extract_batch($tagmodules) {
+/**
+ * Constructs the abstract representation of the exported pattern
+ * 
+ * Returns the array of needed modules, and the actions of the 
+ * pattern.
+ * 
+ * @param array $tagmodules An index of modules and tag to export
+ * @return array $result An array containing modules and actions
+ * 
+ */
+function patterns_export_php($tagmodules) {
+	//drush_print(print_r($tagmodules, true));
+
+  $result = array();
+  $modules = array();
+  foreach ($tagmodules as $module_name => $module) {
+	  foreach ($module as $tag => $values) {
+	   	if (!isset($values[PATTERNS_EXPORT])) {
+	        continue;
+	    }
+			
+	    if (isset($values[PATTERNS_FILES])) {
+	      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
+
+	      foreach ($files as $file) {
+	        require_once $file;
+	      }
+	    }
+	
+	    // TODO: the name of the component may be different from the
+	    // the name of the module to enable. Cover this case
+	    array_push($modules, $module_name);
+	    
+	    
+	    if (!is_array($values[PATTERNS_EXPORT])) {
+	      $sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
+	    }
+	    else {
+	      foreach ($values[PATTERNS_EXPORT] as $f) {
+	        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
+	        $sections[$tag] = array_merge($result[$tag], call_user_func($f));
+	      }
+	    }
+	
+	  }
+  }
+
+  $result[] = $sections;
+  $result[] = $modules;
+
+  return $result;
+}
+
+// TODO: implement the Batch export. Not working at the moment
+
+/**
+ * Constructs the abstract representation of the exported pattern
+ * invoking the Batch API
+ * 
+ * Returns the array of needed modules, and the actions of the 
+ * pattern.
+ * 
+ * @param array $tagmodules An index of modules and tag to export
+ * @return array $result An array containing modules and actions
+ * 
+ */
+function patterns_export_batch($tagmodules) {
 
   $cur_sec = 1;
   $tot_sec = count($tagmodules);
@@ -33,7 +99,7 @@ function patterns_extract_batch($tagmodules) {
         //'title' => t('Processing section %section of pattern %pattern', array('%section' => $section, '%pattern' => $info['title'])),
         'title' => t('Extracting configuration for %tag', array('%tag' => $tag)),
         'progress_message' => $progress,
-        'finished' => 'patterns_extract_batch_finish',
+        'finished' => 'patterns_export_batch_finish',
         'operations' => array($func),
         'init_message' => t('Initializing component "%section" (%cur_sec/%tot_sec)', array(
                             '%section' => $module,
@@ -51,7 +117,7 @@ function patterns_extract_batch($tagmodules) {
 
     //}
 
-    $_SESSION['patterns_extract_batch_info'] = array('component' => $module, 'tag' => $tag);
+    $_SESSION['patterns_export_batch_info'] = array('component' => $module, 'tag' => $tag);
     batch_set($batch);
     $cur_sec++;
   }
@@ -63,8 +129,8 @@ function patterns_extract_batch($tagmodules) {
  * Finishes a batch operation.
  * @TODO Doc.
  */
-function patterns_extract_batch_finish($success, $results, $operations) {
-  $info = $_SESSION['patterns_extract_batch_info'];
+function patterns_export_batch_finish($success, $results, $operations) {
+  $info = $_SESSION['patterns_export_batch_info'];
   $section = $results['module'];
   if (empty($results['abort'])) {
     foreach ($info as $key => $i) {

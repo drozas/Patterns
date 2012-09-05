@@ -13,7 +13,10 @@
  * TODO: Export through the Batch API
  */
 
+module_load_include('inc', 'patterns_export', 'core');
 module_load_include('inc', 'patterns_export', 'export');
+module_load_include('inc', 'patterns_export', 'finalize');
+
 
 /**
  * Implements hook_menu_alter()
@@ -34,116 +37,6 @@ function patterns_export_menu_alter(&$items) {
 }
 
 /**
- * Helper function to build the form of exportable components
- * 
- * @param string $module The name of the module
- * @param string $tag The name of the tag
- * 
- * @return string A valid input name for a checkbox input
- */
-function _patterns_export_build_input_name($module, $tag) {
-  return 'ext[' . $module . '][options][' . $tag . ']';
-}
-
-function _patterns_export_goto($form, &$form_state, $step) {
-  // MODULE SELECTED
-
-  if ($step == 1) {
-    return patterns_export_page1($form, $form_state);
-  }
-
-  if ($step == 2) {
-    // TODO: We should check if the users selects more options, and if the functions
-    // require extra parameters. For later, not we just continue.
-    return $form;
-
-    $tm_index = patterns_tagmodules_get_index();
-    $tag = $form_state['values']['options'];
-    $func_id = $form_state['values'][$tag];
-
-    // Check if the function wants extra parameters
-    // if (isset($tm_index[$tag]) && isset($tm_index[$tag][PATTERNS_EXPORT][$func_id])){
-    //  if (isset($tm_index[$tag]))
-    //}
-
-    //if (isset($form_state['values']['module']) && !is_int($form_state['values']['module']))  {
-    // return patterns_export_page2($form, $form_state);
-    //}
-  }
-
-
-  // FORM SELECTED
-  /*
-  if ( $step == 3 && !isset($form_state['values']['content'])) {
-    return patterns_export_page3($form, $form_state);
-  }
-
-  // show pattern import form
-  if ($step = 4) {
-    return patterns_export_page4($form, $form_state);
-  }
-  */
-
-  // step > 5 Continue, submit form
-  return $form;
-}
-
-/**
- * Checks the form_state and returns the current step of the form.
- *
- *
- * @param array $form_state
- * @param bool $validate (optional)
- *   If TRUE, the assumes that function is called from a validation
- *   environment, and decrements by 1 the current value of the step
- *
- * @return mixed|Bool
- *   The current value of the step, or FALSE if it fails to determine it
- */
-function _patterns_export_check_step(&$form_state, $validation = FALSE) {
-
-  $step = FALSE;
-
-  if (isset($form_state['values']['all']) && $form_state['values']['all'] == 0) {
-    $step = 6; // Export ALL
-  }
-  /*
-  elseif (isset($form_state['values']['content'])) {
-    $step = 4;
-  }
-  elseif (isset($form_state['values']['module_forms'])) {
-    $step = 3;
-  }
-  */
-  elseif (isset($form_state['values']['options'])) {
-    $step = 2;
-  }
-  elseif (!isset($form_state['values']['step'])) {
-    $step = 1;
-  }
-
-  if ($validation && is_numeric($step)) {
-    $step = $step - 1;
-  }
-
-  $form_state['values']['step'] = $step;
-  return $step;
-}
-
-function _patterns_export_if_invalid_step_goback($step = 0,
-                                                  $back = '/admin/patterns/export',
-                                                  $options = array()) {
-
-  // TODO: Adjust
-  if ($step < 1 || $step > 10) {
-    drupal_set_message(t('Export could not proceed to the next step. Step %id not found.', array('%id' => $step)), 'error');
-    drupal_goto($back);
-  }
-  return $step;
-}
-
-
-/**
  * Forms to export the current web site configuration
  * 
  * Displays a form from which any number of export functions can be
@@ -160,24 +53,9 @@ function patterns_export($form, &$form_state) {
     return $form;
   }
 
-  //$step = _patterns_export_check_step($form_state);
-  //_patterns_export_if_invalid_step_goback($step);
-//  $form['step'] = array(
-//     '#type' => 'hidden',
-//     '#title' => t('Pattern Identifier'),
-//     '#description' => t('step'),
-//     '#value' => $step,
-//  );
-
-  //debug($step);
-
-  //drupal_add_js('misc/ajax.js');
-//  $name = isset($form_state['values']['name']) ?  $form_state['values']['name'] : 'name not set';
-
   patterns_io_load_components();
 
   return patterns_export_page1($form, $form_state);
-  //return _patterns_export_goto($form, $form_state, $step);
 
 }
 
@@ -258,9 +136,6 @@ function patterns_export_page1($form, &$form_state) {
         ),
       );
     }
-
-
-    //_patterns_export_add_ajax_to_options($form['ext'][$module]);
 
   }
 
@@ -388,279 +263,9 @@ function patterns_export_start_engine($filename,
 }
 
 /**
- * Merges modules info and sections in one pattern
- * 
- * @param array $sections The sections of the pattern
- * @param array $info The info section of the pattern
- * @param array $modules The modules section of the pattern
- * 
- * @return array $pattern The merged pattern
- */
-function _patterns_export_merge_exported_patterns($sections, $info, $modules) {
-	$pattern = patterns_api_add_info_section($info);
-	// Modules that needs to be enabled to run the pattern
-  patterns_api_add_modules_section($modules, $pattern);
-
-  foreach ($sections as $s => $values) {
-    $pattern[$s] = $values;
-  }
-  // Display the exported pattern
- 	//drupal_set_message(print_r($pattern, true));
-  return $pattern;
-}
-
-/**
- * Exports patterns as a donwlodable Zip archive
- * 
- * @param array $sections The sections of the pattern
- * @param array $info The info section of the pattern
- * @param array $modules The modules section of the pattern
- * @param string $format The pattern format
- * @param string $filename (optional) The final name of file 
- * @param string $path (optional) 
- *   The path of the temporary directory in which the zip file will be saved
- */
-function patterns_export_to_zip($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL, $path = NULL) {
-	
-  $zip_path = patterns_create_zip($sections, $format, $path, $filename);
-	
-  if (!$zip_path) {
-  	return FALSE;
-	}
-	
-	// web server
-	if (!patterns_utils_is_cli()) {
-		patterns_download_zip($zip_path);
-	}
-	
-	return TRUE;
-}
-
-/**
- * Exports a pattern by importing it into the database
- * 
- * @param array $sections The sections of the pattern
- * @param array $info The info section of the pattern
- * @param array $modules The modules section of the pattern
- * @param string $format The pattern format
- * @param string $filename (optional) The final name of file 
- */
-function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) { 
-	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
-	return patterns_io_save_pattern($pattern, $filename, $format);
-}
-
-/**
- * Exports a pattern as a donwlodable text file
- * 
- * @param array $sections The sections of the pattern
- * @param array $info The info section of the pattern
- * @param array $modules The modules section of the pattern
- * @param string $format The pattern format
- * @param string $filename The final name of file 
- */
-function patterns_export_to_file($sections = array(), $info = array(), $modules = array(), $format, $filename) {
-	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
-	$pattern = patterns_parser_dump($pattern, $format);
-	
-	// drush
-	if (patterns_utils_is_cli()) {
-		return file_put_contents($filename, $pattern);
-	}
-	// web server
-	else {
-		patterns_download_file($pattern, $filename . '.' . $format);
-	}
-}
-
-/**
- * Initializes the appropriate action to export a collection
- * of patterns
- * 
- * @param string $action The type of export action
- * @param array $sections The sections of the pattern
- * @param array $info The info section of the pattern
- * @param array $modules The modules section of the pattern
- * @param string $format The pattern format
- * @param string $filename (optional) The final name of file 
- * @param string $path (optional) 
- *   The path of the temporary directory in which the zip file will be saved
- */
-function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, 
-																					$sections = array(),
-																					$info = array(),
-																					$modules = array(),  
-																					$format, 
-																					$filename = NULL) {
-																						
-	if ($action == PATTERNS_EXPORT_TO_FILE) {
-		 return patterns_export_to_file($sections, $info, $modules, $format, $filename);
-	}
-	else if ($action == PATTERNS_EXPORT_TO_DB) {
-		 return patterns_export_to_db($sections, $info, $modules, $format, $filename);
-	}
-	else if ($action == PATTERNS_EXPORT_TO_ZIP) {
-		$path = pathinfo($filename, PATHINFO_DIRNAME);
-		if (!empty($path)) {
-			// no full path, probably it is from the web interface
-			if ($path == '.') {
-				$path = NULL;
-			}
-			// User specified the full path, it want the Zip file to be created there
-			else {
-				$path.= '/';
-				$filename = pathinfo($filename, PATHINFO_BASENAME);	
-			}
-		}
-		
-		return patterns_export_to_zip($sections, $info, $modules, $format, $filename, $path);
-	}
-	else {
-		drupal_set_message(t('Unknown export option: %option', array('%options' => $action)));
-	}
-}
-
-/**
- * Constructs the abstract representation of the exported pattern
- * 
- * Returns the array of needed modules, and the actions of the 
- * pattern.
- * 
- * @param array $tagmodules An index of modules and tag to export
- * @return array $result An array containing modules and actions
- * 
- */
-function patterns_export_php($tagmodules) {
-	//drush_print(print_r($tagmodules, true));
-
-  $result = array();
-  $modules = array();
-  foreach ($tagmodules as $module_name => $module) {
-	  foreach ($module as $tag => $values) {
-	   	if (!isset($values[PATTERNS_EXPORT])) {
-	        continue;
-	    }
-			
-	    if (isset($values[PATTERNS_FILES])) {
-	      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
-
-	      foreach ($files as $file) {
-	        require_once $file;
-	      }
-	    }
-	
-	    // TODO: the name of the component may be different from the
-	    // the name of the module to enable. Cover this case
-	    array_push($modules, $module_name);
-	    
-	    
-	    if (!is_array($values[PATTERNS_EXPORT])) {
-	      $sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
-	    }
-	    else {
-	      foreach ($values[PATTERNS_EXPORT] as $f) {
-	        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
-	        $sections[$tag] = array_merge($result[$tag], call_user_func($f));
-	      }
-	    }
-	
-	  }
-  }
-
-  $result[] = $sections;
-  $result[] = $modules;
-
-  return $result;
-}
-
-
-function patterns_export_php_old($tagmodules) {
-
-  $result = array();
-  $modules = array();
-  foreach ($tagmodules as $tag => $values) {
-    if (isset($values['__to_export__'])) {
-        $values[PATTERNS_EXPORT][PATTERNS_EXPORT_ALL] = $values['__to_export__'];
-    }
-    elseif (!isset($values[PATTERNS_EXPORT]) || !isset($values[PATTERNS_EXPORT][PATTERNS_EXPORT_ALL])) {
-        continue;
-    }
-
-    if (isset($values[PATTERNS_FILES])) {
-      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
-      foreach ($files as $file) {
-        require_once $file;
-      }
-    }
-
-    array_push($modules, $values['module']);
-    $func = $values[PATTERNS_EXPORT][PATTERNS_EXPORT_ALL];
-    if (!is_array($func)) {
-      $sections[$tag] = call_user_func($func);
-    }
-    else {
-      foreach ($func as $f) {
-        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
-        $sections[$tag] = array_merge($result[$tag], call_user_func($f));
-      }
-    }
-
-  }
-
-  $result[] = $sections;
-  $result[] = $modules;
-
-  return $result;
-}
-
-
-/**
  * validation function for import_module_form
- * checks in which step we are and puts the step counter up and sets the rebuild flag
  */
 function patterns_export_validate($form, &$form_state) {
-
-  //$step = _patterns_export_check_step($form_state, TRUE);
-  //if ($step == 1) {
-  //  return _patterns_export_validate_step1($form, $form_state);
-  //}
-
-//  shortcut_set Array [1]
-//  [0...0]
-//    options Array [1]
-//      [0...0]
-//        shortcut_set  Array [1]
-//          [0...0]
-//            All 0
-//
-//
-//
-//  taxonomy Array [3]
-//  [0...2]
-//    options Array [2]
-//      [0...1]
-//        vocabulary  vocabulary
-//        term  term
-//    vocabulary  Array [1]
-//      [0...0]
-//        options Array [1]
-//          [0...0]
-//            vocabulary  Array [2]
-//              [0...1]
-//                All All
-//                Cheat (I am doing terms)  0
-//    term  Array [1]
-
-
-
-
-  //$form_state['values']['step'] = $form_state['values']['step']+1;
-
-  return TRUE;
-}
-
-function _patterns_export_validate_step1($form, &$form_state) {
-
   if (!isset($form_state['values']['format'])) {
     form_set_error('format', t('No valid format selected.'));
     return FALSE;
@@ -692,6 +297,18 @@ function _patterns_export_validate_step1($form, &$form_state) {
     form_set_error($module, t('No valid tag selected for component %component selected.', array('%component' => $component)));
     return FALSE;
   }
+}
 
-  return TRUE;
+// Helper functions
+
+/**
+ * Helper function to build the form of exportable components
+ * 
+ * @param string $module The name of the module
+ * @param string $tag The name of the tag
+ * 
+ * @return string A valid input name for a checkbox input
+ */
+function _patterns_export_build_input_name($module, $tag) {
+  return 'ext[' . $module . '][options][' . $tag . ']';
 }
