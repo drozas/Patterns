@@ -68,7 +68,7 @@ function shortcut_patterns_export_all_set($args = NULL, &$result = NULL) {
   $result = array();
   foreach ($sets as $set_name => $value) {
     $set_object = shortcut_set_load($set_name);
-    $result = array_merge($result, patterns_api_extract_actions($form_id, $set_object, 'shortcut_set', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $set_object, 'shortcut_set', PATTERNS_MODIFY));
     return $result;
   }
   return $result;
@@ -82,7 +82,7 @@ function shortcut_patterns_export_all_link($args = NULL, &$result = NULL) {
   $result = array();
   foreach ($sets as $set_name => $value) {
     $set = shortcut_set_load($set_name);
-    $result = array_merge($result, patterns_api_extract_actions($form_id, $set, 'shortcut_link', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $set, 'shortcut_link', PATTERNS_MODIFY));
   }
   return $result;
 }

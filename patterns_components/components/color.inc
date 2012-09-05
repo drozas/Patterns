@@ -45,7 +45,7 @@ function color_patterns_export_all_color($args = NULL, &$result = NULL) {
       $action = array(PATTERNS_MODIFY => $data);
       array_push($result, $action);
 
-      //   $result = array_merge($result, patterns_api_extract_actions($form_id, $voc->name, 'color', PATTERNS_MODIFY));
+      //   $result = array_merge($result, patterns_export_actions_from_form($form_id, $voc->name, 'color', PATTERNS_MODIFY));
     }
   }
   return $result;

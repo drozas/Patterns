@@ -53,7 +53,7 @@ function taxonomy_patterns_export_all_vocs($args = NULL, &$result = NULL) {
   $result = array();
   foreach ($vocs as $voc) {
     // It is important to user array merge. Pushing is not enough
-    $result = array_merge($result, patterns_api_extract_actions($form_id, $voc, 'vocabulary', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $voc, 'vocabulary', PATTERNS_MODIFY));
   }
   return $result;
 }
@@ -65,7 +65,7 @@ function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
   $result = array();
   foreach ($terms as $term) {
     // It is important to user array merge. Pushing is not enough
-    $result = array_merge($result, patterns_api_extract_actions($form_id, $term, 'term', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $term, 'term', PATTERNS_MODIFY));
   }
   return $result;
 }

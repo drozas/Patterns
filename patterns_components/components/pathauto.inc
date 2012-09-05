@@ -50,7 +50,7 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
    // array_push($result, $action);
 
     // It is important to user array merge. Pushing is not enough
-    //$result = array_merge($result, patterns_api_extract_actions($form_id, $path, 'url_alias', PATTERNS_MODIFY));
+    //$result = array_merge($result, patterns_export_actions_from_form($form_id, $path, 'url_alias', PATTERNS_MODIFY));
   }
   return $result;
 }

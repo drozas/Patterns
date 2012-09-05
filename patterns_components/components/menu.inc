@@ -51,7 +51,7 @@ function menu_patterns_export_all_menu($args = NULL, &$result = NULL) {
     
     array_push($result, $action);
     // It is important to user array merge. Pushing is not enough
-    //$result = array_merge($result, patterns_api_extract_actions($form_id, $menu, 'menu', PATTERNS_MODIFY));
+    //$result = array_merge($result, patterns_export_actions_from_form($form_id, $menu, 'menu', PATTERNS_MODIFY));
   }
   return $result;
 }
@@ -78,7 +78,7 @@ function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
     $action = array(PATTERNS_CREATE => $data);
     array_push($result, $action);
     // It is important to user array merge. Pushing is not enough
-    //$result = array_merge($result, patterns_api_extract_actions($form_id, $menu_item, 'menu_item', PATTERNS_MODIFY));
+    //$result = array_merge($result, patterns_export_actions_from_form($form_id, $menu_item, 'menu_item', PATTERNS_MODIFY));
   }
   return $result;
 }
