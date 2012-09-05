@@ -236,7 +236,7 @@ function patterns_export_start_engine($filename,
 		return FALSE;
 	}
 	
-	$mode = 'php'; // Enforce php. Only mode allowed now
+	$mode = 'batch'; // Enforce php. Only mode allowed now
 	if (!in_array($mode, array('php', 'batch'))) {
 		return FALSE;
 	}

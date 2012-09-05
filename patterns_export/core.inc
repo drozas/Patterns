@@ -41,7 +41,7 @@ function patterns_export_core_php($tagmodules) {
   $modules = array();
   foreach ($tagmodules as $module_name => $module) {
 	  foreach ($module as $tag => $values) {
-	   	if (!isset($values[PATTERNS_EXPORT])) {
+	   	if (!isset($values[PATTERNS_EXPORT]) || empty($values[PATTERNS_EXPORT])) {
 	        continue;
 	    }
 			
@@ -90,62 +90,94 @@ function patterns_export_core_php($tagmodules) {
  * @return array $result An array containing modules and actions
  * 
  */
-function patterns_export_batch($tagmodules) {
+function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 
   $cur_sec = 1;
   $tot_sec = count($tagmodules);
-  foreach ($tagmodules as $tag => $values) {
-    if (!isset($values[PATTERNS_EXPORT])) {
-        continue;
-    }
-    if (isset($values[PATTERNS_FILES])) {
-      $files = (!is_array($values[PATTERNS_FILES])) ? array($values[PATTERNS_FILES]) : $values[PATTERNS_FILES];
-      foreach ($files as $file) {
-        require_once $file;
-      }
-    }
-    $module = $values['module'];
-    $func = array($values[PATTERNS_EXPORT][PATTERNS_EXPORT_ALL]);
-    //foreach ($tags as $tag => $forms) {
+  
+	$result = array();
+  $modules = array();
+  $operations = array();
+  foreach ($tagmodules as $module_name => $module) {
+	  foreach ($module as $tag => $values) {
+	   	if (!isset($values[PATTERNS_EXPORT]) || empty($values[PATTERNS_EXPORT])) {
+	        continue;
+	    }
+			
+	    $action_params = array($module_name, $tag, $values[PATTERNS_EXPORT]);
+	    
+	  	$action_params[] = isset($values[PATTERNS_FILES]) ? $values[PATTERNS_FILES]
+	  																										 : array();
+	    
+			$operations[] = array('patterns_export_batch_core', $action_params);     
+	  }
 
 
-
-      $progress_params = array(
+   	$progress_params = array(
                             '%section' => $module,
                             '%cur_sec' => $cur_sec,
                             '%tot_sec' => $tot_sec,
-      );
+    );
 
-      $progress = t('Running component "%section" (%cur_sec/%tot_sec), action @current out of @total', $progress_params);
+    $progress = t('Running component "%section" (%cur_sec/%tot_sec), action @current out of @total', $progress_params);
 
-      $batch = array(
-        //'title' => t('Processing section %section of pattern %pattern', array('%section' => $section, '%pattern' => $info['title'])),
-        'title' => t('Extracting configuration for %tag', array('%tag' => $tag)),
-        'progress_message' => $progress,
-        'finished' => 'patterns_export_batch_finish',
-        'operations' => array($func),
-        'init_message' => t('Initializing component "%section" (%cur_sec/%tot_sec)', array(
-                            '%section' => $module,
-                            '%cur_sec' => $cur_sec,
-                            '%tot_sec' => $tot_sec,
+    $batch = array(
+    	'title' => t('Extracting configuration for %tag', array('%tag' => $tag)),
+      'progress_message' => $progress,
+      'finished' => 'patterns_export_batch_finish',
+      'operations' => $operations,
+      'init_message' => t('Initializing component "%section" (%cur_sec/%tot_sec)', array(
+                           '%section' => $module,
+                           '%cur_sec' => $cur_sec,
+                           '%tot_sec' => $tot_sec,
                           )),
       );
 
-      if (isset($values[PATTERNS_FILES]) && !empty($values[PATTERNS_FILES])) {
-        //$batch['file'] = current($values[PATTERNS_FILES]); // should be an array or not?
-        $batch['file'] = drupal_get_path('module', 'patterns_components') . 'components/taxonomy.inc';
-      }
-
-
-
-    //}
-
-    $_SESSION['patterns_export_batch_info'] = array('component' => $module, 'tag' => $tag);
+    $_SESSION['patterns_export_batch_info'] = array('component' => $module);
     batch_set($batch);
     $cur_sec++;
   }
+  
+   
 
   return TRUE;
+}
+
+function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = NULL, &$context) {
+	
+	$sections = array();
+	
+ 	if (!empty($files)) {
+		$files = (!is_array($files)) ? array($files) : $files;
+
+	  foreach ($files as $file) {
+	  	require_once $file;
+	  }
+	}
+ 
+	if (!is_array($export_funcs)) {
+		$sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
+	}
+	else {
+		$result = array();
+		foreach ($export_funcs as $f) {
+			$result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
+	    $sections[$tag] = array_merge($result[$tag], call_user_func($f));
+	  }
+	}
+	
+	// TODO: the name of the component may be different from the
+	// the name of the module to enable. Cover this case
+	if (!isset($context['results']['modules'])) {
+		$context['results']['modules'] = array();
+	}
+	if (!isset($context['results']['sections'])) {
+		$context['results']['sections'] = array();
+	}
+		
+	array_push($context['results']['modules'], $module_name);
+	array_push($context['results']['sections'], $sections);
+	
 }
 
 /**
@@ -164,7 +196,7 @@ function patterns_export_batch_finish($success, $results, $operations) {
                             ':pid' => $key,
                             ':en' => PATTERNS_STATUS_ENABLED,
       );
-      db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+      //db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
     }
   }
   else {
