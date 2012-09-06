@@ -114,26 +114,29 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 
 
    	$progress_params = array(
-                            '%section' => $module,
+                            '%section' => $module_name,
                             '%cur_sec' => $cur_sec,
                             '%tot_sec' => $tot_sec,
     );
 
-    $progress = t('Running component "%section" (%cur_sec/%tot_sec), action @current out of @total', $progress_params);
+    $progress = t('Running component "%section" (%cur_sec/%tot_sec), tag @current out of @total', $progress_params);
 
     $batch = array(
-    	'title' => t('Extracting configuration for %tag', array('%tag' => $tag)),
+    	'title' => t('Exporting from component %module', array('%module' => $module_name)),
       'progress_message' => $progress,
       'finished' => 'patterns_export_batch_finish',
       'operations' => $operations,
       'init_message' => t('Initializing component "%section" (%cur_sec/%tot_sec)', array(
-                           '%section' => $module,
+                           '%section' => $module_name,
                            '%cur_sec' => $cur_sec,
                            '%tot_sec' => $tot_sec,
                           )),
-      );
+    );
 
-    $_SESSION['patterns_export_batch_info'] = array('component' => $module);
+    if (!isset($_SESSION['patterns_export_batch_info'])) {
+    	$_SESSION['patterns_export_batch_info'] = array();
+    }
+    array_push($_SESSION['patterns_export_batch_info'], $module);
     batch_set($batch);
     $cur_sec++;
   }
@@ -186,29 +189,17 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
  */
 function patterns_export_batch_finish($success, $results, $operations) {
   $info = $_SESSION['patterns_export_batch_info'];
-  $section = $results['module'];
   if (empty($results['abort'])) {
-    foreach ($info as $key => $i) {
-      drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', array('@pattern' => $i['title'],
-                                                                                             '@section' => $section,
-      )));
-      $query_params = array(':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
-                            ':pid' => $key,
-                            ':en' => PATTERNS_STATUS_ENABLED,
-      );
-      //db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+    foreach ($info as $component) {
+      drupal_set_message(t('Component "@component" ran successfully.', array('@component' => $component)));
+
     }
   }
   else {
-    $pattern = reset($info);
-    drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors.
-      Check the error messages to get more details.',
-      array('@pattern' => $pattern['title'], '@section' => $section,
-            )),
-     'error');
+    drupal_set_message(t('An error occurred during the export.') , 'error');
     drupal_set_message($results['error_message'], 'error');
   }
 
-  unset($_SESSION['patterns_batch_info']);
-  drupal_flush_all_caches();
+  unset($_SESSION['patterns_export_batch_info']);
+  //drupal_flush_all_caches();
 }

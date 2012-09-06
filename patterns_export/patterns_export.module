@@ -259,28 +259,11 @@ function patterns_export_validate($form, &$form_state) {
     return TRUE; // We export all, no need for further checkings
   }
 
-  /*
-  if (!isset($form_state['values']['module'])){
-    form_set_error('ext', t('No valid module selected.'));
-    return FALSE;
-  }
-  $module = $form_state['values']['module'];
-  if (empty($module) || !patterns_api_is_valid_component_name($module)) {
-    form_set_error('ext', t('No valid module selected.'));
-    return FALSE;
-  }
-  */
-
   if (!isset($form_state['values']['options'])) {
-    form_set_error($module, t('No valid component selected.'));
+    form_set_error('ext', t('No valid component selected.'));
     return FALSE;
   }
 
-  $component = $form_state['values']['options'];
-  if (!isset($form_state['values'][$component])) {
-    form_set_error($module, t('No valid tag selected for component %component selected.', array('%component' => $component)));
-    return FALSE;
-  }
 }
 
 // Helper functions
