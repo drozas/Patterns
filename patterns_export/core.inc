@@ -137,6 +137,10 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 		return;
 	}
 	
+	// Since we are in the batch, we need to load some things once more.
+  module_load_include('module', 'patterns_exports');
+  patterns_io_load_components();
+	
 	$sections = array();
 	
  	if (!empty($files)) {
@@ -176,7 +180,7 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 	}
 		
 	array_push($context['results']['modules'], $module_name);
-	array_push($context['results']['sections'], $sections);
+	$context['results']['sections'] = array_merge($context['results']['sections'], $sections);
 	
 }
 
@@ -192,21 +196,19 @@ function patterns_export_batch_finish($success, $results, $operations) {
       drupal_set_message(t('Component "@component" ran successfully.', array('@component' => $m)));
     }
     
-    
-   	return patterns_export_finalize_export($_SESSION['patterns_export_batch_info']['to'],
- 																					 	$results['sections'],
- 																						$_SESSION['patterns_export_batch_info']['info'],
- 																						$results['modules'], 
- 																						$_SESSION['patterns_export_batch_info']['format'], 
- 																						$_SESSION['patterns_export_batch_info']['filename']);
-    
+    $to = $_SESSION['patterns_export_batch_info']['to'];
+    $info = $_SESSION['patterns_export_batch_info']['info'];
+ 		$format = $_SESSION['patterns_export_batch_info']['format'];
+ 		$filename = $_SESSION['patterns_export_batch_info']['filename'];	
+    unset($_SESSION['patterns_export_batch_info']);
+		
+   	return patterns_export_finalize_export($to, $results['sections'], $info, $results['modules'], $format, $filename);
   }
   else {
     drupal_set_message(t('An error occurred during the export.') , 'error');
     drupal_set_message($results['error_message'], 'error');
+  	unset($_SESSION['patterns_export_batch_info']);
+		return FALSE;
   }
-
-  unset($_SESSION['patterns_export_batch_info']);
-  //drupal_flush_all_caches();
   
 }

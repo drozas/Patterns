@@ -99,6 +99,7 @@ function patterns_export_to_zip($sections = array(), $info = array(), $modules =
  */
 function patterns_export_to_db($sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) { 
 	$pattern = _patterns_export_merge_exported_patterns($sections, $info, $modules);
+	//drupal_set_message(print_r($pattern,true));
 	return patterns_io_save_pattern($pattern, $filename, $format);
 }
 
