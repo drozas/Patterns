@@ -7,12 +7,6 @@
  *
  */
 
-/**
- * TODO: finish Export documentation
- * TODO: code cleanup
- * TODO: Export through the Batch API
- */
-
 module_load_include('inc', 'patterns_export', 'api');
 module_load_include('inc', 'patterns_export', 'core');
 module_load_include('inc', 'patterns_export', 'finalize');
@@ -160,6 +154,35 @@ function patterns_export_page1($form, &$form_state) {
   return $form;
 }
 
+/**
+ * validation function for import_module_form
+ */
+function patterns_export_validate($form, &$form_state) {
+  if (!isset($form_state['values']['format'])) {
+    form_set_error('format', t('No valid format selected.'));
+    return FALSE;
+  }
+  
+	if (!empty($form_state['values']['filename'])) {
+    form_set_error('format', t('Please specify a valid file name.'));
+    return FALSE;
+  }
+  
+	if (!isset($form_state['values']['export']['to'])) {
+    form_set_error('to', t('Please specify a valid export mode.'));
+    return FALSE;
+  }
+
+ 	if (!isset($form_state['values']['info'])) {
+    form_set_error('to', t('No info section found.'));
+ 		return TRUE; // We export all, no need for further checkings
+  }
+  
+  if (isset($form_state['values']['all']) && $form_state['values']['all'] == 0) {
+    return TRUE; // We export all, no need for further checkings
+  }
+
+}
 
 /**
  * Submit hook of the export form
@@ -214,6 +237,11 @@ function patterns_export_submit($form, &$form_state) {
     }
   }
   
+  if (empty($exports)) {
+    form_set_error('ext', t('No valid component selected.'));
+    return FALSE;
+  }
+  
 	$form_state['redirect'] = 'admin/patterns/export';
 	
   patterns_export_start_engine($filename,
@@ -224,6 +252,19 @@ function patterns_export_submit($form, &$form_state) {
  															 'php');
 }
 
+/**
+ * 
+ * Start the exporting process
+ * 
+ * @param string $filename The name or path of the exported file 
+ * @param array $tagmodules The index of modules/tags/exports_functions 
+ * @param array $info The info section of the export
+ * @param string $to Optional. A valid export destionation (e.g. zip,file,database).
+ * 	 Defaults, 'db'.
+ * @param string $format A valid patterns format (e.g. yaml,xml,php)
+ * @param string $mode Optional. A valid patterns execution mode. E.g. (php,batch).
+ *   Defaults 'php'.
+ */
 function patterns_export_start_engine($filename, 
 																			$tagmodules = array(), 
 																			$info = array(), 
@@ -244,26 +285,6 @@ function patterns_export_start_engine($filename,
 	$func = 'patterns_export_' . $mode;
 	
 	return $func($filename, $tagmodules, $info, $to, $format);
-}
-
-/**
- * validation function for import_module_form
- */
-function patterns_export_validate($form, &$form_state) {
-  if (!isset($form_state['values']['format'])) {
-    form_set_error('format', t('No valid format selected.'));
-    return FALSE;
-  }
-
-  if (isset($form_state['values']['all']) && $form_state['values']['all'] == 0) {
-    return TRUE; // We export all, no need for further checkings
-  }
-
-  if (!isset($form_state['values']['options'])) {
-    form_set_error('ext', t('No valid component selected.'));
-    return FALSE;
-  }
-
 }
 
 // Helper functions

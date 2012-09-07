@@ -1,5 +1,17 @@
 <?php
 
+/**
+ * 
+ * Starts the exporting process in php execution mode
+ * 
+ * @param string $filename The name or path of the exported file 
+ * @param array $tagmodules The index of modules/tags/exports_functions 
+ * @param array $info The info section of the export
+ * @param string $to Optional. A valid export destionation (e.g. zip,file,database).
+ * 	 Defaults, 'db'.
+ * @param string $format A valid patterns format (e.g. yaml,xml,php)
+ * 
+ */
 function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
 	
 	list($sections, $modules) = patterns_export_core_php($tagmodules);
