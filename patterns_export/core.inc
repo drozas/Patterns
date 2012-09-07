@@ -3,19 +3,6 @@
 function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
 	
 	list($sections, $modules) = patterns_export_core_php($tagmodules);
-
-  // If some sections did not return any data
-  // we remove them. We don't remove the modules!
-  foreach ($sections as $s => $value) {
-    if (empty($value)) {
-      unset($sections[$s]);
-    }
-  }
-
-  if (empty($sections)) {
-    drupal_set_message(t('Export did not return any data.'), 'error');
-    return FALSE;
-  }
 	    
  	return patterns_export_finalize_export($to,
  																	$sections,
@@ -92,6 +79,12 @@ function patterns_export_core_php($tagmodules) {
  */
 function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 
+	// Registering $_SESSION variables
+	$_SESSION['patterns_export_batch_info']['info'] = $info;
+	$_SESSION['patterns_export_batch_info']['to'] = $to;
+	$_SESSION['patterns_export_batch_info']['format'] = $format;
+	$_SESSION['patterns_export_batch_info']['filename'] = $filename;
+	
   $cur_sec = 1;
   $tot_sec = count($tagmodules);
   
@@ -113,40 +106,36 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 	  }
 
 
-   	$progress_params = array(
-                            '%section' => $module_name,
-                            '%cur_sec' => $cur_sec,
-                            '%tot_sec' => $tot_sec,
-    );
-
-    $progress = t('Running component "%section" (%cur_sec/%tot_sec), tag @current out of @total', $progress_params);
-
-    $batch = array(
-    	'title' => t('Exporting from component %module', array('%module' => $module_name)),
-      'progress_message' => $progress,
-      'finished' => 'patterns_export_batch_finish',
-      'operations' => $operations,
-      'init_message' => t('Initializing component "%section" (%cur_sec/%tot_sec)', array(
-                           '%section' => $module_name,
-                           '%cur_sec' => $cur_sec,
-                           '%tot_sec' => $tot_sec,
-                          )),
-    );
-
     if (!isset($_SESSION['patterns_export_batch_info'])) {
     	$_SESSION['patterns_export_batch_info'] = array();
     }
-    array_push($_SESSION['patterns_export_batch_info'], $module);
-    batch_set($batch);
-    $cur_sec++;
-  }
+  	if (!isset($_SESSION['patterns_export_batch_info']['modules'])) {
+    	$_SESSION['patterns_export_batch_info']['modules'] = array();
+    }
   
+    
+    array_push($_SESSION['patterns_export_batch_info']['modules'], $module_name);
    
+  }
 
+  $batch = array(
+    	'title' => t('Patterns export'),
+      'progress_message' => t('Running action @current out of @total'),
+      'finished' => 'patterns_export_batch_finish',
+      'operations' => $operations,
+    );
+	batch_set($batch);
   return TRUE;
 }
 
 function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = NULL, &$context) {
+	
+	$context['message'] = t('%component: now processing %tag', array('%component' => $module_name, '%tag' => $tag));
+	
+	// Do not process other actions if a fatal error already occurred
+	if (!empty($context['results']['abort'])) {
+		return;
+	}
 	
 	$sections = array();
 	
@@ -157,16 +146,24 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 	  	require_once $file;
 	  }
 	}
+	
  
 	if (!is_array($export_funcs)) {
 		$sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
 	}
-	else {
-		$result = array();
-		foreach ($export_funcs as $f) {
-			$result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
-	    $sections[$tag] = array_merge($result[$tag], call_user_func($f));
-	  }
+	
+	$result = array();
+	foreach ($export_funcs as $f) {
+		
+		if (!function_exists($f)) {
+			$context['results']['abort'] = 1;
+			$context['results']['error_message'] = t('%module.%tag: export function %f not found.', array('%f' => $f,
+																																			'%module' => $module_name,
+																																			'%tag' => $tag));
+			return FALSE;
+		}
+		$result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
+    $sections[$tag] = array_merge($result[$tag], call_user_func($f));
 	}
 	
 	// TODO: the name of the component may be different from the
@@ -188,12 +185,21 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
  * @TODO Doc.
  */
 function patterns_export_batch_finish($success, $results, $operations) {
-  $info = $_SESSION['patterns_export_batch_info'];
+  $modules = $_SESSION['patterns_export_batch_info']['modules'];
+  
   if (empty($results['abort'])) {
-    foreach ($info as $component) {
-      drupal_set_message(t('Component "@component" ran successfully.', array('@component' => $component)));
-
+    foreach ($modules as $m) {
+      drupal_set_message(t('Component "@component" ran successfully.', array('@component' => $m)));
     }
+    
+    
+   	return patterns_export_finalize_export($_SESSION['patterns_export_batch_info']['to'],
+ 																					 	$results['sections'],
+ 																						$_SESSION['patterns_export_batch_info']['info'],
+ 																						$results['modules'], 
+ 																						$_SESSION['patterns_export_batch_info']['format'], 
+ 																						$_SESSION['patterns_export_batch_info']['filename']);
+    
   }
   else {
     drupal_set_message(t('An error occurred during the export.') , 'error');
@@ -202,4 +208,5 @@ function patterns_export_batch_finish($success, $results, $operations) {
 
   unset($_SESSION['patterns_export_batch_info']);
   //drupal_flush_all_caches();
+  
 }

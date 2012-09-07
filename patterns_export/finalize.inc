@@ -19,6 +19,20 @@ function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE,
 																					$modules = array(),  
 																					$format, 
 																					$filename = NULL) {
+
+																						
+	// If some sections did not return any data
+  // we remove them. We don't remove the modules!
+  foreach ($sections as $s => $value) {
+    if (empty($value)) {
+      unset($sections[$s]);
+    }
+  }
+
+  if (empty($sections)) {
+    drupal_set_message(t('Export did not return any data.'), 'error');
+    return FALSE;
+  }
 																						
 	if ($action == PATTERNS_EXPORT_TO_FILE) {
 		 return patterns_export_to_file($sections, $info, $modules, $format, $filename);
