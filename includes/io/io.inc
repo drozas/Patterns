@@ -397,7 +397,7 @@ function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTE
     return FALSE;
   }
 
-  if (!patterns_validate_pattern($content, $format, PATTERNS_VALIDATE_TAG_EXISTS)) {
+  if (!patterns_validate_pattern($content, $format, PATTERNS_VALIDATE_SYNTAX)) {
     drupal_set_message(t("Pattern '%name' could not be saved. Make sure edited code is well-formed.", array('%name' => $name)), 'error');
     return FALSE;
   }
