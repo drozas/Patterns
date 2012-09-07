@@ -149,7 +149,7 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 	
  
 	if (!is_array($export_funcs)) {
-		$sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
+		$export_funcs = array($export_funcs);
 	}
 	
 	$result = array();
