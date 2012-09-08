@@ -73,7 +73,7 @@ function patterns_export_page1($form, &$form_state) {
 
   $form['all'] = array(
     '#type' => 'fieldset',
-    '#title' => 'Options',
+    '#title' => 'Components',
     '#collapsible' => TRUE,
     '#collapsed' => TRUE, // TODO set to TRUE after debugging
   );
@@ -143,7 +143,9 @@ function patterns_export_page1($form, &$form_state) {
   
   patterns_forms_get_name_selector($form);
 
-  patterns_forms_get_export_to_selector($form);
+  patterns_forms_get_export_to_selector($form, array('title' => 'Export options'));
+  
+  patterns_forms_get_exec_mode_selector($form['export']['mode']);
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -169,7 +171,12 @@ function patterns_export_validate($form, &$form_state) {
   }
   
 	if (!isset($form_state['values']['export']['to'])) {
-    form_set_error('to', t('Please specify a valid export mode.'));
+    form_set_error('export[to]', t('Please specify a valid export action.'));
+    return FALSE;
+  }
+  
+	if (!isset($form_state['values']['export']['mode'])) {
+    form_set_error('export[mode]', t('Please specify a valid export mode.'));
     return FALSE;
   }
 
@@ -249,7 +256,7 @@ function patterns_export_submit($form, &$form_state) {
  															 $form_state['values']['info'],
  															 $form_state['values']['export']['to'],
  															 $format,
- 															 'php');
+ 															 $form_state['values']['export']['mode']);
 }
 
 /**
@@ -270,7 +277,7 @@ function patterns_export_start_engine($filename,
 																			$info = array(), 
 																			$to = PATTERNS_EXPORT_TO_DB, 
 																			$format = PATTERNS_FORMAT_UNKNOWN, 
-																			$mode = 'php') {
+																			$mode = PATTERNS_EXEC_PHP) {
 																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {

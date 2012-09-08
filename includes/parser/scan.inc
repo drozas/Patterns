@@ -144,7 +144,7 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
  *
  * @return TRUE if valid, FALSE otherwise
  */
-function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $level = PATTERNS_VALIDATE_ALL) {
+function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $level = PATTERNS_VALIDATE_ALL, $br = '<br/>') {
   $msgs = array();
 
   if ($patternscan['info'] == 0 && !$include) {
@@ -197,7 +197,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   if (count($patternscan['empties']) > 0) {
-    $msgs[] = t('Pattern contains empty sections or actions:') . ' ' . implode(', ', $patternscan['empties']);
+    $msgs[] = t('Pattern contains empty sections or actions:') . implode(', ', $patternscan['empties']);
   }
   
   // INCLUDE LEVEL
@@ -235,7 +235,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	foreach ($patternscan['tag_errors'] as $error) {
   		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
-  	$msgs[] = t('Components reported errors about tags: ') . $errors;
+  	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
 
   return $msgs;

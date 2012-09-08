@@ -483,12 +483,6 @@ function patterns_enable_pattern($form, &$form_state, $pid) {
   return confirm_form($form, t('Proceed with running pattern %pattern?', array('%pattern' => $pattern->title)), 'admin/patterns', $disclaimer);
 }
 
-function patterns_mode_validate($element, &$form_state, $form) {
-  if (!in_array($form_state['values']['mode'], array('batch', 'php'))) {
-    form_error($element, t('Mode must be one of \'batch\' or \'php\'.'));
-  }
-}
-
 /**
  * Form submission handler for patterns_enable_pattern().
  *

@@ -83,7 +83,7 @@ function patterns_forms_get_exec_mode_selector(&$form = array(), $default = NULL
 	
   $default = empty($default) ? variable_get('patterns_default_running_mode', PATTERNS_EXEC_PHP) : $default; 
   $title = empty($title) ? t('Running mode:') : $title;
-  $descr = empty($descr) ? t('Batch mode uses the Batch API provided by Drupal thus providing intermediate feedback about the progress. PHP will only return when every action has been processed (or there has been an error).')
+  $descr = empty($descr) ? t('Batch mode uses the Batch API provided by Drupal thus providing intermediate feedback about the progress. PHP will only return when every action has been processed (or in case of error).')
   											 : $decr;
   
   $form['mode'] = array(
@@ -92,7 +92,6 @@ function patterns_forms_get_exec_mode_selector(&$form = array(), $default = NULL
     '#description' => $descr,
     '#options' => $options_run_mode,
     '#default_value' => $default,
-    '#element_validate' => array('patterns_mode_validate'),
   );
   
   return $form;
