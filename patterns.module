@@ -454,7 +454,7 @@ function patterns_enable_pattern($form, &$form_state, $pid) {
     );
   }
 
-  $scan = patterns_scan_pattern($pattern);
+  $scan = patterns_scan_pattern($pattern->pattern);
   
   if (!_patterns_scan_validate_patternscan($scan)) {
   	$link = l('syntax and content', '/admin/patterns/edit/' . $pid);
