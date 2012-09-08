@@ -106,7 +106,7 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
   foreach ($tagmodules as $module_name => $module) {
 	  foreach ($module as $tag => $values) {
 	   	if (!isset($values[PATTERNS_EXPORT]) || empty($values[PATTERNS_EXPORT])) {
-	        continue;
+	      continue;
 	    }
 			
 	    $action_params = array($module_name, $tag, $values[PATTERNS_EXPORT]);
@@ -114,7 +114,7 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 	  	$action_params[] = isset($values[PATTERNS_FILES]) ? $values[PATTERNS_FILES]
 	  																										 : array();
 	    
-			$operations[] = array('patterns_export_batch_core', $action_params);     
+			$operations[] = array('patterns_export_batch_core', $action_params);
 	  }
 
 
@@ -127,7 +127,7 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
   
     
     array_push($_SESSION['patterns_export_batch_info']['modules'], $module_name);
-   
+   	$cur_sec++;
   }
 
   $batch = array(
@@ -140,9 +140,12 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
   return TRUE;
 }
 
-function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = NULL, &$context) {
-	
-	$context['message'] = t('%component: now processing %tag', array('%component' => $module_name, '%tag' => $tag));
+function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = NULL, &$context) { 
+	$msg_ctx = t('%component: now processing %tag. ', array('%component' => $module_name, '%tag' => $tag));
+	if ($_SESSION['patterns_export_batch_info']['to'] != PATTERNS_EXPORT_TO_DB) {
+		$msg_ctx .= t('After the download has started, click !back.', array('!back' => l(t('here to go back'), 'admin/patterns/export')));
+	}
+	$context['message'] = $msg_ctx;
 	
 	// Do not process other actions if a fatal error already occurred
 	if (!empty($context['results']['abort'])) {
