@@ -53,19 +53,7 @@ function patterns_forms_get_execution_options($form = array()) {
     '#disabled' => 'true',
   );
 
-  $options_run_mode = array(
-    'batch' => t('Batch'),
-    'php' => t('PHP'),
-  );
-
-  $form['options']['mode'] = array(
-    '#type' => 'radios',
-    '#title' => t('Running mode:'),
-    '#description' => t('Batch mode uses the Batch API provided by Drupal thus providing intermediate feedback about the progress. PHP will only return when every action has been processed (or there has been an error), which is easier to debug.'),
-    '#options' => $options_run_mode,
-    '#default_value' => variable_get('patterns_default_running_mode', 'batch'),
-    '#element_validate' => array('patterns_mode_validate'),
-  );
+  patterns_forms_get_exec_mode_selector($form['options']);
 
   $options = array( PATTERNS_INCLUDE_NEVER => t('Never run'),
                     PATTERNS_INCLUDE_FIRSTRUN => t('Only during the first run'),
@@ -83,6 +71,30 @@ function patterns_forms_get_execution_options($form = array()) {
     '#default_value' => patterns_get_include_mode(),
   );
 
+  return $form;
+}
+
+
+function patterns_forms_get_exec_mode_selector(&$form = array(), $default = NULL, $title = NULL, $descr = NULL) {
+	$options_run_mode = array(
+    PATTERNS_EXEC_BATCH => t('Batch'),
+    PATTERNS_EXEC_PHP => t('PHP'),
+  );
+	
+  $default = empty($default) ? variable_get('patterns_default_running_mode', PATTERNS_EXEC_PHP) : $default; 
+  $title = empty($title) ? t('Running mode:') : $title;
+  $descr = empty($descr) ? t('Batch mode uses the Batch API provided by Drupal thus providing intermediate feedback about the progress. PHP will only return when every action has been processed (or there has been an error).')
+  											 : $decr;
+  
+  $form['mode'] = array(
+    '#type' => 'radios',
+    '#title' => $title,
+    '#description' => $descr,
+    '#options' => $options_run_mode,
+    '#default_value' => $default,
+    '#element_validate' => array('patterns_mode_validate'),
+  );
+  
   return $form;
 }
 

@@ -81,7 +81,7 @@ function patterns_config_settings($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Default Directory for Patterns Files'),
     '#description' => t('By default, patterns files will be saved and loaded from here.'),
-    '#default_value' => variable_get('patterns_save_file', 'sites/all/patterns/'),
+    '#default_value' => variable_get('patterns_save_file', PATTERNS_FILES_DIR_DEFAULT),
   );
 
   $form['fs']['patterns_refresh_components'] = array(
