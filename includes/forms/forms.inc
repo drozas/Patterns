@@ -74,7 +74,17 @@ function patterns_forms_get_execution_options($form = array()) {
   return $form;
 }
 
-
+/**
+ * Creates the radio buttons to select the pattern exec mode
+ *
+ * @param array $form An array element representing a form. If specified,
+ *   the execution options are appended here.
+ *   
+ * @TODO: doc
+ *
+ * @return array $form The form containing the pattern execution options.
+ *
+ */
 function patterns_forms_get_exec_mode_selector(&$form = array(), $default = NULL, $title = NULL, $descr = NULL) {
 	$options_run_mode = array(
     PATTERNS_EXEC_BATCH => t('Batch'),

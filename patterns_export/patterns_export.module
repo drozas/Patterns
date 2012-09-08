@@ -145,7 +145,7 @@ function patterns_export_page1($form, &$form_state) {
 
   patterns_forms_get_export_to_selector($form, array('title' => 'Export options'));
   
-  patterns_forms_get_exec_mode_selector($form['export']['mode']);
+  patterns_forms_get_exec_mode_selector($form['export']);
 
   $form['submit'] = array(
     '#type' => 'submit',
@@ -162,33 +162,25 @@ function patterns_export_page1($form, &$form_state) {
 function patterns_export_validate($form, &$form_state) {
   if (!isset($form_state['values']['format'])) {
     form_set_error('format', t('No valid format selected.'));
-    return FALSE;
   }
   
 	if (!empty($form_state['values']['filename'])) {
     form_set_error('format', t('Please specify a valid file name.'));
-    return FALSE;
   }
   
 	if (!isset($form_state['values']['export']['to'])) {
     form_set_error('export[to]', t('Please specify a valid export action.'));
-    return FALSE;
   }
   
 	if (!isset($form_state['values']['export']['mode'])) {
     form_set_error('export[mode]', t('Please specify a valid export mode.'));
-    return FALSE;
   }
 
  	if (!isset($form_state['values']['info'])) {
     form_set_error('to', t('No info section found.'));
- 		return TRUE; // We export all, no need for further checkings
   }
-  
-  if (isset($form_state['values']['all']) && $form_state['values']['all'] == 0) {
-    return TRUE; // We export all, no need for further checkings
-  }
-
+	
+  return TRUE;
 }
 
 /**
@@ -248,9 +240,9 @@ function patterns_export_submit($form, &$form_state) {
     form_set_error('ext', t('No valid component selected.'));
     return FALSE;
   }
-  
+
 	$form_state['redirect'] = 'admin/patterns/export';
-	
+
   patterns_export_start_engine($filename,
   														 $exports,
  															 $form_state['values']['info'],
@@ -281,10 +273,12 @@ function patterns_export_start_engine($filename,
 																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
+		drupal_set_message(t('Unkwnown export format. Aborting.'), 'error');
 		return FALSE;
 	}
 	
 	if (!in_array($mode, array('php', 'batch'))) {
+		drupal_set_message(t('Unknown execution mode: %mode', array('%mode' => $mode)), 'error');
 		return FALSE;
 	}
 	

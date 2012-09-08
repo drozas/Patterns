@@ -484,6 +484,17 @@ function patterns_enable_pattern($form, &$form_state, $pid) {
 }
 
 /**
+ * <hook_validate>
+ */
+function patterns_enable_pattern_validate($form, &$form_state) {
+  if (!in_array($form_state['values']['mode'], array(PATTERNS_EXEC_BATCH, PATTERNS_EXEC_PHP))) {
+    form_error($element, t('Mode must be one of \'batch\' or \'php\'.'));
+  }
+	return TRUE;
+}
+
+
+/**
  * Form submission handler for patterns_enable_pattern().
  *
  * Takes the values from the form enable_pattern and starts the whole process
