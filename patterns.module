@@ -464,7 +464,7 @@ function patterns_enable_pattern($form, &$form_state, $pid) {
   	$form['invalid'] = array(
     	'#markup' => t('This pattern is invalid. Please check !stuff before running it.', array('!stuff' => $link)),
    		'#prefix' => '<div id="important"><strong>Ooops! </strong>',
-      '#suffix' => $errors,//'</strong></br></br></div>',
+      '#suffix' => '<p>' . $errors . '</p>',
   	);
   	
   	return $form;
