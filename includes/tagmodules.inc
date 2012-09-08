@@ -82,6 +82,10 @@ function _patterns_tagmodules_add_module($module, &$tagmodules, $data = NULL) {
   if (empty($module)) return;
 
   $tags = module_invoke($module, 'patterns', $data);
+  if (empty($tags)) {
+  	// should not be the case. It is a component error
+  	return FALSE;
+  }
   _patterns_tagmodules_add_module_to_tags($module, $tags);
   $tagmodules = array_merge($tagmodules, $tags);
 }
