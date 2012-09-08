@@ -1,3 +1,11 @@
+7100-rc1:
+
+		- Improved export process
+		- Export via batch available
+		- Export to file or Zip available
+		- Better error handling generally
+		- Drush integration
+
 7070:
 		- Multilevel validation
 		- Patterns can be exported in different ways: zip, file, to db
