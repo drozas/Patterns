@@ -373,15 +373,9 @@ function patterns_import_submit($form, &$form_state) {
                                         $form_state['values']['content']
     );
   }
-
-  if ($success) {
-    $link = l('here', 'admin/patterns/edit/' . $name); // TODO: t()
-    $msg = t('Pattern %name successfully imported. ', array('%name' => $name)); // TODO: proper t()
-    $msg.= t('Click ') . $link . t(' to view it.'); // TODO: t()
-    drupal_set_message($msg);
-  }
-  else {
-    drupal_set_message(t('File %name could not be saved on the server. Import failed.', array('%name' => $name)), 'error');
+	// success message displayed by patterns_io_save_pattern
+  if (!$success) {
+  	drupal_set_message(t('File %name could not be saved on the server. Import failed.', array('%name' => $name)), 'error');
   }
   $form_state['redirect'] = 'admin/patterns';
 }
