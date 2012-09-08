@@ -19,6 +19,10 @@ define('PATTERNS_PARSER_DUMP', 'dump');
 define('PATTERNS_PARSER_DUMP_COMMENT', 'dump_comment');
 define('PATTERNS_PARSER_LOAD', 'load');
 
+
+define('PATTERNS_EXEC_PHP', 'php');
+define('PATTERNS_EXEC_BATCH', 'batch');
+
 define('PATTERNS_FORMAT_UNKNOWN', 'unknown');
 
 define('PATTERNS_SUCCESS', 1);
@@ -73,3 +77,6 @@ define('PATTERNS_VALIDATE_SKIP', 0);			// skip validation
 
 
 define('PATTERNS_ALLOW_PUBLISH_DEFAULT', TRUE);
+
+define('PATTERNS_FILES_DIR_DEFAULT','sites/all/patterns');
+
