@@ -68,7 +68,7 @@ function patterns_export_page1($form, &$form_state) {
   }
 
   $text = 'In this area you can export the current configuration of your web site to a new pattern file that can be inserted in the database, or downloaded.';
-  $title = 'Export (experimental!)';
+  $title = 'Export';
   patterns_forms_add_page_header($form, $title, $text);
 
   $form['all'] = array(
@@ -80,7 +80,7 @@ function patterns_export_page1($form, &$form_state) {
 
   $form['all']['all'] = array(
     '#type' => 'fieldset',
-    '#title' => 'I want to select the components individually (Experimental)',
+    '#title' => 'I want to select the components individually',
     '#type' => 'checkbox',
   );
 
