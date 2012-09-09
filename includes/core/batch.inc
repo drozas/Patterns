@@ -125,7 +125,7 @@ function patterns_batch_action($action, $data, $place, $actions_map, $section, &
   if (empty($data) || empty($action)) {
     $context['finished'] = 1;
     $context['results']['abort'] = 1;
-		$context['results']['error_message'] = t('Cannot execute empty action.'), 'error');
+		$context['results']['error_message'] = t('Cannot execute empty action.', 'error');
     return FALSE;
   }
 
@@ -144,7 +144,7 @@ function patterns_batch_action($action, $data, $place, $actions_map, $section, &
   if (!patterns_error_check_results($results)) {
     $context['finished'] = 1;
     $context['results']['abort'] = 1;
-		$context['results']['error_message'] = t('An error occurred while preparing the actions.'), 'error');
+		$context['results']['error_message'] = t('An error occurred while preparing the actions.', 'error');
     return FALSE;
   }
   ///////////////////////
