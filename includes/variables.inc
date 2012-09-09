@@ -78,5 +78,5 @@ define('PATTERNS_VALIDATE_SKIP', 0);			// skip validation
 
 define('PATTERNS_ALLOW_PUBLISH_DEFAULT', TRUE);
 
-define('PATTERNS_FILES_DIR_DEFAULT','sites/all/patterns');
+define('PATTERNS_FILES_DIR_DEFAULT','sites/default/files/patterns');
 
