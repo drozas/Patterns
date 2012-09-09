@@ -16,7 +16,7 @@
  *
  */
 function patterns_path_get_files_dir() {
-  return DRUPAL_ROOT . "/" . variable_get('patterns_save_file', PATTERNS_FILES_DIR_DEFAULT);
+  return drupal_realpath(variable_get('patterns_save_file', PATTERNS_FILES_DIR_DEFAULT));
 }
 
 /**

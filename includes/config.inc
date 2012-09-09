@@ -79,8 +79,8 @@ function patterns_config_settings($form, &$form_state) {
 
   $form['fs']['patterns_save_file'] = array(
     '#type' => 'textfield',
-    '#title' => t('Default Directory for Patterns Files'),
-    '#description' => t('By default, patterns files will be saved and loaded from here.'),
+    '#title' => t('Default directory for patterns Files'),
+    '#description' => t('Stream wrappers such as temporary:// and public:// can be used. Relative paths start from drupal root directory.'),
     '#default_value' => variable_get('patterns_save_file', PATTERNS_FILES_DIR_DEFAULT),
   );
 
