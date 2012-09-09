@@ -51,7 +51,7 @@ abstract class PatternsTestCase extends DrupalWebTestCase {
       // so that we don't need to rebuild the menu
       menu_rebuild();
     }
-		variable_set('patterns_save_file', drupal_real_path('temporary://') . 'patterns_tests-' . rand(0,1000000)); 
+		variable_set('patterns_save_file', drupal_realpath('temporary://') . '/patterns_tests-' . rand(0,1000000)); 
 
     // TODO: how to ensure that Spyc is installed?
 
