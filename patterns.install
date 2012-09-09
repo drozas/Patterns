@@ -144,7 +144,7 @@ function patterns_requirements($phase) {
 
  // Checking if patterns directory is writable
  // Must be done at installation and runtime
-  if (!_patterns_io_is_patterns_dir_ready()) {
+  if (!_patterns_io_is_patterns_dir_ready(NULL, FILE_CREATE_DIRECTORY)) {
       $requirements['pdir'] = array(
         'title'       => t('Patterns files dir writable'),
         'description' => t("Patterns folder doesn't exist or is not writable: !path", array('!path' => patterns_path_get_files_dir())),

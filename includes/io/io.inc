@@ -355,7 +355,7 @@ function _patterns_io_check_htaccess() {
 /**
  * Checks if the patterns directory exist and is writable.
  */
-function _patterns_io_is_patterns_dir_ready($patterns_files_dir = '', $flag = FILE_MODIFY_PERMISSIONS) {
+function _patterns_io_is_patterns_dir_ready($patterns_files_dir = NULL, $flag = FILE_MODIFY_PERMISSIONS) {
 
   // TODO: keep pattern_files_dir in a separate location. Warning: defining a constant creates an error.
   if (empty($patterns_files_dir)) {
