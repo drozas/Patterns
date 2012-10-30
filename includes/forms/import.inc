@@ -221,7 +221,8 @@ function patterns_import_url($form, &$form_state) {
     '#type' => 'textfield',
     '#title' => t('Specify an URI'),
     '#description' => t('Import a pattern from a remote URL. Imported patterns are not executed until you run them manually.'),
-    '#size' => 48
+    '#size' => 48,
+    '#required' => TRUE,
   );
 
   $form['name'] = array(
