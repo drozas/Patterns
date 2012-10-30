@@ -21,6 +21,5 @@ actions:
 
     - delete:
         tag: term
-        vocabulary: anothervoc # machine_name
+        vocabulary: tags # machine_name
         name: Not_Patatina
-        #tid: 1

@@ -19,4 +19,4 @@ actions:
         name: Not_Patatina
         descr: This is not a Patatina
         tid: 1
-        vocabulary: anothervoc # machine_name
+        vocabulary: tags # machine_name

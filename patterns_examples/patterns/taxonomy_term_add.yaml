@@ -19,5 +19,4 @@ actions:
         tag: term
         name: Patatina
         descr: This is a Patatina
-        vocabulary: anothervoc # machine_name
-        #vid: 2
+        vocabulary: tags # machine_name
