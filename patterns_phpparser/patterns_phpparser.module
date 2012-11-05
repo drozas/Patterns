@@ -12,7 +12,7 @@ function patterns_phpparser_patterns_parser() {
 }
 
 /**
- * Loads and parases a YAML pattern from file.
+ * Loads and parses a PHP pattern from file.
  *
  * @param string $path The path to the pattern file.
  * @param bool $local (optional) TRUE if the pattern
@@ -71,9 +71,9 @@ function patterns_phpparser_parse($pattern = NULL) {
 }
 
 /**
- * Converts an array representing a pattern into a YAML string.
+ * Converts an array representing a pattern into a PHP string.
  *
- * @param array $pattern The pattern to convert into a YAML string
+ * @param array $pattern The pattern to convert into a PHP string
  */
 function patterns_phpparser_dump($pattern = NULL, $append = NULL) {
 	if (is_null($pattern) || !is_array($pattern)) return FALSE;
