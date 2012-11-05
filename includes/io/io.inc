@@ -231,7 +231,7 @@ function _patterns_io_analyze_scandir_messages($messages = NULL) {
 
 /**
  * Loads all the available patterns from the database.
- * It also check against the file system, and, if the
+ * It also checks against the file system, and, if the
  * patterns global configuration options allow it,
  * updates the database with the latest modifications.
  * Notice: enabled patterns will not be updated anyway.
@@ -240,7 +240,7 @@ function _patterns_io_analyze_scandir_messages($messages = NULL) {
  *  the database with the file system.
  * @param bool $verbose If TRUE, only public patterns
  *   are returned
- * @param bool $verbose If TRUE, verbose output is
+ * @param bool $public If TRUE, verbose output is
  *   printed to screen
  *
  * @return array The array of available patterns.
