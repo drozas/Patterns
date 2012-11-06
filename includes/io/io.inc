@@ -153,7 +153,7 @@ function patterns_io_scan_directories($verbose = FALSE) {
         continue;
       }
 
-      if (!patterns_validate_pattern($pattern)) {
+      if (!patterns_validate_pattern($pattern, $format, PATTERNS_VALIDATE_SYNTAX)) {
         $messages['invalid'][] = $file->filename;
         continue;
       }
