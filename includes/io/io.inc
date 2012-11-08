@@ -553,7 +553,7 @@ function _patterns_io_file_has_valid_extension($file = NULL, $formats = NULL) {
  */
 function patterns_io_list_components_names($reset = FALSE) {
   $components = patterns_io_load_components($reset, TRUE);
-  $func = function($c){ return pathinfo($c, PATHINFO_FILENAME); };
+  $func = create_function('$c', 'return pathinfo($c, PATHINFO_FILENAME);');
   return array_map($func, $components);
 }
 
