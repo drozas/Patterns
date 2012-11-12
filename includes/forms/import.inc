@@ -65,7 +65,10 @@ function patterns_import_source($form, &$form_state) {
   );
 
   $form = patterns_forms_get_formats_selector($form);
-
+  
+  //Set the field as required for the import source case
+  $form['format']['#required'] = TRUE;
+  
   $form['validation_result'] = array(
     '#markup' => 'This pattern has not been validated yet.',
     '#prefix' => '<div id="validation_result"><strong>',

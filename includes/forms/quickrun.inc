@@ -38,6 +38,9 @@ function patterns_quickrun($form, &$form_state) {
   );
 
   $form = patterns_forms_get_formats_selector($form);
+  
+  //Set the field as required for the quickrun case
+  $form['format']['#required'] = TRUE;
 
   $form['content'] = array(
     '#type' => 'textarea',
