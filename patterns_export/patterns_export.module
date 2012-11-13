@@ -86,7 +86,7 @@ function patterns_export_page1($form, &$form_state) {
     '#title' => 'Components with automatic export enabled',
     '#tree' => TRUE,
     '#collapsible' => TRUE,
-    '#collapsed' => FALSE, // TODO set to TRUE after debugging
+    '#collapsed' => FALSE,
     '#states' => array(
            'visible' => array(   // action to take.
             ':input[name="all"]' => array('checked' => TRUE),
@@ -132,7 +132,7 @@ function patterns_export_page1($form, &$form_state) {
 
   patterns_forms_get_info_section($form, array(), array('collapsed' => TRUE));
 
-  patterns_forms_get_formats_selector($form, patterns_forms_get_default_format(), 'Export data in this format', FALSE);
+  patterns_forms_get_formats_selector($form, patterns_forms_get_default_format(), t('Export data in this format'), FALSE);
   
   patterns_forms_get_name_selector($form);
 
