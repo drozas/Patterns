@@ -252,12 +252,8 @@ function patterns_export_submit($form, &$form_state) {
  * @param string $mode Optional. A valid patterns execution mode. E.g. (php,batch).
  *   Defaults 'php'.
  */
-function patterns_export_start_engine($filename, 
-																			$tagmodules = array(), 
-																			$info = array(), 
-																			$to = PATTERNS_EXPORT_TO_DB, 
-																			$format = PATTERNS_FORMAT_UNKNOWN, 
-																			$mode = PATTERNS_EXEC_PHP) {
+function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), 
+		$to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = PATTERNS_EXEC_PHP) {
 																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
@@ -301,10 +297,7 @@ function patterns_export_list_export_functions($reset = TRUE) {
  */
 function patterns_export_is_valid_mode($mode = NULL) {
 	if (empty($mode)) return FALSE;
-	return in_array($mode, array(PATTERNS_EXPORT_TO_DB, 
-																PATTERNS_EXPORT_TO_FILE,
-																PATTERNS_EXPORT_TO_ZIP,
-	));
+	return in_array($mode, array(PATTERNS_EXPORT_TO_DB, PATTERNS_EXPORT_TO_FILE, PATTERNS_EXPORT_TO_ZIP,));
 }
 
 
