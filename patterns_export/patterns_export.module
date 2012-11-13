@@ -252,9 +252,7 @@ function patterns_export_submit($form, &$form_state) {
  * @param string $mode Optional. A valid patterns execution mode. E.g. (php,batch).
  *   Defaults 'php'.
  */
-function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), 
-		$to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = PATTERNS_EXEC_PHP) {
-																				
+function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = PATTERNS_EXEC_PHP) {																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
 		drupal_set_message(t('Unkwnown export format. Aborting.'), 'error');
