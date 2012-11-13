@@ -72,7 +72,7 @@ function patterns_export_page1($form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => 'Components',
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE, // TODO set to TRUE after debugging
+    '#collapsed' => TRUE,
   );
 
   $form['all']['all'] = array(
@@ -100,7 +100,7 @@ function patterns_export_page1($form, &$form_state) {
       '#type' => 'fieldset',
       '#title' => $module,
       '#collapsible' => TRUE,
-      '#collapsed' => FALSE, // TODO set to TRUE after debugging
+      '#collapsed' => TRUE,
     );
 
     $form['all']['ext'][$module]['options'] = array(
