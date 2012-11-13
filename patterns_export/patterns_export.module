@@ -234,14 +234,10 @@ function patterns_export_submit($form, &$form_state) {
     return FALSE;
   }
 
-	$form_state['redirect'] = 'admin/patterns/export';
+  $form_state['redirect'] = 'admin/patterns/export';
 
-  patterns_export_start_engine($filename,
-  														 $exports,
- 															 $form_state['values']['info'],
- 															 $form_state['values']['export']['to'],
- 															 $format,
- 															 $form_state['values']['export']['mode']);
+  patterns_export_start_engine($filename, $exports, $form_state['values']['info'], 
+  $form_state['values']['export']['to'], $format, $form_state['values']['export']['mode']);
 }
 
 /**
