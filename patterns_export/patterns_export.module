@@ -60,10 +60,7 @@ function patterns_export_page1($form, &$form_state) {
 
   if (count($tm_index) == 0) {
       drupal_set_message(t('The components currently installed do not allow automatic export of the configuration of the web site'), 'error');
-
-      $form['disabled'] = array(
-        '#markup' => l(t('Click here to back'), 'admin/patterns'),
-      );
+      $form['disabled'] = array('#markup' => l(t('Click here to back'), 'admin/patterns'),);
     return $form;
   }
 
@@ -135,11 +132,7 @@ function patterns_export_page1($form, &$form_state) {
 
   patterns_forms_get_info_section($form, array(), array('collapsed' => TRUE));
 
-  patterns_forms_get_formats_selector($form,
-																			patterns_forms_get_default_format(),
-                                      'Export data in this format',
-                                      FALSE
-  );
+  patterns_forms_get_formats_selector($form, patterns_forms_get_default_format(), 'Export data in this format', FALSE);
   
   patterns_forms_get_name_selector($form);
 
