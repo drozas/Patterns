@@ -221,7 +221,6 @@ function patterns_export_submit($form, &$form_state) {
         }
         
         // Add necessary information
-        
         if (isset($tm_index[$module][$tag][PATTERNS_FILES])) {
         	$exports[$module][$tag][PATTERNS_FILES] = $tm_index[$module][$tag][PATTERNS_FILES]; 
         }      
