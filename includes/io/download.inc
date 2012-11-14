@@ -13,18 +13,18 @@
  */
 function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML, $path = NULL, $filename = NULL) {
  	
-	if (!class_exists('ZipArchive')) {
-		drupal_set_message(t('Zip extension not found.'), 'error');
-		return FALSE;
-	}
-	
-	$path = (empty($path)) ? patterns_path_get_tmp_dir() : $path;
-	if (!file_prepare_directory($path)) {
-		drupal_set_message(t('Path does not exist or is not writable: %path', array('%path' => $path)), 'error');
-		return FALSE;
-	}
-	
-	$zip = new ZipArchive();
+  if (!class_exists('ZipArchive')) {
+    drupal_set_message(t('Zip extension not found.'), 'error');
+    return FALSE;
+  }
+
+  $path = (empty($path)) ? patterns_path_get_tmp_dir() : $path;
+  if (!file_prepare_directory($path)) {
+    drupal_set_message(t('Path does not exist or is not writable: %path', array('%path' => $path)), 'error');
+    return FALSE;
+  }
+  
+  $zip = new ZipArchive();
   $zip_filename = (empty($filename)) ? "patterns" . strval(time()) . ".zip" : $filename;
   $zip_path = $path . '/' . $zip_filename;
   
@@ -59,7 +59,7 @@ function patterns_create_zip($patterns = array(), $format = PATTERNS_FORMAT_YAML
 }
 
 function patterns_download_zip($zip_path) {
-	$filename = pathinfo($zip_path, PATHINFO_BASENAME);
+  $filename = pathinfo($zip_path, PATHINFO_BASENAME);
   drupal_add_http_header("Content-type", "application/octet-stream");
   drupal_add_http_header("Content-Disposition", "attachment;filename=" . $filename);
   $err = @readfile($zip_path);
@@ -71,7 +71,7 @@ function patterns_download_zip($zip_path) {
 }
 
 function patterns_download_file($file, $filename) {
-	drupal_add_http_header("Content-type", " text/plain; charset=utf-8");
+  drupal_add_http_header("Content-type", " text/plain; charset=utf-8");
   drupal_add_http_header("Content-Disposition", "attachment;filename=" . $filename);
   print $file;
   exit;

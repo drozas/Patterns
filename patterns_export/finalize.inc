@@ -13,15 +13,8 @@
  * @param string $path (optional) 
  *   The path of the temporary directory in which the zip file will be saved
  */
-function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, 
-																					$sections = array(),
-																					$info = array(),
-																					$modules = array(),  
-																					$format, 
-																					$filename = NULL) {
-
-																						
-	// If some sections did not return any data
+function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, $sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
+  // If some sections did not return any data
   // we remove them. We don't remove the modules!
   foreach ($sections as $s => $value) {
     if (empty($value)) {
