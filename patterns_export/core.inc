@@ -16,12 +16,7 @@ function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
 	
 	list($sections, $modules) = patterns_export_core_php($tagmodules);
 	    
- 	return patterns_export_finalize_export($to,
- 																	$sections,
- 																	$info,
- 																	$modules, 
- 																	$format, 
- 																	$filename);
+ 	return patterns_export_finalize_export($to, $sections, $info, $modules, $format, $filename);
 }
 
 /**
