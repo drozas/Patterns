@@ -74,11 +74,7 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
     $value = variable_get($name);
     //$value = drupal_encode_path($value);
     //Apply htmlspecialchars() function to keep the same value input by the user.
-    if (is_array($value)) {
-      foreach ($value as $v){
-        $v = htmlspecialchars_decode($value);
-      }
-    }else{
+    if (!is_array($value)) {
       $value = htmlspecialchars_decode($value);
     }
     $action = array('name' => $name, 'value' => $value);
