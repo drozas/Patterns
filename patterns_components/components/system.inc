@@ -44,7 +44,7 @@ function system_patterns($data) {
     PATTERNS_CREATE => array(),
     PATTERNS_MODIFY => array(), // TODO: ??
     PATTERNS_DELETE => array(),
-    //PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
   );
 
 //  $actions['variable'] = $actions['variables']; // Alias, not available any more
@@ -72,6 +72,8 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   foreach ($qresult as $row) {
     $name = $row->name;
     $value = variable_get($name);
+    //$value = drupal_encode_path($value);
+    $value = htmlspecialchars_decode($value);
     $action = array('name' => $name, 'value' => $value);
     array_push($actions[PATTERNS_CREATE], $action);
   }
