@@ -13,42 +13,43 @@ function toolbar_patterns($data) {
     PATTERNS_INFO => t('Decide who can see the toolbar'),
     PATTERNS_MODIFY => array('user_admin_permissions'),
     PATTERNS_FILES => $files,
-    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'toolbar_patterns_export_all_roles', ),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'toolbar_patterns_export_all_roles',),
   );
   return $actions;
 }
 
+/**
+ * 
+ * Returns a PATTERNS_MODIFY action with the set of all the roles of the
+ * system groupped in 'addroles' or 'delroles' according to if they have
+ * permission to access or not the toolbar.
+ * The 'administrator' role is excluded.
+ * 
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
 function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
-  /*Idea:
-   * Get all roles, including the label 
-   * Create modify action with two sections:
-   * -- addroles
-   * -- delroles
-   * Check if has 'access toolbar'
-   * ---> add 'rolename' to addroles
-   * else
-   * ---> add 'rolename' to delroles
-   * 
-   */
+  //Prepare auxiliary variables
   $actions = array(PATTERNS_MODIFY => array('tag' => 'toolbarrole'));
-
-  $roles_toolbar = user_roles(FALSE, 'access toolbar');
   $roles_in = array();
   $roles_out = array();
+  
+  //Go through all the roles to classify them in the proper group excluding the admin
   foreach (user_roles() as $role) {
     if ($role!='administrator') {
-      if (in_array($role, $roles_toolbar)) {
+      if (in_array($role, user_roles(FALSE, 'access toolbar'))) {
         array_push($roles_in, $role);
       }else{
         array_push($roles_out, $role);
       }      
     }
-
   }
+  
+  //Exclude the subsection if there are not any roles involved
   if (isset($roles_in)) {
     $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
   }
-
   if (isset($roles_out)) {
     $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
   }
