@@ -13,10 +13,41 @@ function toolbar_patterns($data) {
     PATTERNS_INFO => t('Decide who can see the toolbar'),
     PATTERNS_MODIFY => array('user_admin_permissions'),
     PATTERNS_FILES => $files,
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'toolbar_patterns_export_all_roles', ),
   );
   return $actions;
 }
 
+function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
+  /*Idea:
+   * Get all roles, including the label 
+   * Create modify action with two sections:
+   * -- addroles
+   * -- delroles
+   * Check if has 'access toolbar'
+   * ---> add 'rolename' to addroles
+   * else
+   * ---> add 'rolename' to delroles
+   * 
+   */
+  $actions = array(PATTERNS_MODIFY => array('tag' => 'toolbarrole'));
+
+  $roles_toolbar = user_roles(FALSE, 'access toolbar');
+  $roles_in = array();
+  $roles_out = array();
+  foreach (user_roles() as $role) {
+    if (in_array($role, $roles_toolbar)) {
+      array_push($roles_in, $role);
+    }else{
+      array_push($roles_out, $role);
+    }
+  }
+  
+  $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
+  $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;
+  return $actions;
+
+}
 
 /**
  * hook_patterns_prepare()
@@ -35,7 +66,7 @@ function toolbar_patterns_prepare($action, $tag, &$data) {
   }
   asort($modules);
 
-  //three foreach,every module inplementing the hook_permission,every permission from module's hook_permission,every role for every permission.
+  //three foreach,every module implementing the hook_permission,every permission from module's hook_permission,every role for every permission.
   //$data['status'] get every rid's permission. asort by module's name.
   foreach ($modules as $module => $display_name) {
     if ($permissions = module_invoke($module, 'permission')) {
