@@ -36,11 +36,14 @@ function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
   $roles_in = array();
   $roles_out = array();
   foreach (user_roles() as $role) {
-    if (in_array($role, $roles_toolbar)) {
-      array_push($roles_in, $role);
-    }else{
-      array_push($roles_out, $role);
+    if ($role!='administrator') {
+      if (in_array($role, $roles_toolbar)) {
+        array_push($roles_in, $role);
+      }else{
+        array_push($roles_out, $role);
+      }      
     }
+
   }
   if (isset($roles_in)) {
     $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
