@@ -22,8 +22,10 @@ function toolbar_patterns($data) {
  * 
  * Returns a PATTERNS_MODIFY action with the set of all the roles of the
  * system groupped in 'addroles' or 'delroles' according to if they have
- * permission to access or not the toolbar.
- * The 'administrator' role is excluded.
+ * permission to access or not the toolbar. The 'administrator' role is excluded.
+ * 
+ * Since this property depends on a specific permission, we cannot make
+ * user of an auxiliary function such as patterns_export_actions_from_form().
  * 
  * @param string $args
  * @param string $result
