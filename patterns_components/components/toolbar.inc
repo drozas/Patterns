@@ -46,13 +46,9 @@ function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
     }
   }
   
-  //Exclude the subsection if there are not any roles involved
-  if (isset($roles_in)) {
-    $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
-  }
-  if (isset($roles_out)) {
-    $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
-  }
+  //Both sections need to be added in any case (even if the array is empty)
+  $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
+  $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
   
   $result = array($actions);
   return $result;
