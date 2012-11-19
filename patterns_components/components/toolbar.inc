@@ -42,10 +42,16 @@ function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
       array_push($roles_out, $role);
     }
   }
+  if (isset($roles_in)) {
+    $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
+  }
+
+  if (isset($roles_out)) {
+    $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
+  }
   
-  $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
-  $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;
-  return $actions;
+  $result = array($actions);
+  return $result;
 
 }
 
