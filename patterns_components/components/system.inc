@@ -72,11 +72,8 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   foreach ($qresult as $row) {
     $name = $row->name;
     $value = variable_get($name);
-    //$value = drupal_encode_path($value);
-    //Apply htmlspecialchars() function to keep the same value input by the user.
-    if (!is_array($value)) {
-      $value = htmlspecialchars_decode($value);
-    }
+    //Apply htmlspecialchars() function recursively to keep the same value input by the user
+    _htmlspecialchars_decode($value);
     $action = array('name' => $name, 'value' => $value);
     array_push($actions[PATTERNS_CREATE], $action);
   }
@@ -557,3 +554,18 @@ function _call_php_func_include_files($values) {
   }
 }
 
+/**
+ * 
+ * Convert special HTML entities back to characters recursively.
+ * 
+ * @param string &$value
+ */
+function _htmlspecialchars_decode(&$value) {
+  if (!is_array($value)) {
+    $value = htmlspecialchars_decode($value);
+  }else{
+    foreach ($value as &$v) {
+      _htmlspecialchars_decode($v);
+    }
+  }
+}
