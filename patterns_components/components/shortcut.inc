@@ -34,9 +34,9 @@ function shortcut_patterns($data = NULL) {
     PATTERNS_MODIFY => array('shortcut_set_edit_form'),
     PATTERNS_DELETE => array('shortcut_set_delete_form'),
     PATTERNS_FILES => $files,
-//    PATTERNS_EXPORT => array(
-//                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_set',
-//                          ),
+    PATTERNS_EXPORT => array(
+                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_set',
+                          ),
     );
   $actions['shortcut_link'] = array(
     PATTERNS_INFO => t('add a new link to one shortcut_set'),
@@ -61,32 +61,25 @@ function shortcut_patterns($data = NULL) {
 }
 
 
-function shortcut_patterns_export_all_set($args = NULL, &$result = NULL) {
-  $info = shortcut_patterns();
-  $form_id = current($info['shortcut_set'][PATTERNS_MODIFY]);
-  $sets = shortcut_sets();
-  $result = array();
-  foreach ($sets as $set_name => $value) {
-    $set_object = shortcut_set_load($set_name);
-    $result = array_merge($result, patterns_export_actions_from_form($form_id, $set_object, 'shortcut_set', PATTERNS_MODIFY));
-    return $result;
-  }
-  return $result;
-}
-
-/*
-function shortcut_patterns_export_all_link($args = NULL, &$result = NULL) {
-  $info = shortcut_patterns();
-  $form_id = current($info['shortcut_link'][PATTERNS_MODIFY]);
-  $sets = shortcut_sets();
-  $result = array();
-  foreach ($sets as $set_name => $value) {
-    $set = shortcut_set_load($set_name);
-    $result = array_merge($result, patterns_export_actions_from_form($form_id, $set, 'shortcut_link', PATTERNS_MODIFY));
-  }
-  return $result;
-}
+/**
+ *
+ * Returns a set of PATTERNS_CREATE actions with the whole set of shortcuts
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
  */
+function shortcut_patterns_export_all_set($args = NULL, $result = NULL) {
+  //Loop through the elements in the set to prepare the actions
+  $sets = shortcut_sets();
+  $actions = array();
+  foreach ($sets as $set_name) {
+    $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
+    array_push($actions, $action);
+  }
+  return $actions;
+}
 
 /**
  * hook_patterns_prepare()
