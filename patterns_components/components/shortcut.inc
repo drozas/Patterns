@@ -42,9 +42,7 @@ function shortcut_patterns($data = NULL) {
     PATTERNS_MODIFY => array('shortcut_link_edit'),
     PATTERNS_DELETE => array('shortcut_link_delete'),
     PATTERNS_FILES => $files,
-//    PATTERNS_EXPORT => array(
-//                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_link',
-//                          ),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_link',),
     );
   $actions['shortcut_set_user'] = array(
     PATTERNS_INFO => t('one user get one shortcut_set'),
@@ -75,6 +73,32 @@ function shortcut_patterns_export_all_set($args = NULL, $result = NULL) {
   foreach ($sets as $set_name) {
     $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
     array_push($actions, $action);
+  }
+  return $actions;
+}
+
+/**
+ *
+ * Returns a set of PATTERNS_CREATE actions with the whole set of links
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
+  //Loop through the elements in the set to prepare the actions
+  //@TO-DO: For each set get all the elements. Analyze expected structure!
+  //Retrieve link_path and link_title for the given menu_name (from set)
+  //See http://api.drupal.org/api/drupal/includes!menu.inc/function/menu_tree_page_data/7
+  // vs http://api.drupal.org/api/drupal/includes!menu.inc/function/menu_tree_all_data/7
+  $sets = shortcut_sets();
+  $actions = array();
+  foreach ($sets as $set_name) {
+    $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
+    //@TO-DO: Go through elements extracting link_path + link_title fields
+    //$action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
+    //array_push($actions, $action);
   }
   return $actions;
 }
