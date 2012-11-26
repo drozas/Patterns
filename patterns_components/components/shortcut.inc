@@ -88,18 +88,15 @@ function shortcut_patterns_export_all_set($args = NULL, $result = NULL) {
  */
 function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
   //Loop through the elements in the set to prepare the actions
-  //@TO-DO: For each set get all the elements. Analyze expected structure!
-  //Retrieve link_path and link_title for the given menu_name (from set)
-  //See http://api.drupal.org/api/drupal/includes!menu.inc/function/menu_tree_page_data/7
-  // vs http://api.drupal.org/api/drupal/includes!menu.inc/function/menu_tree_all_data/7
   $sets = shortcut_sets();
   $actions = array();
   foreach ($sets as $set_name) {
+    //Retrieve all the elements, that are stored as normal menu entries. Shortcuts always have a depth level of 1
     $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
     foreach ($shortcut_links as $shortcut_link) {
-      //@TO-DO: Go through elements extracting link_path + link_title fields
+      //Go through elements extracting link_path and link_title fields
       $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_link', 'shortcut_set_name' => $set_name->title,
-          'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
+        'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
       array_push($actions, $action);
     }
   }
