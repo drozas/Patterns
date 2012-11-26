@@ -96,9 +96,12 @@ function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
   $actions = array();
   foreach ($sets as $set_name) {
     $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
-    //@TO-DO: Go through elements extracting link_path + link_title fields
-    //$action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
-    //array_push($actions, $action);
+    foreach ($shortcut_links as $shortcut_link) {
+      //@TO-DO: Go through elements extracting link_path + link_title fields
+      $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_link', 'shortcut_set_name' => $set_name->title,
+          'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
+      array_push($actions, $action);
+    }
   }
   return $actions;
 }
