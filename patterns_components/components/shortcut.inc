@@ -210,7 +210,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
           //drupal_set_message(t('the %acc is %mlid  dfldjdkfdld',array('%acc' =>$shortcutlink['link_title'],'%mlid' => $shortcutlink['mlid'])));
         if ($shortcutlink == FALSE) {
           $status = PATTERNS_ERR;
-          $msg = 'Shortcut Error:there is no such name shortcut link!';
+          $msg = t('Shortcut Error: there is no such name shortcut link');
           return patterns_results($status, $msg);
         }
         $data['shortcut_link_parm'] = $shortcutlink;
@@ -228,7 +228,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
       ->fetchField();
     if ($set == FALSE) {
       $status = PATTERNS_ERR;
-      $msg = 'Shortcut Error:there is no such name shortcut set';
+      $msg = t('Shortcut Error: there is no such name shortcut set');
       return patterns_results($status, $msg);
     }
     else {
@@ -246,7 +246,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
         module_load_include('module', 'user');
         if (($data['account'] = user_load_by_name( $data['user'])) == FALSE) {
           $status = PATTERNS_ERR;
-          $msg = 'Shortcut Error:there is no such a user.';
+          $msg = t('Shortcut Error:there is no such a user');
           return patterns_results($status, $msg);
         }
       }
