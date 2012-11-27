@@ -23,7 +23,7 @@
  */
 
 /**
- * hook_patterns()
+ * Implements hook_patterns().
  */
 function shortcut_patterns($data = NULL) {
   $files = array('modules/shortcut/shortcut.admin.inc');
@@ -48,9 +48,8 @@ function shortcut_patterns($data = NULL) {
     PATTERNS_INFO => t('one user get one shortcut_set'),
     PATTERNS_MODIFY => array('shortcut_set_switch'),
     PATTERNS_FILES => $files,
-//  PATTERNS_EXPORT => array(
-//                        PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_xxx',
-//                        ),
+    PATTERNS_EXPORT => array(
+    PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_user_set',),
     );
 
   return $actions;
@@ -102,6 +101,27 @@ function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
   }
   return $actions;
 }
+
+/**
+ *
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of relationships
+ * between shortcut set and related user currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
+  //Loop through the elements in the set to prepare the actions
+  /*$sets = shortcut_sets();
+  $actions = array();
+  foreach ($sets as $set_name) {
+    $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
+    array_push($actions, $action);
+  }
+  return $actions;*/
+}
+
 
 /**
  * hook_patterns_prepare()
