@@ -223,7 +223,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
   if (($tag == 'shortcut_set' && $action != PATTERNS_CREATE) || ($tag == 'shortcut_link' && $action == PATTERNS_CREATE) || ($tag == 'shortcut_set_user')) {
     $set = db_select('shortcut_set', 'ss')
       ->fields('ss', array('set_name'))
-      ->condition('title', $data['searchtitle'])
+      ->condition('set_name', $data['searchtitle'])
       ->execute()
       ->fetchField();
     if ($set == FALSE) {
