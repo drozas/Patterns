@@ -115,6 +115,7 @@ function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
   //There is currently no function provided by Drupal to get the results, we need to query the DB directly
   $result = db_query('SELECT * FROM {shortcut_set_users}');
   $actions = array();
+  //Loop through the elements in the $result set to prepare the actions using set machine_name and username
   foreach ($result as $record) {
     $action = array(PATTERNS_MODIFY => 
       array(
@@ -124,13 +125,6 @@ function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
     array_push($actions, $action);
   }
 
-  //Loop through the elements in the set to prepare the actions
-  /*$sets = shortcut_sets();
-  $actions = array();
-  foreach ($sets as $set_name) {
-    $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
-    array_push($actions, $action);
-  }*/
   return $actions;
 }
 
