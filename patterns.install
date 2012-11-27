@@ -9,6 +9,7 @@ module_load_include('inc', 'patterns', 'includes/variables');
 module_load_include('inc', 'patterns', 'includes/config');
 module_load_include('inc', 'patterns', 'includes/path');
 module_load_include('inc', 'patterns', 'includes/io/io');
+module_load_include('inc', 'patterns', 'includes/utils');
 
 /**
  * Implements hook_install().
@@ -122,16 +123,28 @@ function patterns_schema() {
   return $schema;
 }
 /**
- * Add format field to {patterns} table.
+ * Add uuuid field to {patterns} table.
  */
-function patterns_update_7026() {
+function patterns_update_7143() {
   $spec = array(
     'type' => 'varchar',
-    'length' => 10,
+    'length' => 50,
     'default' => '',
-    'description' => 'Format of the patterns (XML, YAML, etc.).',
+    'description' => 'Identify patterns and their parent',
   );
-  db_add_field('patterns', 'format', $spec);
+  db_add_field('patterns', 'uuuid', $spec);
+}
+/**
+ * Add author field to {patterns} table.
+ */
+function patterns_update_7144() {
+  $spec = array(
+    'type' => 'varchar',
+    'length' => 20,
+    'default' => '',
+    'description' => 'pattern\'s author',
+  );
+  db_add_field('patterns', 'author', $spec);
 }
 
 /**

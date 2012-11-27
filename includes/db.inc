@@ -143,6 +143,11 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
   $description  = patterns_utils_init_from_pattern('description', $pattern);
   $format       = patterns_utils_init_from_pattern('format', $pattern, $format, PATTERNS_FORMAT_YAML);
 
+  //for judge whether uuuid&author field exist.
+  global $user;
+  $uuuid_existInpatternsTable = db_field_exists('patterns', 'uuuid');
+  $author_existInpatternsTable =  db_field_exists('patterns', 'author');
+
   // Check if it is valid pattern: only syntax is validated, not the tags
   if (patterns_validate_pattern($pattern, $format, PATTERNS_VALIDATE_SYNTAX)) {
     $status = PATTERNS_STATUS_OK;
@@ -177,45 +182,101 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
 
     // Change of location.
     if ($path != $file) {
-      $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid);
-      db_query("UPDATE {patterns} SET file = :file, updated = :updated WHERE pid = :pid", $query_params);
+      if( $uuuid_existInpatternsTable and $author_existInpatternsTable) {
+        $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid, 'uuuid' => patterns_utils_get_uuuid(), 'author' => $user->name );
+        db_query("UPDATE {patterns} SET file = :file, updated = :updated , uuuid = :uuuid , author = :author WHERE pid = :pid", $query_params);
+      }
+      else
+      {
+        $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid);
+        db_query("UPDATE {patterns} SET file = :file, updated = :updated WHERE pid = :pid", $query_params);
+      }
+
     }
 
     if (($new_updated = filemtime($path)) > $updated) {
-      $query_params = array('pattern' => serialize($pattern),
-                            'title' => $title,
-                            'file' => $path,
-                            'updated' => $new_updated,
-                            'descr' => $description,
-                            'pid' => $pid,
-                            'status' => $status,
-      );
-      db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, updated = :updated, status = :status, description = :descr WHERE pid = :pid", $query_params);
+      if( $uuuid_existInpatternsTable and $author_existInpatternsTable) {
+        $query_params = array('pattern' => serialize($pattern),
+                              'title' => $title,
+                              'file' => $path,
+                              'updated' => $new_updated,
+                              'descr' => $description,
+                              'pid' => $pid,
+                              'status' => $status,
+                              'uuuid' => patterns_utils_get_uuuid(),
+                              'author' => $user->name,
+        );
+        db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, updated = :updated, status = :status, description = :descr , uuuid = :uuuid, author = :author WHERE pid = :pid", $query_params);
+      }
+      else
+      {
+        $query_params = array('pattern' => serialize($pattern),
+                              'title' => $title,
+                              'file' => $path,
+                              'updated' => $new_updated,
+                              'descr' => $description,
+                              'pid' => $pid,
+                              'status' => $status,
+        );
+        db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, updated = :updated, status = :status, description = :descr WHERE pid = :pid", $query_params);
+      }
     }
     else {
-      $query_params = array('pattern' => serialize($pattern),
-                            'title' => $title, 'file' => $path,
-                            'descr' => $description,
-                            'pid' => $pid,
-                            'status' => $status,
-      );
-      db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, status = :status, description = :descr WHERE pid = :pid", $query_params);
+      if( $uuuid_existInpatternsTable and $author_existInpatternsTable) {
+        $query_params = array('pattern' => serialize($pattern),
+                              'title' => $title, 'file' => $path,
+                              'descr' => $description,
+                              'pid' => $pid,
+                              'status' => $status,
+                              'uuuid' => patterns_utils_get_uuuid(),
+                              'author' => $user->name,
+        );
+        db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, status = :status, description = :descr , uuuid = :uuuid , author = :author WHERE pid = :pid", $query_params);
+      }
+      else
+      {
+        $query_params = array('pattern' => serialize($pattern),
+                              'title' => $title, 'file' => $path,
+                              'descr' => $description,
+                              'pid' => $pid,
+                              'status' => $status,
+        );
+        db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, status = :status, description = :descr WHERE pid = :pid", $query_params);
+      }
     }
   }
 
   // It is a new Pattern.
   else {
-    // Note: time() != REQUEST_TIME since it's a long process.
-    $query_params = array( 'name' => $name,
-                           'pattern' => serialize($pattern),
-                           'format' => $format,
-                           'title' => $title,
-                           'file' => $path,
-                           'descr' => $description,
-                           'time' => time(),
-                           'status' => $status,
-    );
-    db_query("INSERT INTO {patterns} (name, format, status, file, updated, enabled, title, description, pattern) VALUES ( :name, :format, :status, :file, :time, 0, :title, :descr, :pattern)", $query_params);
+    if( $uuuid_existInpatternsTable and  $author_existInpatternsTable) {
+      // Note: time() != REQUEST_TIME since it's a long process.
+      $query_params = array( 'name' => $name,
+                             'pattern' => serialize($pattern),
+                             'format' => $format,
+                             'title' => $title,
+                             'file' => $path,
+                             'descr' => $description,
+                             'time' => time(),
+                             'status' => $status,
+                             'uuuid' => patterns_utils_get_uuuid(),
+                             'author' => $user->name,
+      );
+      db_query("INSERT INTO {patterns} (name, format, status, file, updated, enabled, title, description, pattern, uuuid, author) VALUES ( :name, :format, :status, :file, :time, 0, :title, :descr, :pattern, :uuuid, :author)", $query_params);
+    }
+    else
+    {
+      // Note: time() != REQUEST_TIME since it's a long process.
+      $query_params = array( 'name' => $name,
+                             'pattern' => serialize($pattern),
+                             'format' => $format,
+                             'title' => $title,
+                             'file' => $path,
+                             'descr' => $description,
+                             'time' => time(),
+                             'status' => $status,
+      );
+      db_query("INSERT INTO {patterns} (name, format, status, file, updated, enabled, title, description, pattern) VALUES ( :name, :format, :status, :file, :time, 0, :title, :descr, :pattern)", $query_params);
+    }
   }
 
   return TRUE;
