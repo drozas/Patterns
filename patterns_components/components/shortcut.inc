@@ -112,14 +112,26 @@ function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
  * @return array $actions
  */
 function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
+  //There is currently no function provided by Drupal to get the results, we need to query the DB directly
+  $result = db_query('SELECT * FROM {shortcut_set_users}');
+  $actions = array();
+  foreach ($result as $record) {
+    $action = array(PATTERNS_MODIFY => 
+      array(
+        'tag' => 'shortcut_set_user',
+        'name' => $record->set_name, 
+        'user' => user_load($record->uid)->name));
+    array_push($actions, $action);
+  }
+
   //Loop through the elements in the set to prepare the actions
   /*$sets = shortcut_sets();
   $actions = array();
   foreach ($sets as $set_name) {
     $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
     array_push($actions, $action);
-  }
-  return $actions;*/
+  }*/
+  return $actions;
 }
 
 
