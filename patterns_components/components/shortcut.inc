@@ -23,7 +23,7 @@
  */
 
 /**
- * hook_patterns()
+ * Implements hook_patterns().
  */
 function shortcut_patterns($data = NULL) {
   $files = array('modules/shortcut/shortcut.admin.inc');
@@ -42,17 +42,14 @@ function shortcut_patterns($data = NULL) {
     PATTERNS_MODIFY => array('shortcut_link_edit'),
     PATTERNS_DELETE => array('shortcut_link_delete'),
     PATTERNS_FILES => $files,
-//    PATTERNS_EXPORT => array(
-//                          PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_link',
-//                          ),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_link',),
     );
   $actions['shortcut_set_user'] = array(
     PATTERNS_INFO => t('one user get one shortcut_set'),
     PATTERNS_MODIFY => array('shortcut_set_switch'),
     PATTERNS_FILES => $files,
-//  PATTERNS_EXPORT => array(
-//                        PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_xxx',
-//                        ),
+    PATTERNS_EXPORT => array(
+    PATTERNS_EXPORT_ALL => 'shortcut_patterns_export_all_user_set',),
     );
 
   return $actions;
@@ -78,6 +75,66 @@ function shortcut_patterns_export_all_set($args = NULL, $result = NULL) {
   }
   return $actions;
 }
+
+/**
+ *
+ * Returns a set of PATTERNS_CREATE actions with the whole set of links
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
+  //Loop through the elements in the set to prepare the actions
+  $sets = shortcut_sets();
+  $actions = array();
+  foreach ($sets as $set_name) {
+    //Retrieve all the elements, that are stored as normal menu entries. Shortcuts always have a depth level of 1
+    $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
+    foreach ($shortcut_links as $shortcut_link) {
+      //Go through elements extracting link_path and link_title fields
+      $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_link', 'shortcut_set_name' => $set_name->title,
+        'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
+      array_push($actions, $action);
+    }
+  }
+  return $actions;
+}
+
+/**
+ *
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of relationships
+ * between shortcut set and related user currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
+  //There is currently no function provided by Drupal to get the relationship
+  //between users and selected shortcut sets, we need to query the DB directly
+  $query = db_select('shortcut_set_users', 'ssu');
+  $query->join('shortcut_set', 'ss', 'ssu.set_name = ss.set_name');
+  $query
+    ->fields('ssu', array('uid', 'set_name'))
+    ->fields('ss', array('set_name', 'title'));
+  $result = $query->execute();
+  $actions = array();
+  
+  //Loop through the elements in the $result set to prepare the actions using set title and username
+  foreach ($result as $record) {
+    $action = array(PATTERNS_MODIFY => 
+      array(
+        'tag' => 'shortcut_set_user',
+        'name' => $record->title, 
+        'user' => user_load($record->uid)->name));
+    array_push($actions, $action);
+  }
+
+  return $actions;
+}
+
 
 /**
  * hook_patterns_prepare()
@@ -154,7 +211,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
           //drupal_set_message(t('the %acc is %mlid  dfldjdkfdld',array('%acc' =>$shortcutlink['link_title'],'%mlid' => $shortcutlink['mlid'])));
         if ($shortcutlink == FALSE) {
           $status = PATTERNS_ERR;
-          $msg = 'Shortcut Error:there is no such name shortcut link!';
+          $msg = t('Shortcut Error: there is no such name shortcut link');
           return patterns_results($status, $msg);
         }
         $data['shortcut_link_parm'] = $shortcutlink;
@@ -172,7 +229,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
       ->fetchField();
     if ($set == FALSE) {
       $status = PATTERNS_ERR;
-      $msg = 'Shortcut Error:there is no such name shortcut set';
+      $msg = t('Shortcut Error: there is no such name shortcut set');
       return patterns_results($status, $msg);
     }
     else {
@@ -190,7 +247,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
         module_load_include('module', 'user');
         if (($data['account'] = user_load_by_name( $data['user'])) == FALSE) {
           $status = PATTERNS_ERR;
-          $msg = 'Shortcut Error:there is no such a user.';
+          $msg = t('Shortcut Error:there is no such a user');
           return patterns_results($status, $msg);
         }
       }
