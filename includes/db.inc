@@ -163,6 +163,20 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
                     ->execute()
                     ->fetchAssoc();
 
+  if( $uuuid_existInpatternsTable and $author_existInpatternsTable) {
+    $pattern_uuuid_value = db_select('patterns', 'p')
+                    ->fields('p', array('uuuid'))
+                    ->condition('p.name', $name)
+                    ->condition('p.format', $format)
+                    ->execute()
+                    ->fetchField();
+    $pattern_author_value = db_select('patterns', 'p')
+                    ->fields('p', array('author'))
+                    ->condition('p.name', $name)
+                    ->condition('p.format', $format)
+                    ->execute()
+                    ->fetchField();
+  }
   // Pattern already in the DB, data needs to be updated.
   if (!empty($pattern_data)) {
 
@@ -191,7 +205,6 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
         $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid);
         db_query("UPDATE {patterns} SET file = :file, updated = :updated WHERE pid = :pid", $query_params);
       }
-
     }
 
     if (($new_updated = filemtime($path)) > $updated) {
@@ -244,6 +257,16 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
         db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, status = :status, description = :descr WHERE pid = :pid", $query_params);
       }
     }
+    
+/*
+    if(!($pattern_uuuid_value and $pattern_author_value)) {
+      $query_params = array(  'pid' => $pid,
+                              'uuuid' => patterns_utils_get_uuuid(),
+                              'author' => $user->name,
+        );
+      db_query("UPDATE {patterns} SET uuuid = :uuuid , author = :author WHERE pid = :pid", $query_params);
+    }
+*/
   }
 
   // It is a new Pattern.
