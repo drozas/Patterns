@@ -141,7 +141,6 @@ function patterns_update_7152() {
     'description' => 'pattern\'s author',
   );
   db_add_field('patterns', 'author', $author);
-
 }
 
 /**
