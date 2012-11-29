@@ -123,28 +123,25 @@ function patterns_schema() {
   return $schema;
 }
 /**
- * Add uuuid field to {patterns} table.
+ * Add uuuid and author field to {patterns} table.
  */
-function patterns_update_7143() {
-  $spec = array(
+function patterns_update_7152() {
+  $uuuid = array(
     'type' => 'varchar',
     'length' => 50,
     'default' => '',
     'description' => 'Identify patterns and their parent',
   );
-  db_add_field('patterns', 'uuuid', $spec);
-}
-/**
- * Add author field to {patterns} table.
- */
-function patterns_update_7144() {
-  $spec = array(
+  db_add_field('patterns', 'uuuid', $uuuid);
+
+  $author = array(
     'type' => 'varchar',
     'length' => 20,
     'default' => '',
     'description' => 'pattern\'s author',
   );
-  db_add_field('patterns', 'author', $spec);
+  db_add_field('patterns', 'author', $author);
+
 }
 
 /**
