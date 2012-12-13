@@ -70,46 +70,6 @@ function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
   return $result;
 }
 
-// returns arguments needed for the forms when processing automatically
-// $loop is set if we want to extract all values
-function taxonomy_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE) {
-  static $i = -1;
-  $i++;
-
-  if ($tag == 'vocabulary' || $tag == 'vocabulary_extract_all') {
-    $vocabulary = taxonomy_get_vocabularies();
-    if ($tag == 'vocabulary' && $action == PATTERNS_MODIFY
-        && $form_id == 'taxonomy_form_vocabulary') {
-          return array(array_pop($vocabulary));
-    }
-    elseif ($tag == 'vocabulary_extract_all') {
-      $loop = TRUE;
-      $return = array();
-      foreach ($vocabulary as $voc) {
-        array_push($return, array($voc));
-      }
-      return $return;
-    }
-  }
-  elseif ($tag == 'term' || $tag == 'term_extract_all') {
-    $terms = entity_load('taxonomy_term');
-    if ($tag == 'vocabulary' && $action == PATTERNS_MODIFY
-        && $form_id == 'taxonomy_form_vocabulary') {
-      return array(array_pop($terms));
-    }
-    elseif ($tag == 'term_extract_all') {
-      $loop = TRUE;
-      $return = array();
-      foreach ($terms as $term) {
-        array_push($return, array($term));
-      }
-      return $return;
-    }
-  }
-
-}
-
-
 // Prepare data for processing
 function taxonomy_patterns_prepare($action, $tag, &$data) {
   // dirty fix for the int <-> string problem
