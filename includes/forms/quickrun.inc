@@ -38,6 +38,7 @@ function patterns_quickrun($form, &$form_state) {
   );
 
   $form = patterns_forms_get_formats_selector($form);
+  $form = patterns_forms_get_validation_level_selector($form, PATTERNS_VALIDATE_SYNTAX);
   
   //Set the field as required for the quickrun case
   $form['format']['#required'] = TRUE;

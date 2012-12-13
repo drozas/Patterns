@@ -65,6 +65,7 @@ function patterns_import_source($form, &$form_state) {
   );
 
   $form = patterns_forms_get_formats_selector($form);
+  $form = patterns_forms_get_validation_level_selector($form, PATTERNS_VALIDATE_SYNTAX);
   
   //Set the field as required for the import source case
   $form['format']['#required'] = TRUE;
