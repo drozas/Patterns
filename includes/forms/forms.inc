@@ -143,6 +143,34 @@ function patterns_forms_get_formats_selector(&$form = array(), $default = PATTER
 }
 
 /**
+ * Builds a HTML select element with all the currently available
+ * patterns validation levels.
+ *
+ * @param array $form (optional) If specified, the select form is appended here.
+ * @param mixed $default (optional) The default value for the selector.
+ *
+ * @return array $form The form containing the select element.
+ *
+ */
+function patterns_forms_get_validation_level_selector(&$form = array(), $default = PATTERNS_VALIDATE_SYNTAX) {
+
+  //@TO-DO: Agree about the level terminology
+  $available_formats = array(
+    PATTERNS_VALIDATE_SYNTAX => t('Syntax only'),
+    PATTERNS_VALIDATE_SEMANTIC => t('Semantic and Syntax'),
+  );
+  
+  $form['validation'] = array(
+    '#type' => 'select',
+    '#title' => t('Validation Level'),
+    '#options' => $available_formats,
+    '#description' => t('Choose the level of validation. Patterns validated semantically will run without errors,
+      but they only need to be syntactically valid in order to be run.'),
+  );
+  return $form;
+}
+
+/**
  * Returns a default format, according to the
  * available parsers. In the following order returns:
  * YAML, XML, PHP, ''.

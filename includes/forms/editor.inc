@@ -129,6 +129,7 @@ function patterns_edit($form, &$form_state, $pattern, $full = TRUE) {
   );
 
   $form = patterns_forms_get_formats_selector($form, $format);
+  $form = patterns_forms_get_validation_level_selector($form, PATTERNS_VALIDATE_SYNTAX);
 
   if (!empty($pattern->file)) {
     if (file_exists($pattern->file) && is_readable($pattern->file)) {
