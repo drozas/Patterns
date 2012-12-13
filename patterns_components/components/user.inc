@@ -55,6 +55,16 @@ function user_patterns_actions($data) {
   );
 }
 
+/**
+ *
+ * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions 
+ * with the whole set of roles currently stored in the system.
+ *
+ * @param array $args  Set of arguments received from the form.
+ * @param string $result  Current set of actions for the whole process.
+ * 
+ * @return array $result  Set of actions after performing the changes.
+ */
 function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
   $roles = user_roles(TRUE);
   $result = array();
