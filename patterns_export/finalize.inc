@@ -10,8 +10,7 @@
  * @param array $modules The modules section of the pattern
  * @param string $format The pattern format
  * @param string $filename (optional) The final name of file 
- * @param string $path (optional) 
- *   The path of the temporary directory in which the zip file will be saved
+ * @param string $path (optional) The path of the temporary directory in which the zip file will be saved
  */
 function patterns_export_finalize_export($action = PATTERNS_EXPORT_TO_FILE, $sections = array(), $info = array(), $modules = array(), $format, $filename = NULL) {
   // If some sections did not return any data

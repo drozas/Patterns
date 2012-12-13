@@ -10,13 +10,18 @@
  * @param string $to Optional. A valid export destionation (e.g. zip,file,database).
  * 	 Defaults, 'db'.
  * @param string $format A valid patterns format (e.g. yaml,xml,php)
+ * @param string $type Defines the type of actions (CREATE or MODIFY) that are going to be created during the export process
  * 
  */
-function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
-	
-	list($sections, $modules) = patterns_export_core_php($tagmodules);
-	    
- 	return patterns_export_finalize_export($to, $sections, $info, $modules, $format, $filename);
+function patterns_export_php($filename, $tagmodules, $info, $to, $format, $type = PATTERNS_EXPORT_TYPE_MODIFY) {
+
+  //Adding the arguments we will be passing in an array
+  $args = array();
+  $args['type'] = $type;
+  
+  list($sections, $modules) = patterns_export_core_php($tagmodules, $args);
+   
+  return patterns_export_finalize_export($to, $sections, $info, $modules, $format, $filename);
 }
 
 /**
@@ -26,10 +31,11 @@ function patterns_export_php($filename, $tagmodules, $info, $to, $format) {
  * pattern.
  * 
  * @param array $tagmodules An index of modules and tag to export
+ * @param array $args Set of arguments passed to the export functions
  * @return array $result An array containing modules and actions
  * 
  */
-function patterns_export_core_php($tagmodules) {
+function patterns_export_core_php($tagmodules, $args) {
 
   $result = array();
   $modules = array();
@@ -53,12 +59,12 @@ function patterns_export_core_php($tagmodules) {
 	    
 	    
 	    if (!is_array($values[PATTERNS_EXPORT])) {
-	      $sections[$tag] = call_user_func($values[PATTERNS_EXPORT]);
+	      $sections[$tag] = call_user_func($values[PATTERNS_EXPORT], $args);
 	    }
 	    else {
 	      foreach ($values[PATTERNS_EXPORT] as $f) {
 	        $result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
-	        $sections[$tag] = array_merge($result[$tag], call_user_func($f));
+	        $sections[$tag] = array_merge($result[$tag], call_user_func($f, $args));
 	      }
 	    }
 	

@@ -243,7 +243,8 @@ function patterns_export_submit($form, &$form_state) {
   $form_state['redirect'] = 'admin/patterns/export';
 
   patterns_export_start_engine($filename, $exports, $form_state['values']['info'], 
-  $form_state['values']['export']['to'], $format, $form_state['values']['export']['mode']);
+  $form_state['values']['export']['to'], $format, $form_state['values']['export']['mode'],
+  $form_state['values']['export']['type']);
 }
 
 /**
@@ -258,8 +259,10 @@ function patterns_export_submit($form, &$form_state) {
  * @param string $format A valid patterns format (e.g. yaml,xml,php)
  * @param string $mode Optional. A valid patterns execution mode. E.g. (php,batch).
  *   Defaults 'php'.
+ * @param string $type Defines the type of actions (CREATE or MODIFY) that are going to be created during the export process
+ * 
  */
-function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = PATTERNS_EXEC_PHP) {																				
+function patterns_export_start_engine($filename, $tagmodules = array(), $info = array(), $to = PATTERNS_EXPORT_TO_DB, $format = PATTERNS_FORMAT_UNKNOWN, $mode = PATTERNS_EXEC_PHP, $type = PATTERNS_EXPORT_TYPE_MODIFY) {																				
 	$format = patterns_io_get_format_from_file($filename, $format);
 	if (!$format) {
 		drupal_set_message(t('Unkwnown export format. Aborting.'), 'error');
@@ -273,7 +276,7 @@ function patterns_export_start_engine($filename, $tagmodules = array(), $info = 
 	
 	$func = 'patterns_export_' . $mode;
 	
-	return $func($filename, $tagmodules, $info, $to, $format);
+	return $func($filename, $tagmodules, $info, $to, $format, $type);
 }
 
 // Helper functions
