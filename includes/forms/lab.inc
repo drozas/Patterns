@@ -274,8 +274,6 @@ function _patterns_lab_get_exp_to_options() {
 /**
  * Builds an associative array of export options.
  *
- * Checks if zip compression is available.
- *
  */
 function _patterns_lab_get_exp_mode_options() {
   $options = array(
@@ -287,6 +285,20 @@ function _patterns_lab_get_exp_mode_options() {
 
   return $options;
 }
+
+/**
+ * Builds an associative array of export type options.
+ *
+ */
+function _patterns_lab_get_exp_type_options() {
+  $options = array(
+      PATTERNS_EXPORT_TYPE_MODIFY    => t('Export as a set of MODIFY actions'),
+      PATTERNS_EXPORT_TYPE_CREATE    => t('Export as a set of CREATE actions'),
+  );
+
+  return $options;
+}
+
 
 /**
  * Returns TRUE if the passed parameter is a valid flag

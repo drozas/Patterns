@@ -72,13 +72,14 @@ function patterns_export_page1($form, &$form_state) {
     '#type' => 'fieldset',
     '#title' => 'Components',
     '#collapsible' => TRUE,
-    '#collapsed' => TRUE,
+    '#collapsed' => FALSE,
   );
 
   $form['all']['all'] = array(
     '#type' => 'fieldset',
     '#title' => 'I want to select the components individually',
     '#type' => 'checkbox',
+    '#default_value' => TRUE,
   );
 
   $form['all']['ext'] = array(
@@ -130,16 +131,17 @@ function patterns_export_page1($form, &$form_state) {
 
   }
 
-  patterns_forms_get_info_section($form, array(), array('collapsed' => TRUE));
-
-  patterns_forms_get_formats_selector($form, patterns_forms_get_default_format(), t('Export data in this format'), FALSE);
-  
-  patterns_forms_get_name_selector($form);
 
   patterns_forms_get_export_to_selector($form, array('title' => 'Export options'));
   
   patterns_forms_get_exec_mode_selector($form['export']);
 
+  patterns_forms_get_info_section($form, array(), array('collapsed' => TRUE));
+  
+  patterns_forms_get_formats_selector($form, patterns_forms_get_default_format(), t('Export data in this format'), FALSE);
+  
+  patterns_forms_get_name_selector($form);
+  
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Export'),

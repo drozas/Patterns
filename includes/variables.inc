@@ -74,7 +74,12 @@ define('PATTERNS_VALIDATE_SYNTAX', 2);		// basic syntax is correct (info, module
 define('PATTERNS_VALIDATE_FORMAT', 1);		// can be parsed
 define('PATTERNS_VALIDATE_SKIP', 0);			// skip validation
 
+//Type of export processes
+define('PATTERNS_EXPORT_TYPE_CREATE', 'create');
+define('PATTERNS_EXPORT_TYPE_MODIFY', 'modify');
 
+
+//@TO-DO: Add constants for semantic errors
 
 define('PATTERNS_ALLOW_PUBLISH_DEFAULT', TRUE);
 
