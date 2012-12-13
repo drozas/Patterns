@@ -67,12 +67,14 @@ define('PATTERNS_EXPORT_MODE_ACTIONS', 'actions');
 define('PATTERNS_EXPORT_MODE_ID', 'id');
 define('PATTERNS_EXPORT_MODE_NAME', 'name');
 
-define('PATTERNS_VALIDATE_ALL', 10);			// tag has valid content
+
+define('PATTERNS_VALIDATE_SEMANTIC', 20);   // tag has content semantically valid
+define('PATTERNS_VALIDATE_ALL', 10);        // tag has valid content
 define('PATTERNS_VALIDATE_TAG_EXISTS', 5);	// tags exist
 define('PATTERNS_VALIDATE_INCLUDE', 3);		// syntax check for included patterns
 define('PATTERNS_VALIDATE_SYNTAX', 2);		// basic syntax is correct (info, modules, and 1 section)
 define('PATTERNS_VALIDATE_FORMAT', 1);		// can be parsed
-define('PATTERNS_VALIDATE_SKIP', 0);			// skip validation
+define('PATTERNS_VALIDATE_SKIP', 0);        // skip validation
 
 //Type of export processes
 define('PATTERNS_EXPORT_TYPE_CREATE', 'create');
