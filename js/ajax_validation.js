@@ -8,7 +8,7 @@ jQuery('document').ready( function() {
 		
 		var url = unescape(location.href).substring(0,idx + detect.length) + '/validate';
 		
-		function validate(textarea, format_selector) {
+		function validate(textarea, format_selector, validation_type) {
 			if (!textarea) return;
 		
 			var vp = document.getElementById('validate_pattern');
@@ -31,13 +31,17 @@ jQuery('document').ready( function() {
 					var format = (format_selector && format_selector.value) ? format_selector.value
 																			: 'unknown';
 					
+					var validation = (validation_type && validation_type.value) ? validation_type.value
+							: 'unknown';
+					
 					jQuery.ajax({
 						type: 'POST',
 						url: url,
 						// TODO: This needs to be encoded.
 						//data: 'pattern=' + textarea.value + '&format=' + format,
 						data: {pattern: textarea.value,
-							   format: format
+							   format: format,
+							   validation: validation
 						},
 						success: function ( data, status, xhr ) {
 									document.getElementById('validation_result').innerHTML = '<strong>'+data+'</strong>';
@@ -48,8 +52,8 @@ jQuery('document').ready( function() {
 			}
 		}
 		
-		validate(document.getElementById("edit-content-db"),document.getElementById("edit-format-db"));
-		validate(document.getElementById("edit-content"),document.getElementById("edit-format"));
+		validate(document.getElementById("edit-content-db"),document.getElementById("edit-format-db"),document.getElementById("edit-validation"));
+		validate(document.getElementById("edit-content"),document.getElementById("edit-format"),document.getElementById("edit-validation"));
 		
 		
 	})();

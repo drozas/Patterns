@@ -271,9 +271,9 @@ function patterns_parser_is_valid_action_name($action = NULL) {
  * @return bool TRUE if valid, FALSE otherwise.
  */
 function patterns_validate_pattern($pattern, $format = PATTERNS_FORMAT_UNKNOWN, $level = PATTERNS_VALIDATE_ALL) {
-	if ($level == PATTERNS_VALIDATE_SKIP) return TRUE;
+  if ($level == PATTERNS_VALIDATE_SKIP) return TRUE;
   
-	$pattern = patterns_parser_parse($pattern, $format);
+  $pattern = patterns_parser_parse($pattern, $format);
   if (!$pattern) return FALSE;
 	
   if ($level == PATTERNS_VALIDATE_FORMAT) return TRUE;
@@ -290,16 +290,21 @@ function patterns_validate_pattern($pattern, $format = PATTERNS_FORMAT_UNKNOWN, 
 function patterns_validate_service() {
 
   if (!isset($_POST['pattern'])) {
-    print t('No pattern found. Communication error.');
+    print t('No pattern found: Communication error.');
     exit;
   }
 
   if (!isset($_POST['format']) || $_POST['format'] == PATTERNS_FORMAT_UNKNOWN) {
-    print t('Cannot validate unknown pattern format');
+    print t('Cannot validate: Unknown pattern format.');
+    exit;
+  }
+  
+  if (!isset($_POST['validation'])){
+    print t('Cannot validate: Unknown validation level.');
     exit;
   }
 
-  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format']);
+  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format'], $_POST['validation']);
 
   if (!$pattern) {
     print t('Pattern could not be parsed. Please check pattern format.');
