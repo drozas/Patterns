@@ -73,13 +73,16 @@ function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
 // Prepare data for processing
 function taxonomy_patterns_prepare($action, $tag, &$data) {
   // dirty fix for the int <-> string problem
-  if (isset($data['name']))
-    $data['name'] = strval($data['name']);
-  if (isset($data['machine_name']))
-    $data['machine_name'] = '' . $data['machine_name'];
-  if (isset($data['old_machine_name']))
-    $data['old_machine_name'] = '' . $data['old_machine_name'];
-
+  if (isset($data['name'])) {
+  	$data['name'] = strval($data['name']);
+  } 
+  if (isset($data['machine_name'])) {
+  	$data['machine_name'] = '' . $data['machine_name'];
+  } 
+  if (isset($data['old_machine_name'])) {
+  	$data['old_machine_name'] = '' . $data['old_machine_name'];
+  }
+   
 	if (isset($data['descr'])) {
 		$data['description'] = $data['descr'];
 		unset($data['descr']); 
@@ -147,7 +150,22 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
     }
   }
   else if ($tag == 'vocabulary') {
-  	$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
+  	
+  	if ($action == PATTERNS_CREATE) {
+  		$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
+  	}
+  	else {
+  		$keys = patterns_utils_key_exists(array('machine_name','vid'), $data);
+  		
+  		// It is sufficient to have either vid or machine_name
+  		if (!$keys['machine_name'] && $keys['vid']) {
+  			$keys = array();
+  		}
+  		else if ($keys['machine_name'] && !$keys['vid']){
+  			$keys = array();
+  		}
+  	}
+  	
   	$msg = t("The following mandatory keys were missing for tag %tag: ", array('%tag' => $tag));
   	foreach ($keys as $key => $exist) {
 			if (!$exist) {
@@ -155,6 +173,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
 				$msg .= $key . ', ';
 			} 
   	}
+  	
   	$msg = substr($msg, 0, -2);
   	
   }
