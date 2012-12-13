@@ -125,7 +125,7 @@ function patterns_schema() {
 /**
  * Add uuuid and author field to {patterns} table.
  */
-function patterns_update_7152() {
+function patterns_update_7200() {
   $uuuid = array(
     'type' => 'varchar',
     'length' => 50,
