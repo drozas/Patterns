@@ -151,28 +151,33 @@ function patterns_export_page1($form, &$form_state) {
   return $form;
 }
 
+
 /**
  * validation function for import_module_form
  */
 function patterns_export_validate($form, &$form_state) {
+  if (!isset($form_state['values']['export']['type'])) {
+    form_set_error('export[type]', t('No valid type of export selected.'));
+  }
+  
   if (!isset($form_state['values']['format'])) {
     form_set_error('format', t('No valid format selected.'));
   }
   
-	if (!empty($form_state['values']['filename'])) {
-    form_set_error('format', t('Please specify a valid file name.'));
+  if (!empty($form_state['values']['filename'])) {
+    form_set_error('filename', t('Please specify a valid file name.'));
   }
   
-	if (!isset($form_state['values']['export']['to'])) {
+  if (!isset($form_state['values']['export']['to'])) {
     form_set_error('export[to]', t('Please specify a valid export action.'));
   }
   
-	if (!isset($form_state['values']['export']['mode'])) {
+  if (!isset($form_state['values']['export']['mode'])) {
     form_set_error('export[mode]', t('Please specify a valid export mode.'));
   }
 
- 	if (!isset($form_state['values']['info'])) {
-    form_set_error('to', t('No info section found.'));
+  if (!isset($form_state['values']['info'])) {
+    form_set_error('info', t('No info section found.'));
   }
 	
   return TRUE;
