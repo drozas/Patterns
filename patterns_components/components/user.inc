@@ -55,14 +55,25 @@ function user_patterns_actions($data) {
   );
 }
 
-
 function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
   $roles = user_roles(TRUE);
   $result = array();
-  foreach ($roles as $role) {
+  //Got through all the roles and prepare set of actions according to the type of export process
+  foreach ($roles as $rid => $role) {
+    //Prepare common parameters 
     $data = array('tag' => 'role');
     $data['name'] = $role;
-    $action = array(PATTERNS_CREATE => $data);
+    switch ($args['type']) {
+      case PATTERNS_EXPORT_TYPE_CREATE :
+        //Create operations just require the name
+        $action = array(PATTERNS_CREATE => $data);
+        break;
+      case PATTERNS_EXPORT_TYPE_MODIFY :
+        //Modify operations require the name and the rid
+        $data['rid'] = $rid;
+        $action = array(PATTERNS_MODIFY => $data);
+        break;
+    }
     array_push($result, $action);
   }
   return $result;
