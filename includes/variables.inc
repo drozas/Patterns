@@ -83,7 +83,11 @@ define('PATTERNS_EXPORT_TYPE_CREATE', 'create'); //@TO-DO: This might be removed
 define('PATTERNS_EXPORT_TYPE_MODIFY', 'modify'); //@TO-DO: This might be removed for being redundant and use PATTERNS_MODIFY instead
 
 
-//@TO-DO: Add constants for semantic errors
+//Semantic warnings
+define('PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT', -1); //This refers to the problem of creating an element that it is already present in the system.
+define('PATTERNS_WARNING_ELEMENT_UNDEFINED', -2); //This refers to the problem of trying to perform changes in an element that is not present in the system yet.
+define('PATTERNS_WARNING_UNMET_DEPENDENCY', -3); //This refers to the problem of creating an element that depends on the creation of another element whose creation belongs to another component (or another tag of the same component)
+define('PATTERNS_WARNING_REMAINING_DEPENDENCY', -4); //This refers to the problem of deleting a part of the configuration that affects elements defined by other components.
 
 define('PATTERNS_ALLOW_PUBLISH_DEFAULT', TRUE);
 

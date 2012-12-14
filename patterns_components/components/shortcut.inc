@@ -255,6 +255,11 @@ function shortcut_patterns_validate($action, $tag, &$data) {
 
   }
 
+  //@TO-DO: Just a test: checking the proper propagation of semantic errors
+  $result = array();
+  $warning = array()
+  
+  
   return patterns_results($status, $msg);
 }
 
