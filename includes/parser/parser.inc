@@ -143,11 +143,12 @@ function patterns_parser_get_parser_function($format = PATTERNS_FORMAT_UNKNOWN,
  *  array. In the latter case, the array is returned as it is, and the @param
  *  $format is ignored.
  * @param mixed $format The format against which parse the pattern string.
+ * @param string $validation_level Type of validation level to parse
  *
  * @return bool|array The parsed pattern or FALSE.
  *
  */
-function patterns_parser_parse($pattern, $format = PATTERNS_FORMAT_UNKNOWN) {
+function patterns_parser_parse($pattern, $format = PATTERNS_FORMAT_UNKNOWN/*, $validation_level = PATTERNS_VALIDATE_SYNTAX*/) {
     if (empty($pattern)) return FALSE;
     if (is_array($pattern)) return $pattern;
 
@@ -303,8 +304,8 @@ function patterns_validate_service() {
     print t('Cannot validate: Unknown validation level.');
     exit;
   }
-
-  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format'], $_POST['validation']);
+  //@TO-DO: Check if we should add it here or in the _patterns_scan_validate_patternscan() function instead
+  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format']/*, $_POST['validation']*/);
 
   if (!$pattern) {
     print t('Pattern could not be parsed. Please check pattern format.');
