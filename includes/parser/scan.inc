@@ -114,6 +114,7 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
         // Incremente the count of valid actions
         $section_info[$action_name] = $section_info[$action_name]+1;
       }
+      //@TO-DO: The call to the component is performed in this function
       $result = _patterns_scan_action($action, $result, $level);
     }
 
@@ -412,6 +413,7 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
+	  //@TO-DO: We should probably change the level here to PATTERNS_VALIDATE_TAG_ERRORS here. Test
 	  else if ($level >= PATTERNS_VALIDATE_ALL) {
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
@@ -420,6 +422,14 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
     		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
   		}
 	  	
+  		//@TO-DO: Add warning errors here. 
+  		//Check the proper format. Should we really have the WARNING constants. Do we need to classify them?. Maybe some descriptive message instead?.
+  		/*
+  		 * if ($level >= PATTERNS_VALIDATE_ALL && isset(validation['result']) {
+  		 *   Prepare with expected format
+  		 * }
+  		 */
+  		
 	  }
   	
   }
