@@ -18,22 +18,7 @@ window.onload = function() {
 			    tabMode: "indent",
 			    lineWrapping: true
 		    };
-			
-			if (format_selector) {
-				// Does not work: why?
-				
-//			    console.log(CodeMirror.listModes());
-//			    console.log(format_selector.value);
-//				if (format_selector.value !== 'unknown') {
-//					options['mode'] = format_selector.value;
-//				}
-//				format_selector.onchange = function() {
-//		    		if (format_selector.value) {
-//		    			editor.setOption('mode', 'javascript');
-//		    		}
-//		    	}
-			}
-				
+							
 		    var editor = CodeMirror.fromTextArea(textarea, options);
 		    var hlLine = editor.addLineClass(0, "background", "activeline");
 		    
@@ -44,6 +29,19 @@ window.onload = function() {
 		    		hlLine = editor.addLineClass(cur, "background", "activeline");
 		    	}
 		    }); 
+		    
+		    // NOT WORKING
+//			if ('undefined' !== typeof format_selector) {
+//			    //console.log(CodeMirror.listModes());
+//				CodeMirror.modeURL = "../mode/%N/%N.js";
+//				
+//				format_selector.onchange = function() {
+//		    		if (format_selector.value && format_selector.value !== 'unknown') {
+//		    			editor.setOption("mode", format_selector.value);
+//						CodeMirror.autoLoadMode(editor, format_selector.value);
+//		    		}
+//		    	}
+//			}
 		    
 		    
 		    var fullScreenNotice = 'When cursor is in the editor: F11/ESC toggle full screen editing. Ctrl-F search in the pattern';
