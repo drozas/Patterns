@@ -59,6 +59,34 @@ function patterns_first_install($form, &$form_state) {
       '#markup' => t('It seems that you have not yet enabled any Patterns parser. You will not be able to load or run any pattern. Please visit the !modules page to enable at least one parser.', array('!modules' => l(t('modules'), 'admin/modules'))),
     );
   }
+  
+  $path = libraries_get_path('spyc') . '/spyc.php';
+
+  // Valid in installation and run-time
+
+  if (!file_exists($path)) {
+    $form['welcome']['spyc'] = array(
+      '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
+      '#markup' => t('Spyc library for parsing YAML files not found. Please download the !spyc package and copy spyc.php to your libraries folder (e.g. sites/all/libraries/spyc/).',
+                          array('!spyc' => l(t('spyc'), 'http://code.google.com/p/spyc/'))),
+    );
+  }
+  
+  
+  $cm_path = libraries_get_path('codemirror');
+  if (empty($cm_path) || !file_exists($cm_path)) {
+  	$form['welcome']['cm'] = array(
+      '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
+      '#markup' => t('Codemirror not found. Download and copy to your libraries folder (e.g. sites/all/libraries/codemirror/) the latest version of !codemirror to a have a better editor experience.',
+                          array('!codemirror' => l(t('codemirror'), 'http://codemirror.net/'))),
+  	);	
+  }
+   
+
+
+  
+
+  
 
   return $form;
 }
