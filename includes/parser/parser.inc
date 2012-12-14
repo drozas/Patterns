@@ -312,9 +312,11 @@ function patterns_validate_service() {
     exit;
   }
 
-  $scan = patterns_scan_pattern($pattern);
 
-  if (_patterns_scan_validate_patternscan($scan)) {
+  $scan = patterns_scan_pattern($pattern);
+  //@TO-DO: Disscuss the terminology, it might be necessary to pass
+  //$_POST['validation'] here
+  if (_patterns_scan_validate_patternscan($scan, FALSE, $_POST['validation'], FALSE)) {
     $count = count($scan['other_sections']) + $scan['info'] + $scan['modules'];
     $out = t('This pattern is valid. !count sections found ->', array('!count' => $count)) . ' ';
 

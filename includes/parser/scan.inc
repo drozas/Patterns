@@ -224,6 +224,10 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
   }
   
+  //@TO-DO: We could include the semantic validation here. But we need to define a mechanism
+  //to distinguish between them. We need also to define the terminology: PATTERNS_VALIDATE_ALL 
+  //could include the semantic validation, but then we need a lower level for the syntactic one
+  
   // FULL VALIDATION
   ///////////////////
   if ($level < PATTERNS_VALIDATE_ALL) {
