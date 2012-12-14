@@ -90,13 +90,14 @@ function patterns_export_core_php($tagmodules, $args) {
  * @return array $result An array containing modules and actions
  * 
  */
-function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
+function patterns_export_batch($filename, $tagmodules, $info, $to, $format, $type = PATTERNS_EXPORT_TYPE_MODIFY) {
 
 	// Registering $_SESSION variables
 	$_SESSION['patterns_export_batch_info']['info'] = $info;
 	$_SESSION['patterns_export_batch_info']['to'] = $to;
 	$_SESSION['patterns_export_batch_info']['format'] = $format;
 	$_SESSION['patterns_export_batch_info']['filename'] = $filename;
+	$_SESSION['patterns_export_batch_info']['type'] = $type;
 	
   $cur_sec = 1;
   $tot_sec = count($tagmodules);
@@ -110,7 +111,7 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
 	      continue;
 	    }
 			
-	    $action_params = array($module_name, $tag, $values[PATTERNS_EXPORT]);
+	    $action_params = array($module_name, $tag, $values[PATTERNS_EXPORT], $type);
 	    
 	  	$action_params[] = isset($values[PATTERNS_FILES]) ? $values[PATTERNS_FILES]
 	  																										 : array();
@@ -141,7 +142,7 @@ function patterns_export_batch($filename, $tagmodules, $info, $to, $format) {
   return TRUE;
 }
 
-function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = NULL, &$context) { 
+function patterns_export_batch_core($module_name, $tag, $export_funcs, $type = PATTERNS_EXPORT_TYPE_MODIFY, $files = NULL, &$context) { 
 	$msg_ctx = t('%component: now processing %tag. ', array('%component' => $module_name, '%tag' => $tag));
 	if ($_SESSION['patterns_export_batch_info']['to'] != PATTERNS_EXPORT_TO_DB) {
 		$msg_ctx .= t('After the download has started, click !back.', array('!back' => l(t('here to go back'), 'admin/patterns/export')));
@@ -172,6 +173,11 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 		$export_funcs = array($export_funcs);
 	}
 	
+	// Setting up export options
+	$args = array(
+		'type' => $type,
+	);
+	
 	$result = array();
 	foreach ($export_funcs as $f) {
 		
@@ -183,7 +189,7 @@ function patterns_export_batch_core($module_name, $tag, $export_funcs, $files = 
 			return FALSE;
 		}
 		$result[$tag] = isset($result[$tag]) ? $result[$tag] : array();
-    $sections[$tag] = array_merge($result[$tag], call_user_func($f));
+    $sections[$tag] = array_merge($result[$tag], call_user_func($f, $args));
 	}
 	
 	// TODO: the name of the component may be different from the

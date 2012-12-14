@@ -47,25 +47,45 @@ function taxonomy_patterns($data = NULL) {
 
 
 function taxonomy_patterns_export_all_vocs($args = NULL, &$result = NULL) {
+	
+	$action_type = PATTERNS_MODIFY; // pre-init 
+	
+	if (isset($args['type'])) {
+      if ($args['type'] == PATTERNS_CREATE) {
+      	$action_type = PATTERNS_CREATE;
+      }
+      // other action types
+	}
+	
   $info = taxonomy_patterns();
   $form_id = current($info['vocabulary'][PATTERNS_MODIFY]);
   $vocs = taxonomy_get_vocabularies();
   $result = array();
   foreach ($vocs as $voc) {
     // It is important to user array merge. Pushing is not enough
-    $result = array_merge($result, patterns_export_actions_from_form($form_id, $voc, 'vocabulary', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $voc, 'vocabulary', $action_type));
   }
   return $result;
 }
 
 function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
+	
+	$action_type = PATTERNS_MODIFY; // pre-init 
+	
+	if (isset($args['type'])) {
+      if ($args['type'] == PATTERNS_CREATE) {
+      	$action_type = PATTERNS_CREATE;
+      }
+      // other action types
+	}
+	
   $info = taxonomy_patterns();
   $terms = entity_load('taxonomy_term');
   $form_id = current($info['term'][PATTERNS_MODIFY]);
   $result = array();
   foreach ($terms as $term) {
     // It is important to user array merge. Pushing is not enough
-    $result = array_merge($result, patterns_export_actions_from_form($form_id, $term, 'term', PATTERNS_MODIFY));
+    $result = array_merge($result, patterns_export_actions_from_form($form_id, $term, 'term', $action_type));
   }
   return $result;
 }
