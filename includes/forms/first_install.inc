@@ -45,20 +45,48 @@ function patterns_first_install($form, &$form_state) {
     '#markup' => theme_item_list($resources),
     '#suffix' => '<br>',
   );
-  
-  $parsers = patterns_parser_build_formats_index();
-  if (empty($parsers)) {
-    $form['welcome']['parsers'] = array(
-      '#prefix' => '<strong>' . t('Warning:') . ' </strong>',
-      '#markup' => t('It seems that you have not yet enabled any Patterns parser. You will not be able to load or run any pattern. Please visit the !modules page to enable at least one parser.', array('!modules' => l(t('modules'), 'admin/modules'))),
-    );
-  }
 
   $form['welcome']['submit'] = array(
     '#type' => 'submit',
     '#value' => t('OK!'),
     '#suffix' => '<div>' . t('By pressing OK this page will not be shown any more.') . '</div>',
   );
+  
+  $parsers = patterns_parser_build_formats_index();
+  if (empty($parsers)) {
+    $form['welcome']['parsers'] = array(
+      '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
+      '#markup' => t('It seems that you have not yet enabled any Patterns parser. You will not be able to load or run any pattern. Please visit the !modules page to enable at least one parser.', array('!modules' => l(t('modules'), 'admin/modules'))),
+    );
+  }
+  
+  $path = libraries_get_path('spyc') . '/spyc.php';
+
+  // Valid in installation and run-time
+
+  if (!file_exists($path)) {
+    $form['welcome']['spyc'] = array(
+      '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
+      '#markup' => t('Spyc library for parsing YAML files not found. Please download the !spyc package and copy spyc.php into your libraries folder (e.g. sites/all/libraries/spyc/).',
+                          array('!spyc' => l(t('spyc'), 'http://code.google.com/p/spyc/'))),
+    );
+  }
+  
+  
+  $cm_path = libraries_get_path('codemirror-3.0');
+  if (empty($cm_path) || !file_exists($cm_path)) {
+  	$form['welcome']['cm'] = array(
+      '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
+      '#markup' => t('Codemirror 3.0 not found. Download !codemirror and copy it into your libraries folder (e.g. sites/all/libraries/codemirror-3.0/) to a have a better editor experience.',
+                          array('!codemirror' => l(t('codemirror 3.0'), 'http://codemirror.net/'))),
+  	);	
+  }
+   
+
+
+  
+
+  
 
   return $form;
 }

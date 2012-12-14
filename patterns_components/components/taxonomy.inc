@@ -70,56 +70,19 @@ function taxonomy_patterns_export_all_terms($args = NULL, $result = NULL) {
   return $result;
 }
 
-// returns arguments needed for the forms when processing automatically
-// $loop is set if we want to extract all values
-function taxonomy_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE) {
-  static $i = -1;
-  $i++;
-
-  if ($tag == 'vocabulary' || $tag == 'vocabulary_extract_all') {
-    $vocabulary = taxonomy_get_vocabularies();
-    if ($tag == 'vocabulary' && $action == PATTERNS_MODIFY
-        && $form_id == 'taxonomy_form_vocabulary') {
-          return array(array_pop($vocabulary));
-    }
-    elseif ($tag == 'vocabulary_extract_all') {
-      $loop = TRUE;
-      $return = array();
-      foreach ($vocabulary as $voc) {
-        array_push($return, array($voc));
-      }
-      return $return;
-    }
-  }
-  elseif ($tag == 'term' || $tag == 'term_extract_all') {
-    $terms = entity_load('taxonomy_term');
-    if ($tag == 'vocabulary' && $action == PATTERNS_MODIFY
-        && $form_id == 'taxonomy_form_vocabulary') {
-      return array(array_pop($terms));
-    }
-    elseif ($tag == 'term_extract_all') {
-      $loop = TRUE;
-      $return = array();
-      foreach ($terms as $term) {
-        array_push($return, array($term));
-      }
-      return $return;
-    }
-  }
-
-}
-
-
 // Prepare data for processing
 function taxonomy_patterns_prepare($action, $tag, &$data) {
   // dirty fix for the int <-> string problem
-  if (isset($data['name']))
-    $data['name'] = strval($data['name']);
-  if (isset($data['machine_name']))
-    $data['machine_name'] = '' . $data['machine_name'];
-  if (isset($data['old_machine_name']))
-    $data['old_machine_name'] = '' . $data['old_machine_name'];
-
+  if (isset($data['name'])) {
+  	$data['name'] = strval($data['name']);
+  } 
+  if (isset($data['machine_name'])) {
+  	$data['machine_name'] = '' . $data['machine_name'];
+  } 
+  if (isset($data['old_machine_name'])) {
+  	$data['old_machine_name'] = '' . $data['old_machine_name'];
+  }
+   
 	if (isset($data['descr'])) {
 		$data['description'] = $data['descr'];
 		unset($data['descr']); 
@@ -187,7 +150,22 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
     }
   }
   else if ($tag == 'vocabulary') {
-  	$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
+  	
+  	if ($action == PATTERNS_CREATE) {
+  		$keys = patterns_utils_key_exists(array('name', 'machine_name'), $data);
+  	}
+  	else {
+  		$keys = patterns_utils_key_exists(array('machine_name','vid'), $data);
+  		
+  		// It is sufficient to have either vid or machine_name
+  		if (!$keys['machine_name'] && $keys['vid']) {
+  			$keys = array();
+  		}
+  		else if ($keys['machine_name'] && !$keys['vid']){
+  			$keys = array();
+  		}
+  	}
+  	
   	$msg = t("The following mandatory keys were missing for tag %tag: ", array('%tag' => $tag));
   	foreach ($keys as $key => $exist) {
 			if (!$exist) {
@@ -195,6 +173,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
 				$msg .= $key . ', ';
 			} 
   	}
+  	
   	$msg = substr($msg, 0, -2);
   	
   }
@@ -213,13 +192,6 @@ function taxonomy_patterns_callbacks($action, $tag, &$data) {
   $desc = taxonomy_patterns();
   $result = $desc[$tag][$action];
   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
-}
-
-
-// Prepare for valid processing of this type of component
-function taxonomy_patterns_build($action, $form_id, &$data = NULL, &$a) {
-  //module_load_include('inc', 'taxonomy', 'taxonomy.admin'); // TODO: Isn't this already loaded?
-  return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $data);
 }
 
 // Build a patterns actions and parameters
