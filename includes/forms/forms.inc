@@ -154,9 +154,8 @@ function patterns_forms_get_formats_selector(&$form = array(), $default = PATTER
  */
 function patterns_forms_get_validation_level_selector(&$form = array(), $default = PATTERNS_VALIDATE_SYNTAX) {
 
-  //@TO-DO: Agree about the level terminology
   $available_formats = array(
-    PATTERNS_VALIDATE_SYNTAX => t('Syntax only'),
+    PATTERNS_VALIDATE_TAG_ERRORS => t('Syntax only'),
     PATTERNS_VALIDATE_SEMANTIC => t('Semantic and Syntax'),
   );
   
