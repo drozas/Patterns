@@ -224,13 +224,11 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
   }
   
-  //@TO-DO: We could include the semantic validation here. But we need to define a mechanism
-  //to distinguish between them. We need also to define the terminology: PATTERNS_VALIDATE_ALL 
-  //could include the semantic validation, but then we need a lower level for the syntactic one
   
-  // FULL VALIDATION
-  ///////////////////
-  if ($level < PATTERNS_VALIDATE_ALL) {
+  // FULL SYNTACTIC VALIDATION:
+  // This level includes the tag errors reported by the components, but not the semantic warnings
+  ////////////////////////////
+  if ($level < PATTERNS_TAG_ERRORS) {
   	return $msgs;
   }
   
@@ -242,21 +240,21 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
   
-  //@TO-DO: Add another section here were we will present the semantic warnings. Idea:
-  /*
-   *   if ($level < PATTERNS_SEMANTIC_WARNINGS) {
+  // FULL SEMANTIC VALIDATION:
+  // This level ensures the pattern will run without errors
+  ////////////////////////////
+  if ($level < PATTERNS_SEMANTIC_WARNINGS) {
   	return $msgs;
   }
-    if (count($patternscan['semantic_warnings']) != 0) {
+  
+  //Semantic warnings are stored in the $result array
+  if (count($patternscan['semantic_warnings']) != 0) {
   	$errors = '';
   	foreach ($patternscan['semantic_warnings'] as $error) {
   		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
-   * 
-   */
-  
 
   return $msgs;
 }
