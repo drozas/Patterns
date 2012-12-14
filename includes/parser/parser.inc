@@ -305,17 +305,17 @@ function patterns_validate_service() {
     exit;
   }
   //@TO-DO: Check if we should add it here or in the _patterns_scan_validate_patternscan() function instead
-  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format']/*, $_POST['validation']*/);
+  $pattern = patterns_parser_parse($_POST['pattern'], $_POST['format']);
 
   if (!$pattern) {
     print t('Pattern could not be parsed. Please check pattern format.');
     exit;
   }
 
-
+  //@TO-DO: Analyze in which function should we process the errors
   $scan = patterns_scan_pattern($pattern);
-  //@TO-DO: Disscuss the terminology, it might be necessary to pass
-  //$_POST['validation'] here
+
+  //The validation level is selected now by the user through $_POST['validation']
   if (_patterns_scan_validate_patternscan($scan, FALSE, $_POST['validation'], FALSE)) {
     $count = count($scan['other_sections']) + $scan['info'] + $scan['modules'];
     $out = t('This pattern is valid. !count sections found ->', array('!count' => $count)) . ' ';

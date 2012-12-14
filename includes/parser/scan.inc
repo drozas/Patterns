@@ -224,7 +224,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
   }
   
-  
+
   // FULL SYNTACTIC VALIDATION:
   // This level includes the tag errors reported by the components, but not the semantic warnings
   ////////////////////////////
@@ -240,6 +240,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
   
+  //@TO-DO: This level is not currently working, we will need to define a way to receive these warnings
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without errors
   ////////////////////////////
@@ -248,13 +249,13 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   //Semantic warnings are stored in the $result array
-  if (count($patternscan['semantic_warnings']) != 0) {
+  /*if (count($patternscan['semantic_warnings']) != 0) {
   	$errors = '';
   	foreach ($patternscan['semantic_warnings'] as $error) {
   		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
-  }
+  }*/
 
   return $msgs;
 }
