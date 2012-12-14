@@ -46,7 +46,7 @@ window.onload = function() {
 		    }); 
 		    
 		    
-		    var fullScreenNotice = 'Press F11 (or ESC in Safari on Mac OS X) when cursor is in the editor to toggle full screen editing.';
+		    var fullScreenNotice = 'When cursor is in the editor: F11/ESC toggle full screen editing. Ctrl-F search in the pattern';
 		    var noticeNode = document.createTextNode(fullScreenNotice);
 		    document.getElementById("edit-content").parentNode.appendChild(noticeNode);
 		    
@@ -64,11 +64,11 @@ window.onload = function() {
 		        if (full) {
 		        	wrap.className += " CodeMirror-fullscreen";
 		        	wrap.style.height = winHeight() + "px";
-		        	document.documentElement.style.overflow = "hidden";
+		        	//document.documentElement.style.overflow = "hidden";
 		        } else {
 		        	wrap.className = wrap.className.replace(" CodeMirror-fullscreen", "");
 		        	wrap.style.height = "";
-		        	document.documentElement.style.overflow = "";
+		        	//document.documentElement.style.overflow = "";
 		        }
 		        cm.refresh();
 		    }

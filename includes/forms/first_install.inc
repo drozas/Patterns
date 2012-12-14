@@ -67,18 +67,18 @@ function patterns_first_install($form, &$form_state) {
   if (!file_exists($path)) {
     $form['welcome']['spyc'] = array(
       '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
-      '#markup' => t('Spyc library for parsing YAML files not found. Please download the !spyc package and copy spyc.php to your libraries folder (e.g. sites/all/libraries/spyc/).',
+      '#markup' => t('Spyc library for parsing YAML files not found. Please download the !spyc package and copy spyc.php into your libraries folder (e.g. sites/all/libraries/spyc/).',
                           array('!spyc' => l(t('spyc'), 'http://code.google.com/p/spyc/'))),
     );
   }
   
   
-  $cm_path = libraries_get_path('codemirror');
+  $cm_path = libraries_get_path('codemirror-3.0');
   if (empty($cm_path) || !file_exists($cm_path)) {
   	$form['welcome']['cm'] = array(
       '#prefix' => '<br/><strong>' . t('Warning:') . ' </strong>',
-      '#markup' => t('Codemirror not found. Download and copy to your libraries folder (e.g. sites/all/libraries/codemirror/) the latest version of !codemirror to a have a better editor experience.',
-                          array('!codemirror' => l(t('codemirror'), 'http://codemirror.net/'))),
+      '#markup' => t('Codemirror 3.0 not found. Download !codemirror and copy it into your libraries folder (e.g. sites/all/libraries/codemirror-3.0/) to a have a better editor experience.',
+                          array('!codemirror' => l(t('codemirror 3.0'), 'http://codemirror.net/'))),
   	);	
   }
    

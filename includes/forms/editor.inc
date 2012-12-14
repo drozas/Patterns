@@ -56,8 +56,8 @@ function patterns_editor($form_id, $pattern = array()) {
 
   $editor  = drupal_render($form);
   if (!patterns_load_codemirror($form['format']['#default_value'])) {
-    $cm = l(t('Codemirror'), 'http://codemirror.net/');
-    $editor .= t('Install !cm in sites/all/libraries/codemirror for a better editor experience.', array('!cm' => $cm));
+    $cm = l(t('Codemirror 3.0'), 'http://codemirror.net/');
+    $editor .= t('Install !cm in sites/all/libraries/codemirror-3.0 for a better editor experience.', array('!cm' => $cm));
   }
 
   // Load the JS of for the ajax validation.
@@ -269,7 +269,7 @@ function patterns_edit_submit($form, &$form_state) {
  */
 function patterns_load_codemirror($format = PATTERNS_FORMAT_YAML) {
   // Load the CodeMirror Editor if installed in the libraries folder
-  $cm_path = libraries_get_path('codemirror');
+  $cm_path = libraries_get_path('codemirror-3.0');
   if (!empty($cm_path) && file_exists($cm_path)) {
     $cm_js = $cm_path . '/lib/codemirror.js';
     $cm_css = $cm_path . '/lib/codemirror.css';
