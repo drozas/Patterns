@@ -241,6 +241,22 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	}
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
+  
+  //@TO-DO: Add another section here were we will present the semantic warnings. Idea:
+  /*
+   *   if ($level < PATTERNS_SEMANTIC_WARNINGS) {
+  	return $msgs;
+  }
+    if (count($patternscan['semantic_warnings']) != 0) {
+  	$errors = '';
+  	foreach ($patternscan['semantic_warnings'] as $error) {
+  		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
+  	}
+  	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
+  }
+   * 
+   */
+  
 
   return $msgs;
 }
