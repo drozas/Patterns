@@ -7,18 +7,16 @@ window.onload = function() {
 			
 			var options = {
 		        lineNumbers: true,
-		        onKeyEvent: function(i, e) {
-		          // Hook into F11
-		          if ((e.keyCode == 122 || e.keyCode == 27) && e.type == 'keydown') {
-		            e.stop();
-		            return toggleFullscreenEditing();
-		          }
+		        extraKeys: {
+		        	"F11": function(cm) {
+		        		setFullScreen(cm, !isFullScreen(cm));
+		        	},
+		        	"Esc": function(cm) {
+		        		if (isFullScreen(cm)) setFullScreen(cm, false);
+		        	}
 		        },
-		        onCursorActivity: function() {
-			        editor.setLineClass(hlLine, null);
-			        hlLine = editor.setLineClass(editor.getCursor().line, "activeline");
-			    },
-			    tabMode: "indent"
+			    tabMode: "indent",
+			    lineWrapping: true
 		    };
 			
 			if (format_selector) {
@@ -37,33 +35,51 @@ window.onload = function() {
 			}
 				
 		    var editor = CodeMirror.fromTextArea(textarea, options);
-	
-		    var hlLine = editor.setLineClass(0, "activeline");
+		    var hlLine = editor.addLineClass(0, "background", "activeline");
+		    
+		    editor.on("cursorActivity", function() {
+		    	var cur = editor.getLineHandle(editor.getCursor().line);
+		    	if (cur != hlLine) {
+		    		editor.removeLineClass(hlLine, "background", "activeline");
+		    		hlLine = editor.addLineClass(cur, "background", "activeline");
+		    	}
+		    }); 
 		    
 		    
 		    var fullScreenNotice = 'Press F11 (or ESC in Safari on Mac OS X) when cursor is in the editor to toggle full screen editing.';
 		    var noticeNode = document.createTextNode(fullScreenNotice);
 		    document.getElementById("edit-content").parentNode.appendChild(noticeNode);
 		    
-		    function toggleFullscreenEditing () {
-		        var editorDiv = jQuery('.CodeMirror-scroll');
-		        if (!editorDiv.hasClass('fullscreen')) {
-		            toggleFullscreenEditing.beforeFullscreen = { height: editorDiv.height(), width: editorDiv.width() }
-		            editorDiv.addClass('fullscreen');
-		            editorDiv.height('100%');
-		            editorDiv.width('100%');
-		            editor.refresh();
-		        }
-		        else {
-		            editorDiv.removeClass('fullscreen');
-		            editorDiv.height(toggleFullscreenEditing.beforeFullscreen.height);
-		            editorDiv.width(toggleFullscreenEditing.beforeFullscreen.width);
-		            editor.refresh();
-		        }
+		    
+		    function isFullScreen(cm) {
+		        return /\bCodeMirror-fullscreen\b/.test(cm.getWrapperElement().className);
 		    }
 		    
-		    window.CO2editor = editor;
+		    function winHeight() {
+		        return window.innerHeight || (document.documentElement || document.body).clientHeight;
+		    }
+		      
+		    function setFullScreen(cm, full) {
+		        var wrap = cm.getWrapperElement();
+		        if (full) {
+		        	wrap.className += " CodeMirror-fullscreen";
+		        	wrap.style.height = winHeight() + "px";
+		        	document.documentElement.style.overflow = "hidden";
+		        } else {
+		        	wrap.className = wrap.className.replace(" CodeMirror-fullscreen", "");
+		        	wrap.style.height = "";
+		        	document.documentElement.style.overflow = "";
+		        }
+		        cm.refresh();
+		    }
+		    
+		    CodeMirror.on(window, "resize", function() {
+		        var showing = document.body.getElementsByClassName("CodeMirror-fullscreen")[0];
+		        if (!showing) return;
+		        	showing.CodeMirror.getWrapperElement().style.height = winHeight() + "px";
+		    });
 
+		    window.CO2editor = editor;
 		}
 		
 		

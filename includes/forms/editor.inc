@@ -274,10 +274,23 @@ function patterns_load_codemirror($format = PATTERNS_FORMAT_YAML) {
     $cm_js = $cm_path . '/lib/codemirror.js';
     $cm_css = $cm_path . '/lib/codemirror.css';
     $cm_css_theme = $cm_path . '/theme/default.css';
+    
+    // search
+    $cm_search = $cm_path . '/lib/util/search.js';
+    $cm_searchcursor = $cm_path . '/lib/util/searchcursor.js';
+    $cm_dialog = $cm_path . '/lib/util/dialog.js';
+    $cm_dialog_css = $cm_path . '/lib/util/dialog.css';
+    
 
     drupal_add_css($cm_css);
     drupal_add_css($cm_css_theme);
     drupal_add_js($cm_js);
+    
+    
+    drupal_add_css($cm_dialog_css);
+    drupal_add_js($cm_search);
+    drupal_add_js($cm_searchcursor);
+    drupal_add_js($cm_dialog);
 
     // TODO: enable PHP mode for codemirror as well.
     // At the moment it does not work
