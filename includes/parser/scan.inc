@@ -414,7 +414,7 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  	$result['unknown_tag'][] = $tag;
 	  }
 	  //@TO-DO: We should probably change the level here to PATTERNS_VALIDATE_TAG_ERRORS here. Test
-	  else if ($level >= PATTERNS_VALIDATE_ALL) {
+	  else if ($level >= PATTERNS_VALIDATE_TAG_ERRORS) {
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
@@ -422,7 +422,7 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
     		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
   		}
 	  	
-  		//@TO-DO: Add warning errors here. 
+  		//Display semantic errors if any (through $validation['result'] and peform code-message conversion
   		//Check the proper format. Should we really have the WARNING constants. Do we need to classify them?. Maybe some descriptive message instead?.
   		/*
   		 * if ($level >= PATTERNS_VALIDATE_ALL && isset(validation['result']) {
