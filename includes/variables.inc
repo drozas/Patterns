@@ -78,11 +78,6 @@ define('PATTERNS_VALIDATE_SYNTAX', 2);		// basic syntax is correct (info, module
 define('PATTERNS_VALIDATE_FORMAT', 1);		// can be parsed
 define('PATTERNS_VALIDATE_SKIP', 0);        // skip validation
 
-//Type of export processes
-define('PATTERNS_EXPORT_TYPE_CREATE', 'create'); //@TO-DO: This might be removed for being redundant and use PATTERNS_CREATE instead
-define('PATTERNS_EXPORT_TYPE_MODIFY', 'modify'); //@TO-DO: This might be removed for being redundant and use PATTERNS_MODIFY instead
-
-
 //Semantic warnings
 define('PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT', -1); //This refers to the problem of creating an element that it is already present in the system.
 define('PATTERNS_WARNING_ELEMENT_UNDEFINED', -2); //This refers to the problem of trying to perform changes in an element that is not present in the system yet.

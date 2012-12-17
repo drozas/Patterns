@@ -252,7 +252,7 @@ function patterns_forms_get_export_to_selector(&$form = array(), $options = arra
       '#type' => 'radios',
       '#options' => _patterns_lab_get_exp_type_options(),
       '#title' => t('Type of export'),
-      '#default_value' => PATTERNS_EXPORT_TYPE_MODIFY,
+      '#default_value' => PATTERNS_MODIFY,
   );
   
   $form['export']['to'] = array(

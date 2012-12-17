@@ -292,8 +292,8 @@ function _patterns_lab_get_exp_mode_options() {
  */
 function _patterns_lab_get_exp_type_options() {
   $options = array(
-      PATTERNS_EXPORT_TYPE_MODIFY    => t('Export as a set of MODIFY actions'),
-      PATTERNS_EXPORT_TYPE_CREATE    => t('Export as a set of CREATE actions'),
+      PATTERNS_MODIFY    => t('Export as a set of MODIFY actions'),
+      PATTERNS_CREATE   => t('Export as a set of CREATE actions'),
   );
 
   return $options;

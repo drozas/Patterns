@@ -71,7 +71,7 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
   
   //Got through all the roles and prepare set of actions according to the type of export process
   switch ($args['type']) {
-    case PATTERNS_EXPORT_TYPE_CREATE :
+    case PATTERNS_CREATE :
       foreach ($roles as $rid => $role) {
         //Create operations just require the name
         $data = array('tag' => 'role');
@@ -80,7 +80,7 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
         array_push($result, $action);
       }      
       break;
-    case PATTERNS_EXPORT_TYPE_MODIFY :
+    case PATTERNS_MODIFY :
       foreach ($roles as $rid => $role) {
         //Modify operations require the name and the rid
         $data = array('tag' => 'role');
