@@ -313,7 +313,7 @@ function patterns_validate_service() {
   }
 
   //@TO-DO: Analyze in which function should we process the errors
-  $scan = patterns_scan_pattern($pattern);
+  $scan = patterns_scan_pattern($pattern, FALSE, $_POST['validation']);
 
   //The validation level is selected now by the user through $_POST['validation']
   if (_patterns_scan_validate_patternscan($scan, FALSE, $_POST['validation'], FALSE)) {
