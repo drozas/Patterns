@@ -424,12 +424,13 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  	
   		//Display semantic errors if any (through $validation['result'] and peform code-message conversion
   		//Check the proper format. Should we really have the WARNING constants. Do we need to classify them?. Maybe some descriptive message instead?.
-  		/*
-  		 * if ($level >= PATTERNS_VALIDATE_ALL && isset(validation['result']) {
-  		 *   Prepare with expected format
-  		 * }
-  		 */
-  		
+        if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
+          $result['semantic_warning'] = array();
+          foreach ($validation['result'] as $semantic_warning) {
+            array_push($result['semantic_warning'], $semantic_warning);
+          }
+  		   
+        }
 	  }
   	
   }
