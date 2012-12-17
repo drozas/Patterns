@@ -114,7 +114,7 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
         // Incremente the count of valid actions
         $section_info[$action_name] = $section_info[$action_name]+1;
       }
-      //@TO-DO: The call to the component is performed in this function
+      //Validation rules provides by the component are checked in this function
       $result = _patterns_scan_action($action, $result, $level);
     }
 
@@ -241,7 +241,6 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
   }
   
-  //@TO-DO: This level is not currently working, we will need to define a way to receive these warnings
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without errors
   ////////////////////////////
@@ -249,14 +248,27 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	return $msgs;
   }
   
-  //Semantic warnings are stored in the $result array. Perform code-description conversion
+  //Go through all the semantic warnings performing a code-description conversion
   if (count($patternscan['semantic_warnings']) > 0) {
   	$warnings = '';
   	foreach ($patternscan['semantic_warnings'] as $warning) {
-  	  //$warnings .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';
-  	  $warnings .= $warning;
+  	  switch (key($warning)) {
+  	    case -1:
+  	      $warnings .= t('[Already defined element]: ');
+  	      break;
+        case -2:
+          $warnings .= t('[Undefined element]: ');
+          break;
+        case -3:
+          $warnings .= t('[Unmet dependency]: ');
+          break;
+        case -4:
+          $warnings .= t('[Remaining dependency]: ');
+          break;
+  	  }
+  	  $warnings.= $warning[key($warning)] . $br;
   	}
-  	$msgs[] = t('Semantic warnings: ') . $br . $warnings;
+  	$msgs[] = t('Semantic warnings (this pattern might provoke errors during execution time): ') . $br . $warnings;
   }
 
   return $msgs;
@@ -414,7 +426,6 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
-	  //@TO-DO: We should probably change the level here to PATTERNS_VALIDATE_TAG_ERRORS here. Test
 	  else if ($level >= PATTERNS_VALIDATE_TAG_ERRORS) {
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
@@ -423,8 +434,7 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
     		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
   		}
 	  	
-  		//Display semantic errors if any (through $validation['result'] and peform code-message conversion
-  		//Check the proper format. Should we really have the WARNING constants. Do we need to classify them?. Maybe some descriptive message instead?.
+  		//Include semantic warnings if requested
         if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
           $result['semantic_warnings'] = array();
           foreach ($validation['result'] as $semantic_warning) {
