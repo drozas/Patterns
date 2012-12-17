@@ -524,10 +524,10 @@ function user_patterns_validate($action, $tag, &$data) {
   
   //@TO-DO: Just a test: checking the proper propagation of semantic errors
   $result = array();
-  $warning1 = array(PATTERNS_WARNING_ELEMENT_UNDEFINED, t('The user "loremipsum" does not exist.'));
-  $warning2 = array(PATTERNS_WARNING_REMAINING_DEPENDENCY, t('The role "lorem" will leave broken dependencies'));
-  array_push($result, $warning1);
-  array_push($result, $warning2);
+  $warning1[PATTERNS_WARNING_ELEMENT_UNDEFINED] = t('The user "loremipsum" does not exist.');
+  $warning2[PATTERNS_WARNING_REMAINING_DEPENDENCY] = t('The role "lorem" will leave broken dependencies');
+  $result[] = $warning1;
+  $result[] = $warning2;
   
   return patterns_results($status, $msg, $result);
 }

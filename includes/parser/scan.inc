@@ -229,7 +229,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   // FULL SYNTACTIC VALIDATION:
   // This level includes the tag errors reported by the components, but not the semantic warnings
   ////////////////////////////
-  if ($level < PATTERNS_TAG_ERRORS) {
+  if ($level < PATTERNS_VALIDATE_TAG_ERRORS) {
   	return $msgs;
   }
   
@@ -245,18 +245,19 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without errors
   ////////////////////////////
-  if ($level < PATTERNS_SEMANTIC_WARNINGS) {
+  if ($level < PATTERNS_VALIDATE_SEMANTIC) {
   	return $msgs;
   }
   
-  //Semantic warnings are stored in the $result array
-  /*if (count($patternscan['semantic_warnings']) != 0) {
-  	$errors = '';
-  	foreach ($patternscan['semantic_warnings'] as $error) {
-  		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
+  //Semantic warnings are stored in the $result array. Perform code-description conversion
+  if (count($patternscan['semantic_warnings']) > 0) {
+  	$warnings = '';
+  	foreach ($patternscan['semantic_warnings'] as $warning) {
+  	  //$warnings .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';
+  	  $warnings .= $warning;
   	}
-  	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
-  }*/
+  	$msgs[] = t('Semantic warnings: ') . $br . $warnings;
+  }
 
   return $msgs;
 }
@@ -425,9 +426,9 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
   		//Display semantic errors if any (through $validation['result'] and peform code-message conversion
   		//Check the proper format. Should we really have the WARNING constants. Do we need to classify them?. Maybe some descriptive message instead?.
         if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
-          $result['semantic_warning'] = array();
+          $result['semantic_warnings'] = array();
           foreach ($validation['result'] as $semantic_warning) {
-            array_push($result['semantic_warning'], $semantic_warning);
+            array_push($result['semantic_warnings'], $semantic_warning);
           }
   		   
         }
