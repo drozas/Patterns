@@ -242,7 +242,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   // FULL SEMANTIC VALIDATION:
-  // This level ensures the pattern will run without errors
+  // This level ensures the pattern will run without execution errors
   ////////////////////////////
   if ($level < PATTERNS_VALIDATE_SEMANTIC) {
   	return $msgs;
