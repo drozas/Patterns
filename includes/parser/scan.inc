@@ -436,9 +436,8 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  	
   		//Include semantic warnings if requested
         if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
-          $result['semantic_warnings'] = array();
           foreach ($validation['result'] as $semantic_warning) {
-            array_push($result['semantic_warnings'], $semantic_warning);
+            $result['semantic_warnings'][] = $semantic_warning;
           }
   		   
         }
