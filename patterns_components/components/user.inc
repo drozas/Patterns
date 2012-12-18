@@ -257,8 +257,8 @@ function user_patterns_validate($action, $tag, &$data) {
           $role_rid = $data['rid'];
           //Create semantic warning if the rid does not exist
           if (!array_key_exists($role_rid, $current_roles)) {
-            $result[array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The role id %rid does not exist in the system.', array('%rid' =>$role_rid,)))];
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The role id %rid does not exist in the system.', array('%rid' =>$role_rid,)));
           }
           //Create semantic warning if the role name does not exist
           if (!in_array($role_name, $current_roles)) {
