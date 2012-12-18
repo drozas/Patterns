@@ -242,11 +242,11 @@ function user_patterns_validate($action, $tag, &$data) {
   $msg = '';
   switch ($tag) {
     case 'role':
-      //Process common role values
-      $role_name = $data['name'];
+      //Prepare common role values
       $current_roles = user_roles();
       switch ($action) {
         case PATTERNS_CREATE:
+          $role_name = $data['name'];
           //Create semantic warning if the role name has already been defined
           if (in_array($role_name, $current_roles)) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
@@ -254,6 +254,7 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_MODIFY:
+          $role_name = $data['name'];
           $role_rid = $data['rid'];
           //Create semantic warning if the rid does not exist
           if (!array_key_exists($role_rid, $current_roles)) {
@@ -267,15 +268,19 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_DELETE:
-          $msg = '';
+          $role_rid = $data['rid'];
+          if (!array_key_exists($role_rid, $current_roles) && !in_array($role_rid, $current_roles)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The value %rid does not exist in the system neither as role_name or as a numeric rid.', array('%rid' =>$role_rid,)));
+          }
           break;
       }
       break;
     case 'permission':
-      $msg = '';
+      //@TO-DO
       break;
     case 'user':
-      $msg = '';
+      //@TO-DO
       break;
   }
   return patterns_results($status, $msg, $result);
