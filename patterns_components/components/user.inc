@@ -221,9 +221,38 @@ function user_patterns_prepare($action, $tag, &$data) {
   return patterns_results($status, $msg);
 }
 
-// Validate the values for an action before running the pattern
+/**
+ * 
+ * @param string $action Type of action being executed
+ * @param string $tag Type of tag to be validated
+ * @param array $data Associative array containing the data action processed from the pattern
+ * 
+ * @return mixed through patterns_results($status, $msg, $result) function. Status of the operation,
+ * error messages and semantic warnings through $result
+ */
 function user_patterns_validate($action, $tag, &$data) {
-  $status = PATTERNS_SUCCESS;
+  /* @TO-DO: The checking will be performed as follows:
+   * - Check type of tag in a switch
+   * -- Check type of $action in an internal switch for each tag
+   * --- Raise errors if any through msg and status
+   * --- Raise warning if any thrugh $result
+   */
+  $msg = '';
+  switch ($tag) {
+    case 'role':
+      $msg = '';
+      break;
+    case 'permission':
+      $msg = '';
+      break;
+    case 'user':
+      $msg = '';
+      break;
+  }
+
+  
+  return patterns_results($status, $msg, $result);
+/*  $status = PATTERNS_SUCCESS;
   $msg = '';
 
   if ($tag == 'user') {
@@ -529,7 +558,7 @@ function user_patterns_validate($action, $tag, &$data) {
   $result[] = $warning1;
   $result[] = $warning2;
   
-  return patterns_results($status, $msg, $result);
+  return patterns_results($status, $msg, $result);*/
 }
 
 // Return which callback functions to actually use.
