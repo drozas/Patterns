@@ -249,7 +249,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   //Go through all the semantic warnings performing a code-description conversion
-  if (count($patternscan['semantic_warnings']) > 0) {
+  if (isset($patternscan['semantic_warnings']) && count($patternscan['semantic_warnings']) > 0) {
   	$warnings = '';
   	foreach ($patternscan['semantic_warnings'] as $warning) {
   	  switch (key($warning)) {
