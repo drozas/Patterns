@@ -271,7 +271,7 @@ function user_patterns_validate($action, $tag, &$data) {
           $role_rid = $data['rid'];
           if (!array_key_exists($role_rid, $current_roles) && !in_array($role_rid, $current_roles)) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The value %rid does not exist in the system neither as role_name or as a numeric rid.', array('%rid' =>$role_rid,)));
+              t('The value %rid does not exist in the system as role name neither as a numeric rid.', array('%rid' =>$role_rid,)));
           }
           break;
       }
