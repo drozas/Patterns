@@ -2,8 +2,6 @@
 /*
  * @file
  * Patterns component for users.
- * TODO: when creating a user, check if the email is already taken.
- * TODO: user modifying does not work, it's asking for the password.
  */
 
 /**
@@ -19,6 +17,8 @@ function user_patterns($data) {
     PATTERNS_MODIFY => array('user_profile_form'),
     PATTERNS_DELETE => array('user_cancel_confirm_form'),
     PATTERNS_FILES => $files,
+    //@TO-DO: PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
+      
   );
 
   $actions['role'] = array(
@@ -235,11 +235,26 @@ function user_patterns_validate($action, $tag, &$data) {
    * - Check type of tag in a switch
    * -- Check type of $action in an internal switch for each tag
    * --- Raise errors if any through msg and status
-   * --- Raise warning if any thrugh $result
+   * --- Raise warning if any through $result
    */
   $result = array();
   $status = PATTERNS_SUCCESS;
   $msg = '';
+  
+/*
+ * Syntactic validation
+ * 
+ * @TO-DO: Define common principles for all the components.
+ * Ideas for this component specifially:
+ * - Check the existace of the specific attributes for each component
+ * (i.e.: only the expected attributes exists, and if they do the value is as expected)
+ * - Raise error in the case of create and delete actions for the permissions
+ * 
+ */  
+  
+/*
+ * Semantic validation
+ */
   switch ($tag) {
     case 'role':
       //Prepare common role values
@@ -280,7 +295,7 @@ function user_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'user':
-      //@TO-DO
+      //@TO-DO: It is also necessary to create the export function as well.
       break;
   }
   return patterns_results($status, $msg, $result);
