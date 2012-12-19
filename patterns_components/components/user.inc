@@ -231,12 +231,6 @@ function user_patterns_prepare($action, $tag, &$data) {
  * error messages and semantic warnings through $result
  */
 function user_patterns_validate($action, $tag, &$data) {
-  /* @TO-DO: The checking will be performed as follows:
-   * - Check type of tag in a switch
-   * -- Check type of $action in an internal switch for each tag
-   * --- Raise errors if any through msg and status
-   * --- Raise warning if any through $result
-   */
   $result = array();
   $status = PATTERNS_SUCCESS;
   $msg = '';
@@ -251,9 +245,43 @@ function user_patterns_validate($action, $tag, &$data) {
  * - Raise error in the case of create and delete actions for the permissions
  * 
  */  
+  switch ($tag) {
+    case 'role':
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+       * -- create: name,
+       * -- modify: name, rid
+       * -- delete: rid
+       */
+      break;
+    case 'permission':
+      //Create and delete actions for the permission case are considered as syntactical errors
+      if ($action == PATTERNS_CREATE || $action == PATTERNS_DELETE) {
+        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+        return patterns_results(PATTERNS_ERR, $msg);
+      }
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+      * -- modify: tag, rid, value
+      */
+      break;
+    case 'user':
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+      * -- create: name, mail, password, timezone, roles, status
+      * -- modify: uid, name, mail, password, timezone, roles, status
+      * -- delete: uid
+      */
+      break;
+  }
   
 /*
  * Semantic validation
+ * @TO-DO: The checking will be performed as follows:
+ * - Check type of tag in a switch
+ * -- Check type of $action in an internal switch for each tag
+ * --- Raise errors if any through msg and status
+ * --- Raise warning if any through $result
  */
   switch ($tag) {
     case 'role':
