@@ -169,6 +169,8 @@ function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
 }
 
 
+
+
 /**
  * hook_patterns_prepare()
  */
@@ -210,8 +212,184 @@ function shortcut_patterns_prepare($action, $tag, &$data) {
 }
 
 /**
+ * 
+ * @param string $action Type of action being executed
+ * @param string $tag Type of tag to be validated
+ * @param array $data Associative array containing the data action processed from the pattern
+ * 
+ * @return mixed through patterns_results($status, $msg, $result) function. Status of the operation,
+ * error messages and semantic warnings through $result
+ */
+function shortcut_patterns_validate($action, $tag, &$data) {
+  /* @TO-DO: The checking will be performed as follows:
+   * - Check type of tag in a switch
+   * -- Check type of $action in an internal switch for each tag
+   * --- Raise errors if any through msg and status
+   * --- Raise warning if any thrugh $result
+   */
+  $result = array();
+  $status = PATTERNS_SUCCESS;
+  $msg = '';
+  switch ($tag) {
+    // shortcut_set tag.
+    case 'shortcut_set' :
+      $sets = shortcut_sets();
+      switch ($action) {
+        case PATTERNS_CREATE :
+          $set = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['new'])
+                  ->execute()
+                  ->fetchField();
+          if ($set) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+                t('The shortcut set %set_name already exists in the system', array('%set_name' => $data['new'],)));
+          }
+          break;
+        case PATTERNS_MODIFY :
+          $set_for_title = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['title'])
+                  ->execute()
+                  ->fetchField();
+          if ($set_for_title) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+              t('The shortcut set %set_name already exists in the system', array('%set_name' => $data['title'],)));
+          }
+          $set_for_searchtitle = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['searchtitle'])
+                  ->execute()
+                  ->fetchField();
+          if (!($set_for_searchtitle)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The shortcut set %oldname does not exist in the system.', array('%oldname' =>$data['searchtitle'],)));
+          }
+          if (!($set_for_title)&& $set_for_searchtitle) {
+            module_load_include('module', 'shortcut');
+            $shortcutsetobj = shortcut_set_load($set_for_searchtitle);
+            $data['shortcut_set_obj'] = $shortcutsetobj;
+          }
+          break;
+        case PATTERNS_DELETE :
+          $set_for_searchtitle = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['searchtitle'])
+                  ->execute()
+                  ->fetchField();
+          if (!($set_for_searchtitle)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The shortcut set %oldname does not exist in the system.', array('%oldname' =>$data['searchtitle'],)));
+          }
+          else {
+            module_load_include('module', 'shortcut');
+            $shortcutsetobj = shortcut_set_load($set_for_searchtitle);
+            $data['shortcut_set_obj'] = $shortcutsetobj;
+          }
+          break;
+
+      }
+      break;
+
+    //shortcut_link tag.
+    case 'shortcut_link' :
+      switch ($action) {
+        case PATTERNS_CREATE :
+          $set_for_searchtitle = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['searchtitle'])
+                  ->execute()
+                  ->fetchField();
+          if (!($set_for_searchtitle)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The shortcut set %oldname does not exist in the system.', array('%oldname' =>$data['searchtitle'],)));
+          }
+          else {
+            $shortcutlink = db_select('menu_links', 'ml')
+                              ->fields('ml')
+                              ->condition('menu_name', $set_for_searchtitle)
+                              ->condition('link_title', $data['shortcut_link_title'])
+                              ->execute()
+                              ->fetchAssoc();
+            if ($shortcutlink) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+                t('The shortcut link %shortcut_link_title already exists in the system', array('%shortcut_link_title' => $data['shortcut_link_title'],)));
+            }
+            else {
+              module_load_include('module', 'shortcut');
+              $shortcutsetobj = shortcut_set_load($set_for_searchtitle);
+              $data['shortcut_set_obj'] = $shortcutsetobj;
+            }
+          }
+          break;
+        case PATTERNS_MODIFY :
+        case PATTERNS_DELETE :
+          $set_name = db_select('shortcut_set', 'ss')
+                          ->fields('ss', array('set_name'))
+                          ->condition('title', $data['set_name'])
+                          ->execute()
+                          ->fetchField();
+          if (!($set_name)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The shortcut set %oldname does not exist in the system.', array('%oldname' =>$data['set_name'],)));
+          }
+          else {
+            $shortcutlink = db_select('menu_links', 'ml')
+                              ->fields('ml')
+                              ->condition('menu_name', $set_name)
+                              ->condition('link_title', $data['link_title'])
+                              ->execute()
+                              ->fetchAssoc();
+            if (!($shortcutlink)) {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The shortcut link %oldname does not exist in the system.', array('%oldname' =>$data['link_title'],)));
+            }
+            $data['shortcut_link_parm'] = $shortcutlink;
+          }
+          break;
+      }
+      break;
+
+    //shortcut_set_user tag.
+    case 'shortcut_set_user' :
+       switch ($action) {
+        case PATTERNS_MODIFY :
+          $set_for_searchtitle = db_select('shortcut_set', 'ss')
+                  ->fields('ss', array('set_name'))
+                  ->condition('title', $data['searchtitle'])
+                  ->execute()
+                  ->fetchField();
+          if (!($set_for_searchtitle)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The shortcut set %oldname does not exist in the system.', array('%oldname' =>$data['searchtitle'],)));
+          }
+          else {
+            // This form has the third parm: $account, the following code provides it.
+            if (isset($data['user'])) {
+              module_load_include('module', 'user');
+              if (!($data['account'] = user_load_by_name( $data['user']))) {
+                $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                  t('The user %username does not exist in the system.', array('%username' =>$data['user'],)));
+              }
+            }
+
+            module_load_include('module', 'shortcut');
+            $shortcutsetobj = shortcut_set_load($set_for_searchtitle);
+            $data['shortcut_set_obj'] = $shortcutsetobj;
+            $data['set'] = $set_for_searchtitle;
+            $data['new'] = $data['name'];
+          }
+          break;
+      }
+      break;
+  }
+  return patterns_results($status, $msg, $result);
+}
+ 
+/**
  * hook_patterns_validate()
  */
+ /*
 function shortcut_patterns_validate($action, $tag, &$data) {
 
   $status = PATTERNS_SUCCESS;
@@ -290,6 +468,7 @@ function shortcut_patterns_validate($action, $tag, &$data) {
    
   return patterns_results($status, $msg);
 }
+*/
 
 /**
  * hook_patterns_callbacks()
