@@ -69,10 +69,24 @@ function shortcut_patterns_export_all_set($args = NULL, $result = NULL) {
   //Loop through the elements in the set to prepare the actions
   $sets = shortcut_sets();
   $actions = array();
-  foreach ($sets as $set_name) {
-    $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
-    array_push($actions, $action);
+
+  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      foreach ($sets as $set_name) {
+        //Create action only require a name given to the new shortcut_set.
+        $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_set', 'shortcut_set_name' => $set_name->title));
+        array_push($actions, $action);
+      }
+      break;
+    case PATTERNS_MODIFY :
+      foreach ($sets as $set_name) {
+        //Modify shortcut_set need a newname which shold be assigned by someone(Administrator)
+        $action = array(PATTERNS_MODIFY => array('tag' => 'shortcut_set', 'oldname' => $set_name->title), 'newname' => 'PleaseGiveNewName');
+        array_push($actions, $action);
+      }
+      break;
   }
+
   return $actions;
 }
 
@@ -89,16 +103,35 @@ function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
   //Loop through the elements in the set to prepare the actions
   $sets = shortcut_sets();
   $actions = array();
-  foreach ($sets as $set_name) {
-    //Retrieve all the elements, that are stored as normal menu entries. Shortcuts always have a depth level of 1
-    $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
-    foreach ($shortcut_links as $shortcut_link) {
-      //Go through elements extracting link_path and link_title fields
-      $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_link', 'shortcut_set_name' => $set_name->title,
-        'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
-      array_push($actions, $action);
-    }
+
+
+  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      foreach ($sets as $set_name) {
+        //Retrieve all the elements, that are stored as normal menu entries. Shortcuts always have a depth level of 1
+        $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
+        foreach ($shortcut_links as $shortcut_link) {
+          //Go through elements extracting link_path and link_title fields
+          $action = array(PATTERNS_CREATE => array('tag' => 'shortcut_link', 'shortcut_set_name' => $set_name->title,
+            'shortcut_link_title' => $shortcut_link['link']['link_title'], 'shortcut_link_path' => $shortcut_link['link']['link_path']));
+          array_push($actions, $action);
+        }
+      }
+      break;
+    case PATTERNS_MODIFY:
+      foreach ($sets as $set_name) {
+        //Retrieve all the elements, that are stored as normal menu entries. Shortcuts always have a depth level of 1
+        $shortcut_links = menu_tree_all_data($set_name->set_name, NULL, 1);
+        foreach ($shortcut_links as $shortcut_link) {
+          //Modify action require new link title and new link path which should be given by someone(website administrator,i.e.)
+          $action = array(PATTERNS_MODIFY => array('tag' => 'shortcut_link', 'set_name' => $set_name->title,
+            'link_title' => $shortcut_link['link']['link_title'], 'new_link_title' => 'PleaseGiveNewLinkName', 'new_link_path' => 'PleaseGiveNewLinkPath'));
+          array_push($actions, $action);
+        }
+      }
+      break;
   }
+
   return $actions;
 }
 
