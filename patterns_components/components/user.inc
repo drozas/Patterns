@@ -2,8 +2,6 @@
 /*
  * @file
  * Patterns component for users.
- * TODO: when creating a user, check if the email is already taken.
- * TODO: user modifying does not work, it's asking for the password.
  */
 
 /**
@@ -19,6 +17,8 @@ function user_patterns($data) {
     PATTERNS_MODIFY => array('user_profile_form'),
     PATTERNS_DELETE => array('user_cancel_confirm_form'),
     PATTERNS_FILES => $files,
+    //@TO-DO: PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
+      
   );
 
   $actions['role'] = array(
@@ -231,15 +231,58 @@ function user_patterns_prepare($action, $tag, &$data) {
  * error messages and semantic warnings through $result
  */
 function user_patterns_validate($action, $tag, &$data) {
-  /* @TO-DO: The checking will be performed as follows:
-   * - Check type of tag in a switch
-   * -- Check type of $action in an internal switch for each tag
-   * --- Raise errors if any through msg and status
-   * --- Raise warning if any thrugh $result
-   */
   $result = array();
   $status = PATTERNS_SUCCESS;
   $msg = '';
+  
+/*
+ * Syntactic validation
+ * 
+ * @TO-DO: Define common principles for all the components.
+ * Ideas for this component specifially:
+ * - Check the existace of the specific attributes for each component
+ * (i.e.: only the expected attributes exists, and if they do the value is as expected)
+ * - Raise error in the case of create and delete actions for the permissions
+ * 
+ */  
+  switch ($tag) {
+    case 'role':
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+       * -- create: name,
+       * -- modify: name, rid
+       * -- delete: rid
+       */
+      break;
+    case 'permission':
+      //Create and delete actions for the permission case are considered as syntactical errors
+      if ($action == PATTERNS_CREATE || $action == PATTERNS_DELETE) {
+        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+        return patterns_results(PATTERNS_ERR, $msg);
+      }
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+      * -- modify: tag, rid, value
+      */
+      break;
+    case 'user':
+      /* @TO-DO: Check expected atttributes and its values
+       * I.e.:
+      * -- create: name, mail, password, timezone, roles, status
+      * -- modify: uid, name, mail, password, timezone, roles, status
+      * -- delete: uid
+      */
+      break;
+  }
+  
+/*
+ * Semantic validation
+ * @TO-DO: The checking will be performed as follows:
+ * - Check type of tag in a switch
+ * -- Check type of $action in an internal switch for each tag
+ * --- Raise errors if any through msg and status
+ * --- Raise warning if any through $result
+ */
   switch ($tag) {
     case 'role':
       //Prepare common role values
@@ -280,7 +323,7 @@ function user_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'user':
-      //@TO-DO
+      //@TO-DO: It is also necessary to create the export function as well.
       break;
   }
   return patterns_results($status, $msg, $result);
