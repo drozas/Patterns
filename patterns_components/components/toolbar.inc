@@ -112,7 +112,7 @@ function toolbar_patterns_validate($action, $tag, &$data) {
       if (!(isset($data['addroles'])) && !(isset($data['delroles']))) {
         $status = PATTERNS_ERR;
         $msg = t('there is nothing to do.');
-        return patterns_results($status, $msg);
+        return patterns_results($status, $msg, $result);
       }
 
      //if there is a same name in add and delroles, there is a error.
@@ -121,7 +121,7 @@ function toolbar_patterns_validate($action, $tag, &$data) {
         if (count($a) != 0) {
           $status = PATTERNS_ERR;
           $msg = t('same name in both addroles and delroles');
-          return patterns_results($status, $msg);
+          return patterns_results($status, $msg, $result);
         }
       }
 
@@ -139,7 +139,7 @@ function toolbar_patterns_validate($action, $tag, &$data) {
           if ($rid == 3) {
             $status = PATTERNS_ERR;
             $msg = t('administrator should keep static.');
-            return patterns_results($status, $msg);
+            return patterns_results($status, $msg, $result);
           }
           if ($rid == FALSE) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
@@ -171,7 +171,7 @@ function toolbar_patterns_validate($action, $tag, &$data) {
           if ($rid == 3) {
             $status = PATTERNS_ERR;
             $msg = t('administrator should keep static.');
-            return patterns_results($status, $msg);
+            return patterns_results($status, $msg, $result);
           }
           if ($rid == FALSE) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
