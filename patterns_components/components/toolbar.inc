@@ -32,29 +32,34 @@ function toolbar_patterns($data) {
  * @return array $actions
  */
 function toolbar_patterns_export_all_roles($args = NULL, $result = NULL) {
-  //Prepare auxiliary variables
-  $actions = array(PATTERNS_MODIFY => array('tag' => 'toolbarrole'));
-  $roles_in = array();
-  $roles_out = array();
-  
-  //Go through all the roles to classify them in the proper group excluding the admin
-  foreach (user_roles() as $role) {
-    if ($role!='administrator') {
-      if (in_array($role, user_roles(FALSE, 'access toolbar'))) {
-        array_push($roles_in, $role);
-      }else{
-        array_push($roles_out, $role);
-      }      
-    }
-  }
-  
-  //Both sections need to be added in any case (even if the array is empty)
-  $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
-  $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
-  
-  $result = array($actions);
-  return $result;
 
+  switch ($args['type']) {
+    case PATTERNS_MODIFY:
+      //Prepare auxiliary variables
+      $actions = array(PATTERNS_MODIFY => array('tag' => 'toolbarrole'));
+      $roles_in = array();
+      $roles_out = array();
+      
+      //Go through all the roles to classify them in the proper group excluding the admin
+      foreach (user_roles() as $role) {
+        if ($role!='administrator') {
+          if (in_array($role, user_roles(FALSE, 'access toolbar'))) {
+            array_push($roles_in, $role);
+          }else{
+            array_push($roles_out, $role);
+          }      
+        }
+      }
+      
+      //Both sections need to be added in any case (even if the array is empty)
+      $actions[PATTERNS_MODIFY]['addroles'] = $roles_in;
+      $actions[PATTERNS_MODIFY]['delroles'] = $roles_out;    
+      
+      $result = array($actions);
+      break;
+  }
+
+  return $result;
 }
 
 /**
@@ -96,105 +101,105 @@ function toolbar_patterns_prepare($action, $tag, &$data) {
  * hook_patterns_validate()
  */
 function toolbar_patterns_validate($action, $tag, &$data) {
+  $result = array();
   $status = PATTERNS_SUCCESS;
   $msg = '';
 
-  //if both addroles and delroles is not given, there is a error.
-  if (!(isset($data['addroles'])) && !(isset($data['delroles']))) {
-    $status = PATTERNS_ERR;
-    $msg = t('there is nothing to do.');
-    return patterns_results($status, $msg);
-  }
 
- //if there is a same name in add and delroles, there is a error.
-  if (is_array($data['addroles']) && is_array($data['delroles'])) {
-    $a = array_intersect($data['addroles'], $data['delroles']);
-    if (count($a) != 0) {
-      $status = PATTERNS_ERR;
-      $msg = t('same name in both addroles and delroles');
-      return patterns_results($status, $msg);
-    }
-  }
-
-  //the process of addroles.
-  //role can not be administrator
-  //the name should exist in the role table.
-  //if the role already have the perm, there is a error.
-  if (is_array($data['addroles'])) {
-    foreach ($data['addroles'] as $key => $value) {
-      $rid = db_select('role', 'r')
-              ->fields('r', array('rid'))
-              ->condition('r.name', $value)
-              ->execute()
-              ->fetchField();
-      if ($rid == 3) {
+  switch ($tag) {
+    case 'toolbarrole' :
+      //if both addroles and delroles is not given, there is a error.
+      if (!(isset($data['addroles'])) && !(isset($data['delroles']))) {
         $status = PATTERNS_ERR;
-        $msg = t('administrator should keep static.');
+        $msg = t('there is nothing to do.');
         return patterns_results($status, $msg);
       }
-      if ($rid == FALSE) {
-        $status = PATTERNS_ERR;
-        $msg = t('there is a wrong role name');
-        return patterns_results($status, $msg);
-      }
-      if (isset($data['status'][$rid])) {
-        if (in_array("access toolbar", $data['status'][$rid])) {
+
+     //if there is a same name in add and delroles, there is a error.
+      if (is_array($data['addroles']) && is_array($data['delroles'])) {
+        $a = array_intersect($data['addroles'], $data['delroles']);
+        if (count($a) != 0) {
           $status = PATTERNS_ERR;
-          $msg = t('the role have the toolbar permission already.');
+          $msg = t('same name in both addroles and delroles');
           return patterns_results($status, $msg);
         }
       }
 
-      //add the "access toolbar" perm to the $data['status']
-      $data['status'][$rid][] = "access toolbar";
-    }
-  }
+      //the process of addroles.
+      //role can not be administrator
+      //the name should exist in the role table.
+      //if the role already have the perm, there is a error.
+      if (is_array($data['addroles'])) {
+        foreach ($data['addroles'] as $key => $value) {
+          $rid = db_select('role', 'r')
+                  ->fields('r', array('rid'))
+                  ->condition('r.name', $value)
+                  ->execute()
+                  ->fetchField();
+          if ($rid == 3) {
+            $status = PATTERNS_ERR;
+            $msg = t('administrator should keep static.');
+            return patterns_results($status, $msg);
+          }
+          if ($rid == FALSE) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The role %role does not exist in the system.', array('%role' =>$value,)));
+          }
+          if (isset($data['status'][$rid])) {
+            if (in_array("access toolbar", $data['status'][$rid])) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+                t('The role %role already have toolbar permission in the system', array('%role' => $value,)));
+            }
+          }
 
-  //the process of delroles.
-  //role can not be administrator
-  //the name should not exist in the role table.
-  //if the role don't have the perm yet, there is a error.
-  if (is_array($data['delroles'])) {
-    foreach ($data['delroles'] as $key => $value) {
-      $rid = db_select('role', 'r')
-              ->fields('r', array('rid'))
-              ->condition('r.name', $value)
-              ->execute()
-              ->fetchField();
-      if ($rid == 3) {
-        $status = PATTERNS_ERR;
-        $msg = t('administrator should keep static.');
-        return patterns_results($status, $msg);
-      }
-      if ($rid == FALSE) {
-        $status = PATTERNS_ERR;
-        $msg = t('there is a wrong role name');
-        return patterns_results($status, $msg);
-      }
-      //ensure the role have some perms.
-      if (isset($data['status'][$rid])) {
-        if (!(in_array("access toolbar", $data['status'][$rid]))) {
-          $status = PATTERNS_ERR;
-          $msg = t('the role do not have the toolbar permission yet.');
-          return patterns_results($status, $msg);
+          //add the "access toolbar" perm to the $data['status']
+          $data['status'][$rid][] = "access toolbar";
         }
-        //delete the "access toolbar" from $data['status']
-        $data['status'][$rid] = array_diff($data['status'][$rid], array("access toolbar"));
       }
-      else {
-        $status = PATTERNS_ERR;
-        $msg = t('the role does not have any permissions.');
-        return patterns_results($status, $msg);
+
+      //the process of delroles.
+      //role can not be administrator
+      //the name should not exist in the role table.
+      //if the role don't have the perm yet, there is a error.
+      if (is_array($data['delroles'])) {
+        foreach ($data['delroles'] as $key => $value) {
+          $rid = db_select('role', 'r')
+                  ->fields('r', array('rid'))
+                  ->condition('r.name', $value)
+                  ->execute()
+                  ->fetchField();
+          if ($rid == 3) {
+            $status = PATTERNS_ERR;
+            $msg = t('administrator should keep static.');
+            return patterns_results($status, $msg);
+          }
+          if ($rid == FALSE) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The role %role does not exist in the system.', array('%role' =>$value,)));
+          }
+          //ensure the role have some perms.
+          if (isset($data['status'][$rid])) {
+            if (!(in_array("access toolbar", $data['status'][$rid]))) {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The role %role does not have toolbar permission yet in the system.', array('%role' =>$value,)));
+            }
+            //delete the "access toolbar" from $data['status']
+            $data['status'][$rid] = array_diff($data['status'][$rid], array("access toolbar"));
+          }
+          else {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The role %role does not have any permission yet in the system.', array('%role' =>$value,)));
+          }
+        }
       }
-    }
+
+      //the $data[$rid] is the form's element.
+      foreach ($data['status'] as $rid => $value) {
+        $data[$rid] = $value;
+      }
   }
 
-  //the $data[$rid] is the form's element.
-  foreach ($data['status'] as $rid => $value) {
-    $data[$rid] = $value;
-  }
-
-  return patterns_results($status, $msg);
+  return patterns_results($status, $msg, $result);
 }
 
 /**
