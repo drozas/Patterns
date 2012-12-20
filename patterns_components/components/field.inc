@@ -41,12 +41,25 @@ function field_patterns_export_all_ins($args = NULL, &$result = NULL) {
   // $form_id = current($info['instance'][PATTERNS_MODIFY]);
   $instances = field_read_instances();
   $result = array();
-  foreach ($instances as $voc) {
-    $field=(array) field_info_instance($voc['entity_type'], $voc['field_name'], $voc['bundle']);
-    $data = array('tag' => 'instance');
-    $data = array_merge($data, $field);
-    $action = array(PATTERNS_CREATE => $data);
-    array_push($result, $action);
+  switch ($args['type']) {
+    case PATTERNS_EXPORT_TYPE_CREATE :
+  		foreach ($instances as $voc) {
+    		$field=(array) field_info_instance($voc['entity_type'], $voc['field_name'], $voc['bundle']);
+    		$data = array('tag' => 'instance');
+    		$data = array_merge($data, $field);
+    		$action = array(PATTERNS_CREATE => $data);
+    		array_push($result, $action);
+  		}
+  		break;
+  	case PATTERNS_EXPORT_TYPE_MODIFY :
+  		foreach ($instances as $voc) {
+    		$field=(array) field_info_instance($voc['entity_type'], $voc['field_name'], $voc['bundle']);
+    		$data = array('tag' => 'instance');
+   	 		$data = array_merge($data, $field);
+    		$action = array(PATTERNS_MODIFY => $data);
+    		array_push($result, $action);
+  		}
+  		break;
   }
   return $result;
 
