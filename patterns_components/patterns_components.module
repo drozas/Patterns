@@ -48,7 +48,7 @@ function _has_uninterpretable_attributes($attributes, $interpretable_attributes,
   $result = FALSE;
   foreach ($attributes as $att => $value) {
     if (!in_array($att, $interpretable_attributes)) {
-      $msg .= t('Attribute %att will not be interpretable by the component.</ br>', array('%att' =>$att,));
+      $msg .= t('Attribute %att will not be interpretable by the component.<br>', array('%att' =>$att,));
       $result = TRUE;
     }
   }
