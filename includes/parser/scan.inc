@@ -238,7 +238,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	foreach ($patternscan['tag_errors'] as $error) {
   		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
   	}
-  	$msgs[] = t('Components reported errors about tags: ') . $br . $errors;
+  	$msgs[] = t('Components reported errors/warnings about tags: ') . $br . $errors;
   }
   
   // FULL SEMANTIC VALIDATION:
@@ -430,7 +430,7 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 			patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
-	  	if ($validation['status'] == PATTERNS_ERR) {
+	  	if ($validation['status'] <= PATTERNS_WARN) {
     		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
   		}
 	  	
