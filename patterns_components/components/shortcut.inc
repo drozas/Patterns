@@ -145,24 +145,28 @@ function shortcut_patterns_export_all_link($args = NULL, $result = NULL) {
  * @return array $actions
  */
 function shortcut_patterns_export_all_user_set($args = NULL, $result = NULL) {
-  //There is currently no function provided by Drupal to get the relationship
-  //between users and selected shortcut sets, we need to query the DB directly
-  $query = db_select('shortcut_set_users', 'ssu');
-  $query->join('shortcut_set', 'ss', 'ssu.set_name = ss.set_name');
-  $query
-    ->fields('ssu', array('uid', 'set_name'))
-    ->fields('ss', array('set_name', 'title'));
-  $result = $query->execute();
   $actions = array();
-  
-  //Loop through the elements in the $result set to prepare the actions using set title and username
-  foreach ($result as $record) {
-    $action = array(PATTERNS_MODIFY => 
-      array(
-        'tag' => 'shortcut_set_user',
-        'name' => $record->title, 
-        'user' => user_load($record->uid)->name));
-    array_push($actions, $action);
+  switch ($args['type']) {
+    case PATTERNS_MODIFY:
+      //There is currently no function provided by Drupal to get the relationship
+      //between users and selected shortcut sets, we need to query the DB directly
+      $query = db_select('shortcut_set_users', 'ssu');
+      $query->join('shortcut_set', 'ss', 'ssu.set_name = ss.set_name');
+      $query
+        ->fields('ssu', array('uid', 'set_name'))
+        ->fields('ss', array('set_name', 'title'));
+      $result = $query->execute();
+      
+      //Loop through the elements in the $result set to prepare the actions using set title and username
+      foreach ($result as $record) {
+        $action = array(PATTERNS_MODIFY => 
+          array(
+            'tag' => 'shortcut_set_user',
+            'name' => $record->title, 
+            'user' => user_load($record->uid)->name));
+        array_push($actions, $action);
+      }
+      break;
   }
 
   return $actions;
