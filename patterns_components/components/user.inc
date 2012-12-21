@@ -258,7 +258,7 @@ function user_patterns_validate($action, $tag, &$data) {
       switch ($action) {
         case PATTERNS_CREATE:
           //Check mandatory fields, in this case is only one.
-          $mandatory_attributes = array('name', 'mandatorytest');
+          $mandatory_attributes = array('name');
           if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
