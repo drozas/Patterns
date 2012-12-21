@@ -257,14 +257,13 @@ function user_patterns_validate($action, $tag, &$data) {
       /////////////////////
       switch ($action) {
         case PATTERNS_CREATE:
-          //Check mandatory fields, in this case is only one. In this case there are not optional attributes, so we can also use this set as "all attributes"
+          //Check mandatory fields, in this case is only one.
           $mandatory_attributes = array('name');
-          //if (!array_key_exists('name', $data)) {
           if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
-  //          $msg = t('Mandatory attribute %att could not be found in the pattern for the action %action.', array('%att' =>'name', '%action' =>$action,));
             return patterns_results(PATTERNS_ERR, $msg);
-          }elseif(count($data)>1) {
-            $msg = t('Some of the attributes in the %action will not be interpretable by the component.', array('%action' =>$action, ));
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
             $status = PATTERNS_WARN;
           }
           break;
