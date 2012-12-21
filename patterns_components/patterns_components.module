@@ -18,12 +18,14 @@ function patterns_patterns_components() {
  * @param array $mandatory_attributes  List of expected mandatory attributes
  * @param string $msg  Message that will be promted to the user
  * @return boolean  Returns TRUE if all the $mandatory_attributes are found in $attributes, FALSE otherwise
+ * 
+ * @TO-DO: Find a cleaner way to input the <br>
  */
 function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg) {
   $result = TRUE;
   foreach ($mandatory_attributes as $att){
     if (!array_key_exists($att, $attributes)) {
-      $msg .= t('Mandatory attribute %att could not be found.', array('%att' =>$att,));
+      $msg .= t('Mandatory attribute %att could not be found.<br>', array('%att' =>$att,));
       $result = FALSE;
     }
   }
@@ -39,12 +41,14 @@ function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg
  * @param array $interpretable_attributes  List attributes interpretable for the component for this case
  * @param string $msg  Message that will be promted to the user
  * @return boolean  Returns TRUE if any uninterpreatable attributes is found, FALSE otherwise
+ * 
+ * @TO-DO: Find a cleaner way to input the <br>
  */
 function _has_uninterpretable_attributes($attributes, $interpretable_attributes, &$msg) {
   $result = FALSE;
   foreach ($attributes as $att => $value) {
     if (!in_array($att, $interpretable_attributes)) {
-      $msg .= t('Attribute %att will not be interpretable by the component.', array('%att' =>$att,));
+      $msg .= t('Attribute %att will not be interpretable by the component.</ br>', array('%att' =>$att,));
       $result = TRUE;
     }
   }
