@@ -64,9 +64,11 @@ function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
   $menu_items = menu_load_links($menus);
   $result = array();
   $i = 0;
-  foreach ($menu_items as $menu_item) {
-    $i ++;
-    $menu_item = (array) $menu_item;
+  switch ($args['type']) {
+  	case PATTERNS_CREATE :
+      foreach ($menu_items as $menu_item) {
+      $i ++;
+      $menu_item = (array) $menu_item;
     if ($menu_item['link_title'] == '') {
       $menu_item['link_title'] = 'null';
     }
@@ -80,7 +82,28 @@ function menu_patterns_export_all_menu_item($args = NULL, &$result = NULL) {
     // It is important to user array merge. Pushing is not enough
     //$result = array_merge($result, patterns_export_actions_from_form($form_id, $menu_item, 'menu_item', PATTERNS_MODIFY));
   }
-  return $result;
+      break;
+      
+ case PATTERNS_MODIFY :
+ 	foreach ($menu_items as $menu_item) {
+ 		$i ++;
+ 		$menu_item = (array) $menu_item;
+ 		if ($menu_item['link_title'] == '') {
+ 			$menu_item['link_title'] = 'null';
+ 		}
+ 		//$menu_item['options'] = unserialize($menu_item['options']);
+ 		$menu_item['href'] = "";
+ 		$data = array('tag' => 'menu_item');
+ 		//print $data;
+ 		$data = array_merge($data, $menu_item);
+ 		$action = array(PATTERNS_MODIFY => $data);
+ 		array_push($result, $action);
+ 		// It is important to user array merge. Pushing is not enough
+ 		//$result = array_merge($result, patterns_export_actions_from_form($form_id, $menu_item, 'menu_item', PATTERNS_MODIFY));
+ 	}
+ 	break;
+}
+	return $result;
 }
 
 
