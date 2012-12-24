@@ -268,10 +268,27 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_MODIFY:
-
+          //Check mandatory fields, in this case is only one.
+          $mandatory_attributes = array('name', 'rid');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
           break;
         case PATTERNS_DELETE:
-
+          //Check mandatory fields, in this case is only one.
+          $mandatory_attributes = array('rid');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
           break;
       }
       
