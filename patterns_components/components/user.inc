@@ -289,7 +289,6 @@ function user_patterns_validate($action, $tag, &$data) {
             $status = PATTERNS_WARN;
           }
           break;
-          break;
       }
       
       //////////////////////
