@@ -42,7 +42,7 @@ function field_patterns_export_all_ins($args = NULL, &$result = NULL) {
   $instances = field_read_instances();
   $result = array();
   switch ($args['type']) {
-    case PATTERNS_EXPORT_TYPE_CREATE :
+    case PATTERNS_CREATE :
   		foreach ($instances as $voc) {
     		$field=(array) field_info_instance($voc['entity_type'], $voc['field_name'], $voc['bundle']);
     		$data = array('tag' => 'instance');
@@ -51,7 +51,7 @@ function field_patterns_export_all_ins($args = NULL, &$result = NULL) {
     		array_push($result, $action);
   		}
   		break;
-  	case PATTERNS_EXPORT_TYPE_MODIFY :
+  	case PATTERNS_MODIFY :
   		foreach ($instances as $voc) {
     		$field=(array) field_info_instance($voc['entity_type'], $voc['field_name'], $voc['bundle']);
     		$data = array('tag' => 'instance');
@@ -309,17 +309,14 @@ function field_patterns_cleanup($action, $tag, &$data) {
 }
 
 function _field_patterns_prepare_instance($action, $data) {
-  $prefix = '';
-  if ($action == PATTERNS_DELETE || $action == PATTERNS_MODIFY) {
-    $prefix = 'field_';
-  }
+
   $existing_f  = '_add_existing_field';
   $new_f       = '_add_new_field';
 
   $all_fields = field_info_fields();
-  $existing = array_key_exists($prefix . $data['name'], $all_fields) ? $existing_f : $new_f;
+  $existing = array_key_exists($data['field_name'], $all_fields) ? $existing_f : $new_f;
   $data['fields'] = array();
-  $fname = $prefix . $data['name'];
+  $fname = $data['field_name'];
 
   // Setting default values which can be overriden later
 
@@ -332,7 +329,7 @@ function _field_patterns_prepare_instance($action, $data) {
   if ($action == PATTERNS_CREATE) {
     // NAME
     $data['fields'][$existing]['field_name'] = $fname;
-    unset($data['name']);
+   // unset($data['name']);
     // LABEL
     if (isset($data['label'])) {
       $data['fields'][$existing]['label'] = $data['label'];
