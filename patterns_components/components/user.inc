@@ -247,14 +247,6 @@ function user_patterns_validate($action, $tag, &$data) {
  */  
   switch ($tag) {
     case 'role':
-      /* @TO-DO: Check expected atttributes and its values
-       * I.e.:
-       * -- create: name,
-       * -- modify: name, rid
-       * -- delete: rid
-       */
-
-      /////////////////////
       switch ($action) {
         case PATTERNS_CREATE:
           //Check mandatory fields, in this case is only one.
@@ -289,10 +281,7 @@ function user_patterns_validate($action, $tag, &$data) {
             $status = PATTERNS_WARN;
           }
           break;
-          break;
       }
-      
-      //////////////////////
       break;
     case 'permission':
       //Create and delete actions for the permission case are considered as syntactical errors
