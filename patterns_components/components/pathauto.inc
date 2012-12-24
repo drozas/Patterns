@@ -41,7 +41,7 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
   $paths = db_query("SELECT * FROM {url_alias}", array(), array('fetch' => PDO::FETCH_ASSOC))->fetchAll();
   $result = array();
   switch ($args['type']) {
-    case PATTERNS_EXPORT_TYPE_CREATE :
+    case PATTERNS_CREATE :
   		foreach ($paths as $path) {
     		$path = (array) $path;
     		$data = array('tag' => 'path');
@@ -55,7 +55,7 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
     		//$result = array_merge($result, patterns_export_actions_from_form($form_id, $path, 'url_alias', PATTERNS_MODIFY));
   		}
   		break;
-  	case PATTERNS_EXPORT_TYPE_MODIFY :
+  	case PATTERNS_MODIFY :
    		foreach ($paths as $path) {
     		$path = (array) $path;
     		$data = array('tag' => 'path');
