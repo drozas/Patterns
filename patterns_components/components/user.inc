@@ -17,8 +17,7 @@ function user_patterns($data) {
     PATTERNS_MODIFY => array('user_profile_form'),
     PATTERNS_DELETE => array('user_cancel_confirm_form'),
     PATTERNS_FILES => $files,
-    //@TO-DO: PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
-      
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),  
   );
 
   $actions['role'] = array(
@@ -54,6 +53,52 @@ function user_patterns_actions($data) {
     'user_admin_permissions' => t('User: Configure permissions'),
   );
 }
+
+/**
+ *
+ * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
+ * with the whole set of roles currently stored in the system.
+ *
+ * @param array $args  Set of arguments received from the form.
+ * @param string $result  Current set of actions for the whole process.
+ *
+ * @return array $result  Set of actions after performing the changes.
+ */
+function user_patterns_export_all_users($args = NULL, &$result = NULL) {
+  //$roles = user_roles(TRUE);
+  $query = db_select('users', 'u');
+  $query ->fields('u', array('uid'));
+  $uids = $query->execute()->fetchCol();
+  $users = user_load_multiple($uids);
+  $result = array();
+  //@TO-DO: Look for a proper function for the users and solve issue with the passwords
+  // Look for the cleanest way to get all the users: http://api.drupal.org/api/drupal/modules!user!user.module/function/user_load_multiple/7
+  //Got through all the roles and prepare set of actions according to the type of export process
+/*  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      foreach ($roles as $rid => $role) {
+        //Create operations just require the name
+        $data = array('tag' => 'role');
+        $data['name'] = $role;
+        $action = array(PATTERNS_CREATE => $data);
+        array_push($result, $action);
+      }
+      break;
+    case PATTERNS_MODIFY :
+      foreach ($roles as $rid => $role) {
+        //Modify operations require the name and the rid
+        $data = array('tag' => 'role');
+        $data['name'] = $role;
+        $data['rid'] = $rid;
+        $action = array(PATTERNS_MODIFY => $data);
+        array_push($result, $action);
+      }
+      break;
+  }
+*/
+  return $result;
+}
+
 
 /**
  *
