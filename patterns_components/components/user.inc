@@ -347,12 +347,42 @@ function user_patterns_validate($action, $tag, &$data) {
       //@TO-DO: We should discuss if we should have a common function for this: check mandatory fields and check extra attributes
       break;
     case 'user':
-      /* @TO-DO: Check expected atttributes and its values
-       * I.e.:
-      * -- create: name, mail, password, timezone, roles, status
-      * -- modify: uid, name, mail, password, timezone, roles, status
-      * -- delete: uid
-      */
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //Check mandatory fields
+          $mandatory_attributes = array('name', 'mail', 'password', 'timezone', 'status');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_MODIFY:
+          //Check mandatory fields
+          $mandatory_attributes = array('uid');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //All the fields but uid are in this case optional
+          $interpretable_attributes = array('uid','name', 'mail', 'timezone', 'status');
+          if(_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_DELETE:
+          //Check mandatory fields, in this case is only one.
+          $mandatory_attributes = array('uid');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+      }
       break;
   }
   
