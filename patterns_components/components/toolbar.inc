@@ -142,7 +142,7 @@ function toolbar_patterns_validate($action, $tag, &$data) {
             return patterns_results($status, $msg, $result);
           }
           if ($rid == FALSE) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY => 
               t('The role %role does not exist in the system.', array('%role' =>$value,)));
           }
           if (isset($data['status'][$rid])) {
@@ -174,20 +174,20 @@ function toolbar_patterns_validate($action, $tag, &$data) {
             return patterns_results($status, $msg, $result);
           }
           if ($rid == FALSE) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY => 
               t('The role %role does not exist in the system.', array('%role' =>$value,)));
           }
           //ensure the role have some perms.
           if (isset($data['status'][$rid])) {
             if (!(in_array("access toolbar", $data['status'][$rid]))) {
-              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY => 
                 t('The role %role does not have toolbar permission yet in the system.', array('%role' =>$value,)));
             }
             //delete the "access toolbar" from $data['status']
             $data['status'][$rid] = array_diff($data['status'][$rid], array("access toolbar"));
           }
           else {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY => 
               t('The role %role does not have any permission yet in the system.', array('%role' =>$value,)));
           }
         }
