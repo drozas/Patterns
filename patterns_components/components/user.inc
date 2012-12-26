@@ -57,12 +57,12 @@ function user_patterns_actions($data) {
 /**
  *
  * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of roles currently stored in the system.
+ * with the whole set of users currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
  *
- * @return array $result  Set of actions after performing the changes.
+ * @return array $result  Set of actions
  */
 function user_patterns_export_all_users($args = NULL, &$result = NULL) {
   //Fetch all user objects except the anonymous
@@ -72,30 +72,30 @@ function user_patterns_export_all_users($args = NULL, &$result = NULL) {
   $uids = $query->execute()->fetchCol();
   $users = user_load_multiple($uids);
   $result = array();
-  //@TO-DO: Look for a proper function for the users and solve issue with the passwords
-  // Look for the cleanest way to get all the users: http://api.drupal.org/api/drupal/modules!user!user.module/function/user_load_multiple/7
-  //Got through all the roles and prepare set of actions according to the type of export process
+
   switch ($args['type']) {
     case PATTERNS_CREATE :
       foreach ($users as $user) {
-        //Create operations just require the name
+        //Create operation generate a new random password
         $data = array('tag' => 'user');
         $data['name'] = $user->name;
         $data['mail'] = $user->mail;
         $data['password'] = user_password();
         $data['timezone'] = $user->timezone;
-        //$data['roles']@TO-DO
         $data['status'] = $user->status;
         $action = array(PATTERNS_CREATE => $data);
         array_push($result, $action);
       }
       break;
     case PATTERNS_MODIFY :
-      foreach ($roles as $rid => $role) {
-        //Modify operations require the name and the rid
-        $data = array('tag' => 'role');
-        $data['name'] = $role;
-        $data['rid'] = $rid;
+      foreach ($users as $uid => $user) {
+        //Modify operations override all the available fields but password. @TO-DO: Revise if necessary to set values in the object manually
+        $data = array('tag' => 'user');
+        $data['uid'] = $uid;
+        $data['name'] = $user->name;
+        $data['mail'] = $user->mail;
+        $data['timezone'] = $user->timezone;
+        $data['status'] = $user->status;
         $action = array(PATTERNS_MODIFY => $data);
         array_push($result, $action);
       }
