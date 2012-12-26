@@ -65,21 +65,27 @@ function user_patterns_actions($data) {
  * @return array $result  Set of actions after performing the changes.
  */
 function user_patterns_export_all_users($args = NULL, &$result = NULL) {
-  //$roles = user_roles(TRUE);
+  //Fetch all user objects except the anonymous
   $query = db_select('users', 'u');
-  $query ->fields('u', array('uid'));
+  $query->fields('u', array('uid'));
+  $query->condition('uid', '0', '<>');
   $uids = $query->execute()->fetchCol();
   $users = user_load_multiple($uids);
   $result = array();
   //@TO-DO: Look for a proper function for the users and solve issue with the passwords
   // Look for the cleanest way to get all the users: http://api.drupal.org/api/drupal/modules!user!user.module/function/user_load_multiple/7
   //Got through all the roles and prepare set of actions according to the type of export process
-/*  switch ($args['type']) {
+  switch ($args['type']) {
     case PATTERNS_CREATE :
-      foreach ($roles as $rid => $role) {
+      foreach ($users as $user) {
         //Create operations just require the name
-        $data = array('tag' => 'role');
-        $data['name'] = $role;
+        $data = array('tag' => 'user');
+        $data['name'] = $user->name;
+        $data['mail'] = $user->mail;
+        $data['password'] = user_password();
+        $data['timezone'] = $user->timezone;
+        //$data['roles']@TO-DO
+        $data['status'] = $user->status;
         $action = array(PATTERNS_CREATE => $data);
         array_push($result, $action);
       }
@@ -95,7 +101,7 @@ function user_patterns_export_all_users($args = NULL, &$result = NULL) {
       }
       break;
   }
-*/
+
   return $result;
 }
 
