@@ -24,4 +24,5 @@ before_script:
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
-  - drush en patterns
+  - drush en patterns --yes
+  - drush test-run Patterns
