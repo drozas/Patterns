@@ -14,7 +14,6 @@ before_script:
   - pear install drush/drush
   - phpenv rehash
   - cd ~
-  - ls
   - drush dl drupal
   - mv drupal-7.18 drupal
   - mv /home/travis/builds/QScience/Patterns ./drupal/sites/all/modules/patterns
@@ -25,4 +24,4 @@ before_script:
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
   - drush en simpletest patterns --yes
-  - drush test-run Patterns
+  - drush test-run Patterns --uri=http://127.0.0.1
