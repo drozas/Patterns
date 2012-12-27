@@ -9,10 +9,17 @@ mysql:
   encoding: utf8
 
 before_script:
+
+# MYSQL
   - "mysql -e 'create database drupal_patterns;'"
+
+# DOWNLOAD LIBRARIES
   - pear channel-discover pear.drush.org
   - pear install drush/drush
   - phpenv rehash
+  - wget https://raw.github.com/mustangostang/spyc/master/Spyc.php
+
+# INSTALL DRUPAL
   - cd ~
   - drush dl drupal
   - mv drupal-7.18 drupal
@@ -22,7 +29,15 @@ before_script:
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
-  - drush en simpletest patterns --yes
+
+# ENABLE MODULES
+  - drush en simpletest patterns --yes #token and libraries also
+
+# SPYC
+  - mkdir sites/all/libraries/spyc/
+  - mv /home/travis/Spyc.php sites/all/libraries/spyc/spyc.php
+
+# START FRAMEBUFFER
   - "export DISPLAY=:99.0"
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give Web server some time to bind to sockets, etc
