@@ -24,4 +24,11 @@ before_script:
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
   - drush en simpletest patterns --yes
+  - "export DISPLAY=:99.0"
+  - "sh -e /etc/init.d/xvfb start"
+  - sleep 3 # give xvfb some time to start
+  - rackup  # start a Web server
+  - sleep 3 # give Web server some time to bind to sockets, etc
+
+script: 
   - drush test-run Patterns --uri=http://127.0.0.1
