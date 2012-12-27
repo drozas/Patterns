@@ -18,7 +18,6 @@ before_script:
   - mv drupal-7.18 drupal
   - mv /home/travis/builds/QScience/Patterns ./drupal/sites/all/modules/patterns
   - cd drupal
-  - pwd
   - bash sites/all/modules/patterns/scripts/setup
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
