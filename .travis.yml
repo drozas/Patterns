@@ -16,7 +16,7 @@ before_script:
   - cd ~
   - drush dl drupal
   - mv drupal-7.18 drupal
-  - mv /home/travis/builds/Patterns ./drupal/sites/all/modules/patterns
+  - mv /home/travis/builds/QScience/Patterns ./drupal/sites/all/modules/patterns
   - cd drupal
   - bash sites/all/modules/scripts/setup
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
