@@ -5,7 +5,7 @@ set -e
 [[ $DRUSH && ${DRUSH-x} ]] || DRUSH=drush
 
 echo "Generating sites/default/settings.php..."
-cat > ../../..//default/settings.php <<EOF
+cat > ../../../../default/settings.php <<EOF
 <?php
 
 /**
