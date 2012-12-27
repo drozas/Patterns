@@ -14,7 +14,8 @@ function user_patterns($data) {
   $actions['user'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Users'),
     PATTERNS_CREATE => array('user_register_form'),
-    PATTERNS_MODIFY => array('user_profile_form'),
+    //PATTERNS_MODIFY => array('user_profile_form'), Don't run through form due to the pass problems
+    PATTERNS_MODIFY => array('set_user_values'),
     PATTERNS_DELETE => array('user_cancel_confirm_form'),
     PATTERNS_FILES => $files,
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),  
@@ -243,22 +244,22 @@ function user_patterns_prepare($action, $tag, &$data) {
       $data['pass'] = '';
     }
 
-    if (isset($data['timezone'])) {
-    /* TODO: this needs work and verification
-      if (in_array($data['timezone'], array('0', '+0', '-0', '0000', '-0000'))) {
-        $data['timezone'] = '+0000';
-      }
-      if (!empty($data['timezone']) && preg_match('/(\+|-)([0][0-9]|[1][01])(00|30|45)/', $data['timezone'], $parts)) {
-        $seconds = $parts[2] * 3600 + $parts[3] * 60;
-        $sign = $parts[1] == '+' ? '' : '-';
-        $data['timezone'] = $sign . $seconds;
-      }
-    */
-    }
-    else {
-      // Default timezone is Europe/Berlin.
-      $data['timezone'] = 'Europe/Berlin';
-    }
+//     if (isset($data['timezone'])) {
+//     /* TODO: this needs work and verification
+//       if (in_array($data['timezone'], array('0', '+0', '-0', '0000', '-0000'))) {
+//         $data['timezone'] = '+0000';
+//       }
+//       if (!empty($data['timezone']) && preg_match('/(\+|-)([0][0-9]|[1][01])(00|30|45)/', $data['timezone'], $parts)) {
+//         $seconds = $parts[2] * 3600 + $parts[3] * 60;
+//         $sign = $parts[1] == '+' ? '' : '-';
+//         $data['timezone'] = $sign . $seconds;
+//       }
+//     */
+//     }
+//     else {
+//       // Default timezone is Europe/Berlin.
+//       $data['timezone'] = 'Europe/Berlin';
+//     }
   }
   elseif ($tag == 'role') {
     /* if (isset($data['value'])) {
@@ -760,9 +761,9 @@ function user_patterns_callbacks($action, $tag, &$data) {
       if ($action === PATTERNS_DELETE) {
         $result = array('user_cancel_confirm_form');
       }
-      elseif ($action === PATTERNS_MODIFY) {
+      /*elseif ($action === PATTERNS_MODIFY) {
         $result = array('user_profile_form');
-      }
+      }*/
     }
     else {
       if ($action !== PATTERNS_DELETE) {
@@ -937,3 +938,57 @@ function user_patterns_params($action, $form_id, &$data = NULL, &$a) {
 function user_patterns_cleanup($action, $tag, &$data) {
   return patterns_results();
 }
+
+/**
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ */
+function set_user_values($form, &$form_state) {
+  //Gather all the expected values from the form. Only mandatory one is uid
+  $uid = $form_state['values']['uid'];
+  $name = $form_state['values']['name'];
+  $mail = $form_state['values']['mail'];
+  $timezone = $form_state['values']['timezone'];
+  $status = $form_state['values']['status'];
+  //$pass = $form_state['values']['pass'];
+
+  patterns_set_user_values($uid, $name, $mail, $timezone, $status);
+
+}
+
+function patterns_set_user_values($uid, $name, $mail, $timezone, $status) {
+  //@TO-DO: Build a query with all the sent values that are set
+}
+// Modified version of system_theme_default
+/*function patterns_system_theme_default($theme, $default, $admin) {
+  // Get current list of themes.
+  $themes = list_themes();
+
+  // Check if the specified theme is one recognized by the system.
+  if (!empty($themes[$theme])) {
+    // Enable the theme if it is currently disabled.
+    if (empty($themes[$theme]->status)) {
+      // NOTE: this assumes sites/default/css exists.
+      theme_enable(array($theme));
+    }
+    if ($default) {
+      if ($admin) {
+        // Set the admin theme.
+        variable_set('admin_theme', $theme);
+      }
+      else {
+        // Set the default theme.
+        variable_set('theme_default', $theme);
+      }
+    }
+
+    // Rebuild the menu. This duplicates the menu_rebuild() in theme_enable().
+    // However, modules must know the current default theme in order to use
+    // this information in hook_menu() or hook_menu_alter() implementations,
+    // and doing the variable_set() before the theme_enable() could result
+    // in a race condition where the theme is default but not enabled.
+    menu_rebuild();
+  }
+
+}*/
