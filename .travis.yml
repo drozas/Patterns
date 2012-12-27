@@ -16,8 +16,10 @@ before_script:
   - cd ~
   - drush dl drupal
   - mv drupal-7.18 drupal
+  - mv Patterns drupal/sites/all/modules/patterns
   - cd drupal
-  - bash scripts/setup
+  - bash sites/all/modules/scripts/setup
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
+  - drush en patterns
