@@ -14,8 +14,7 @@ function user_patterns($data) {
   $actions['user'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Users'),
     PATTERNS_CREATE => array('user_register_form'),
-    //PATTERNS_MODIFY => array('user_profile_form'), Don't run through form due to the pass problems
-    PATTERNS_MODIFY => array('set_user_values'), // Run through custom function
+    PATTERNS_MODIFY => array('set_user_values'), // Run through custom function. It was previously run through user_profile_form
     PATTERNS_DELETE => array('user_cancel_confirm_form'),
     PATTERNS_FILES => $files,
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),  
@@ -940,8 +939,10 @@ function set_user_values($form, &$form_state) {
 
 /**
  * 
- * @param unknown $uid
- * @param unknown $attributes
+ * Run a query to update the fields of the user
+ * 
+ * @param unknown $uid  User ID
+ * @param unknown $attributes  Set of values that will be updated. All are optional.
  */
 function patterns_set_user_values($uid, $attributes) {
   //Run a query with all the optional sent values that are set.
