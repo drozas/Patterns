@@ -1,0 +1,23 @@
+language: php
+
+php:
+  - 5.4
+
+mysql:
+  database: drupal_patterns
+  username: root
+  encoding: utf8
+
+before_script:
+  - "mysql -e 'create database drupal;'"
+  - pear channel-discover pear.drush.org
+  - pear install drush/drush
+  - phpenv rehash
+  - cd ~
+  - drush dl drupal
+  - mv drupal-7.18 drupal
+  - cd drupal
+  - bash scripts/setup
+  - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
+  - drush vset purl_base_domain http://127.0.0.1
+  - drush cc all --yes
