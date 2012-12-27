@@ -44,4 +44,4 @@ before_script:
 
 script: 
   - sudo drush http://127.0.0.1 runserver --server=builtin 80 &
-  - drush test-run Patterns --uri=http://127.0.0.1/drupal/
+  - sudo drush test-run Patterns --uri=http://127.0.0.1/drupal/
