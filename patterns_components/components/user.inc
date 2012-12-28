@@ -22,9 +22,10 @@ function user_patterns($data) {
 
   $actions['permission'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Permissions'),
-    PATTERNS_CREATE => array('user_admin_permissions'),
-    PATTERNS_MODIFY => array('user_admin_permissions'),
-    PATTERNS_DELETE => array('user_admin_permissions'),
+    //PATTERNS_CREATE => array('user_admin_permissions'),
+    //PATTERNS_MODIFY => array('user_admin_permissions'),
+    PATTERNS_MODIFY => array('set_user_permissions'), // Run through custom function. It was previously run through user_admin_permissions. Producing an issue similar to http://drupal.org/node/1063204
+    //PATTERNS_DELETE => array('user_admin_permissions'),
     PATTERNS_FILES => $files,
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_permissions', ),
   );
@@ -41,6 +42,7 @@ function user_patterns($data) {
 
 }
 
+//@TO-DO: Check if is possible to remove this function
 function user_patterns_actions($data) {
   return array(
     'user_register_form' => t('User: Add user with the Register Form'),
@@ -93,6 +95,16 @@ function user_patterns_export_all_roles($args = NULL, &$result = NULL) {
   return $result;
 }
 
+/**
+ *
+ * Returns a set of PATTERNS_MODIFY actions ONLY with the whole 
+ * set of roles currently stored in the system.
+ *
+ * @param array $args  Set of arguments received from the form.
+ * @param string $result  Current set of actions for the whole process.
+ * 
+ * @return array $result  Set of actions after performing the changes.
+ */
 function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
 
   $roles = user_roles();
@@ -198,6 +210,7 @@ function user_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE) {
   }
   return $return;
 }
+
 /**
  * Implements hook_patterns_prepare() for the user module.
  */
@@ -269,15 +282,13 @@ function user_patterns_validate($action, $tag, &$data) {
   $msg = '';
   
 /*
- * Syntactic validation
+ * Syntactic validation:
+ * - Syntactic warnings: They refer to wrong grammar statements that will not 
+ * provoke any execution error. Ex.: non-interpretable attributes.
+ * - Syntactic errors: They refer to wrong grammar statements that will provoke
+ * an execution error. Ex.: misspelling in required attribute.
  * 
- * @TO-DO: Define common principles for all the components.
- * Ideas for this component specifially:
- * - Check the existance of the specific attributes for each component
- * (i.e.: only the expected attributes exists, and if they do the value is as expected)
- * - Raise error in the case of create and delete actions for the permissions
- * 
- */  
+ */
   switch ($tag) {
     case 'role':
       switch ($action) {
@@ -320,7 +331,7 @@ function user_patterns_validate($action, $tag, &$data) {
       //Create and delete actions for the permission case are considered as syntactical errors
       if ($action == PATTERNS_CREATE || $action == PATTERNS_DELETE) {
         $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
-        return patterns_results(PATTERNS_ERR, $msg);
+        return patterns_results(PvaluesATTERNS_ERR, $msg);
       }
       /* @TO-DO: Check expected atttributes and its values
        * I.e.:
@@ -370,12 +381,10 @@ function user_patterns_validate($action, $tag, &$data) {
   }
   
 /*
- * Semantic validation
- * @TO-DO: The checking will be performed as follows:
- * - Check type of tag in a switch
- * -- Check type of $action in an internal switch for each tag
- * --- Raise errors if any through msg and status
- * --- Raise warning if any through $result
+ * Semantic validation: 
+ * - Semantic warnings: They refer to the meaning of the pattern itself, and they 
+ * might provoke execution errors if they are not solved.
+ * 
  */
   switch ($tag) {
     case 'role':
@@ -758,44 +767,45 @@ function user_patterns_validate($action, $tag, &$data) {
 }
 
 // Return which callback functions to actually use.
-function user_patterns_callbacks($action, $tag, &$data) {
+//@TO-DO: this can 
+// function user_patterns_callbacks($action, $tag, &$data) {
 
-  if ($tag == 'user') {
-    // Check if the user needs updating.
-    if ($data['uid']) {
-      if ($action === PATTERNS_DELETE) {
-        $result = array('user_cancel_confirm_form');
-      }
-      /*elseif ($action === PATTERNS_MODIFY) {
-        $result = array('user_profile_form');
-      }*/
-    }
-    else {
-      if ($action !== PATTERNS_DELETE) {
-        $result = array('user_register_form');
-      }
-      else {
-        // TODO: ???
-      }
-    }
-  }
-  elseif ($tag == 'role') {
-    // Role names should always be unique.
-    if ($data['rid'] && $data['name'] && $action === PATTERNS_MODIFY) {
-      $result = array('user_admin_role');
-    }
-    elseif ($action === PATTERNS_DELETE) {
-      $result = array('user_admin_role_delete_confirm');
-    }
-    elseif ($action === PATTERNS_CREATE) {
-      $result = array('user_admin_roles');
-    }
-  }
-  elseif ($tag == 'permission') {
-    $result = array('user_admin_permissions');
-  }
-  return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
-}
+//   if ($tag == 'user') {
+//     // Check if the user needs updating.
+//     if ($data['uid']) {
+//       if ($action === PATTERNS_DELETE) {
+//         $result = array('user_cancel_confirm_form');
+//       }
+//       /*elseif ($action === PATTERNS_MODIFY) {
+//         $result = array('user_profile_form');
+//       }*/
+//     }
+//     else {
+//       if ($action !== PATTERNS_DELETE) {
+//         $result = array('user_register_form');
+//       }
+//       else {
+//         // TODO: ???
+//       }
+//     }
+//   }
+//   elseif ($tag == 'role') {
+//     // Role names should always be unique.
+//     if ($data['rid'] && $data['name'] && $action === PATTERNS_MODIFY) {
+//       $result = array('user_admin_role');
+//     }
+//     elseif ($action === PATTERNS_DELETE) {
+//       $result = array('user_admin_role_delete_confirm');
+//     }
+//     elseif ($action === PATTERNS_CREATE) {
+//       $result = array('user_admin_roles');
+//     }
+//   }
+//   elseif ($tag == 'permission') {
+//     $result = array('user_admin_permissions');
+//   }
+//   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
+// }*/
 
 // Prepare for valid processing of this type of component
 function user_patterns_build($action, $form_id, &$data = NULL, &$a) {
@@ -855,7 +865,7 @@ function user_patterns_build($action, $form_id, &$data = NULL, &$a) {
       $data['op'] = t('Add role');
     }
   }
-  elseif ($form_id == 'user_admin_permissions') {
+/*  elseif ($form_id == 'user_admin_permissions') {
 
     // Get list of permissions to ensure only available permissions are saved.
     $permissions = array_keys(user_permission_get_modules());
@@ -902,7 +912,7 @@ function user_patterns_build($action, $form_id, &$data = NULL, &$a) {
       unset($data[$role]);
     }
     $data['op'] = t('Save permissions');
-  }
+  }*/
 
   // TODO: check if these validations work
 /*
@@ -944,10 +954,46 @@ function user_patterns_cleanup($action, $tag, &$data) {
   return patterns_results();
 }
 
+
+
+/**
+ *
+ * Wraps the call to drupal_form_submit for 'user_profile_form'
+ * Gathers all the expecpattern_1356704648ted values from the form and prepare them for the query
+ *
+ * @param array $form  Equivalent of the $form variable. It will be empty.
+ * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
+ */
+function set_user_permissions($form, &$form_state) {
+  // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
+  $rid = $form_state['values']['rid'];
+  //Prepare all the attributes for the query, but uid
+  $permissions = $form_state['values']['value'];
+  //Remove all permissions not associated to any module (due to http://drupal.org/node/737816)
+  $modules = user_permission_get_modules();
+  foreach ($permissions as $key => $name) {
+    if (!isset($modules[$name])) {
+      unset($permissions[$key]);
+    }
+  }
+  patterns_set_user_permissions($rid, $permissions);
+}
+
+/**
+ *
+ * Run a query to update the fields of the user
+ *
+ * @param string $uid  User ID
+ * @param array $attributes  Set of values that will be updated. All are optional.
+ */
+function patterns_set_user_permissions($rid, $permissions) {
+  user_role_grant_permissions($rid, $permissions);
+}
+
 /**
  * 
  * Wraps the call to drupal_form_submit for 'user_profile_form'
- * Gathers all the expected values from the form and prepare them for the query
+ * Gathers all the expecpattern_1356704648ted values from the form and prepare them for the query
  * 
  * @param array $form  Equivalent of the $form variable. It will be empty.
  * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
