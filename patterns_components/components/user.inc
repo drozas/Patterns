@@ -11,15 +11,6 @@ function user_patterns($data) {
 
   $files = array('modules/user/user.admin.inc', 'modules/user/user.pages.inc');
 
-  $actions['user'] = array(
-    PATTERNS_INFO => t('Create/Modify/Delete Users'),
-    PATTERNS_CREATE => array('user_register_form'),
-    PATTERNS_MODIFY => array('set_user_values'), // Run through custom function. It was previously run through user_profile_form
-    PATTERNS_DELETE => array('user_cancel_confirm_form'),
-    PATTERNS_FILES => $files,
-    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),  
-  );
-
   $actions['role'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Roles'),
     PATTERNS_CREATE => array('user_admin_roles'),
@@ -37,7 +28,15 @@ function user_patterns($data) {
     PATTERNS_FILES => $files,
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_permissions', ),
   );
-
+  
+  $actions['user'] = array(
+      PATTERNS_INFO => t('Create/Modify/Delete Users'),
+      PATTERNS_CREATE => array('user_register_form'),
+      PATTERNS_MODIFY => array('set_user_values'), // Run through custom function. It was previously run through user_profile_form
+      PATTERNS_DELETE => array('user_cancel_confirm_form'),
+      PATTERNS_FILES => $files,
+      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
+  );
   return $actions;
 
 }
@@ -53,58 +52,6 @@ function user_patterns_actions($data) {
     'user_admin_permissions' => t('User: Configure permissions'),
   );
 }
-
-/**
- *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of users currently stored in the system.
- *
- * @param array $args  Set of arguments received from the form.
- * @param string $result  Current set of actions for the whole process.
- *
- * @return array $result  Set of actions
- */
-function user_patterns_export_all_users($args = NULL, &$result = NULL) {
-  //Fetch all user objects except the anonymous
-  $query = db_select('users', 'u');
-  $query->fields('u', array('uid'));
-  $query->condition('uid', '0', '<>');
-  $uids = $query->execute()->fetchCol();
-  $users = user_load_multiple($uids);
-  $result = array();
-
-  switch ($args['type']) {
-    case PATTERNS_CREATE :
-      foreach ($users as $user) {
-        //Create operation generate a new random password
-        $data = array('tag' => 'user');
-        $data['name'] = $user->name;
-        $data['mail'] = $user->mail;
-        $data['password'] = user_password();
-        $data['timezone'] = $user->timezone;
-        $data['status'] = $user->status;
-        $action = array(PATTERNS_CREATE => $data);
-        array_push($result, $action);
-      }
-      break;
-    case PATTERNS_MODIFY :
-      foreach ($users as $uid => $user) {
-        //Modify operations override all the available fields but password. @TO-DO: Revise if necessary to set values in the object manually
-        $data = array('tag' => 'user');
-        $data['uid'] = $uid;
-        $data['name'] = $user->name;
-        $data['mail'] = $user->mail;
-        $data['timezone'] = $user->timezone;
-        $data['status'] = $user->status;
-        $action = array(PATTERNS_MODIFY => $data);
-        array_push($result, $action);
-      }
-      break;
-  }
-
-  return $result;
-}
-
 
 /**
  *
@@ -167,6 +114,55 @@ function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
 
   return $result;
 }
+
+
+/**
+ *
+ * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
+ * with the whole set of users currently stored in the system.
+ *
+ * @param array $args  Set of arguments received from the form.
+ * @param string $result  Current set of actions for the whole process.
+ *
+ * @return array $result  Set of actions
+ */
+function user_patterns_export_all_users($args = NULL, &$result = NULL) {
+  //Fetch all user objects except the anonymous
+  $users = _user_patterns_get_all_users();
+  $result = array();
+
+  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      foreach ($users as $user) {
+        //Create operation generate a new random password
+        $data = array('tag' => 'user');
+        $data['name'] = $user->name;
+        $data['mail'] = $user->mail;
+        $data['password'] = user_password();
+        $data['timezone'] = $user->timezone;
+        $data['status'] = $user->status;
+        $action = array(PATTERNS_CREATE => $data);
+        array_push($result, $action);
+      }
+      break;
+    case PATTERNS_MODIFY :
+      foreach ($users as $uid => $user) {
+        //Modify operations override all the available fields but password.
+        $data = array('tag' => 'user');
+        $data['uid'] = $uid;
+        $data['name'] = $user->name;
+        $data['mail'] = $user->mail;
+        $data['timezone'] = $user->timezone;
+        $data['status'] = $user->status;
+        $action = array(PATTERNS_MODIFY => $data);
+        array_push($result, $action);
+      }
+      break;
+  }
+
+  return $result;
+}
+
 
 // returns arguments needed for the forms when processing automatically
 // $loop is set if we want to extract all values
@@ -277,7 +273,7 @@ function user_patterns_validate($action, $tag, &$data) {
  * 
  * @TO-DO: Define common principles for all the components.
  * Ideas for this component specifially:
- * - Check the existace of the specific attributes for each component
+ * - Check the existance of the specific attributes for each component
  * (i.e.: only the expected attributes exists, and if they do the value is as expected)
  * - Raise error in the case of create and delete actions for the permissions
  * 
@@ -421,7 +417,41 @@ function user_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'user':
-      //@TO-DO: It is also necessary to create the export function as well.
+      $users = _user_patterns_get_all_users();
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //Create semantic warning if username or mail has already been defined
+          if (user_load_by_name($data['name'])) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The username %username already exists in the system.', array('%username' =>$data['name'],)));
+          }
+          if (user_load_by_mail($data['mail'])) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The username %mail already exists in the system.', array('%mail' =>$data['mail'],)));
+          }
+          break;
+        case PATTERNS_MODIFY:
+          /*$role_name = $data['name'];
+          $role_rid = $data['rid'];
+          //Create semantic warning if the rid does not exist
+          if (!array_key_exists($role_rid, $current_roles)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('The role id %rid does not exist in the system.', array('%rid' =>$role_rid,)));
+          }
+          //Create semantic warning if the role name has already been defined
+          if (in_array($role_name, $current_roles)) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The role name %role_name already exists in the system.', array('%role_name' =>$role_name,)));
+          }*/
+          break;
+        case PATTERNS_DELETE:
+          /*$role_rid = $data['rid'];
+          if (!array_key_exists($role_rid, $current_roles) && !in_array($role_rid, $current_roles)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('The value %rid does not exist in the system as role name neither as a numeric rid.', array('%rid' =>$role_rid,)));
+          }*/
+          break;
+      }
       break;
   }
   return patterns_results($status, $msg, $result);
@@ -941,8 +971,8 @@ function set_user_values($form, &$form_state) {
  * 
  * Run a query to update the fields of the user
  * 
- * @param unknown $uid  User ID
- * @param unknown $attributes  Set of values that will be updated. All are optional.
+ * @param string $uid  User ID
+ * @param array $attributes  Set of values that will be updated. All are optional.
  */
 function patterns_set_user_values($uid, $attributes) {
   //Run a query with all the optional sent values that are set.
@@ -950,4 +980,15 @@ function patterns_set_user_values($uid, $attributes) {
   ->fields($attributes)
   ->condition('uid', $uid, '=')
   ->execute();
+}
+
+/**
+ * Returns all the users currently stored in the system, excluding the anonymous.
+ */
+function _user_patterns_get_all_users() {
+  $query = db_select('users', 'u');
+  $query->fields('u', array('uid'));
+  $query->condition('uid', '0', '<>');
+  $uids = $query->execute()->fetchCol();
+  return user_load_multiple($uids);
 }
