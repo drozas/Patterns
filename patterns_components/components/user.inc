@@ -431,25 +431,18 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_MODIFY:
-          /*$role_name = $data['name'];
-          $role_rid = $data['rid'];
-          //Create semantic warning if the rid does not exist
-          if (!array_key_exists($role_rid, $current_roles)) {
+          //Create semantic warning if the uid does not exist
+          if (!user_load($data['uid'])) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
-                t('The role id %rid does not exist in the system.', array('%rid' =>$role_rid,)));
+              t('The User ID %uid does not exist in the system.', array('%uid' =>$data['uid'],)));
           }
-          //Create semantic warning if the role name has already been defined
-          if (in_array($role_name, $current_roles)) {
-            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
-                t('The role name %role_name already exists in the system.', array('%role_name' =>$role_name,)));
-          }*/
           break;
         case PATTERNS_DELETE:
-          /*$role_rid = $data['rid'];
-          if (!array_key_exists($role_rid, $current_roles) && !in_array($role_rid, $current_roles)) {
+          //Create semantic warning if the uid does not exist
+          if (!user_load($data['uid'])) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
-                t('The value %rid does not exist in the system as role name neither as a numeric rid.', array('%rid' =>$role_rid,)));
-          }*/
+              t('The User ID %uid does not exist in the system.', array('%uid' =>$data['uid'],)));
+          }
           break;
       }
       break;
