@@ -310,7 +310,17 @@ function user_patterns_validate($action, $tag, &$data) {
       //Create and delete actions for the permission case are considered as syntactical errors
       if ($action == PATTERNS_CREATE || $action == PATTERNS_DELETE) {
         $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
-        return patterns_results(PvaluesATTERNS_ERR, $msg);
+        return patterns_results(PATTERNS_ERR, $msg);
+      }else if($action == PATTERNS_MODIFY) {
+        $mandatory_attributes = array('rid', 'value');
+        if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+          return patterns_results(PATTERNS_ERR, $msg);
+        }
+        //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+        if(_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+          $status = PATTERNS_WARN;
+        }
+        
       }
       /* @TO-DO: Check expected atttributes and its values
        * I.e.:
