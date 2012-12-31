@@ -322,11 +322,6 @@ function user_patterns_validate($action, $tag, &$data) {
         }
         
       }
-      /* @TO-DO: Check expected atttributes and its values
-       * I.e.:
-      * -- modify: tag, rid, value
-      */
-      //@TO-DO: We should discuss if we should have a common function for this: check mandatory fields and check extra attributes
       break;
     case 'user':
       switch ($action) {
@@ -412,7 +407,28 @@ function user_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'permission':
-      //@TO-DO
+      //This is the only case available, the lack of the rest are checking during the syntactic validation
+      if($action == PATTERNS_MODIFY) {
+        $permissions = $data['value'];
+        $rid = $data['rid'];
+        //Check if all permissions exist, if any of them don't raise a syntactic warning
+        $available_permissions = user_permission_get_modules();
+        $msg = "";
+        foreach ($permissions as $permission) {
+          if (!array_key_exists($permission, $available_permissions)) {
+            $msg .= t('Permission %permission is not available in the system.<br>', array('%permission' =>$permission,));
+          }
+        }
+        if ($msg !="") {
+          $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => $msg);
+        }
+        //Raise semantic warning if the rid does not exist
+        if (!array_key_exists($rid, user_roles())) {
+          $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+              t('The role id %rid does not exist in the system.', array('%rid' =>$rid,)));
+        }
+      }
+            
       break;
     case 'user':
       $users = _user_patterns_get_all_users();
