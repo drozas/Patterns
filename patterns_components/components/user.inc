@@ -585,7 +585,7 @@ function patterns_set_user_permissions($rid, $permissions) {
 /**
  * 
  * Wraps the call to drupal_form_submit for 'user_profile_form'
- * Gathers all the expecpattern_1356704648ted values from the form and prepare them for the query
+ * Gathers all the expected values from the form and prepare them for the query
  * 
  * @param array $form  Equivalent of the $form variable. It will be empty.
  * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern

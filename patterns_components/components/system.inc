@@ -89,7 +89,7 @@ return $result;
  * @param string $result
  * @return array $actions
  */
-/*function system_patterns_export_all_theme($args = NULL, &$result = NULL) {
+/*function system_patterns_export_all_($args = NULL, &$result = NULL) {
  // Taken from the Devel module.
 $query = db_select('variable', 'v')->extend('TableSort');
 $query->fields('v', array('name', 'value'));
@@ -486,29 +486,25 @@ function modules_execute($action, &$data) {
   return patterns_results(PATTERN_SUCCESS, $msg);
 }
 
+/**
+ * Wraps the call to drupal_form_submit for setting the values of the variables
+ * Goes through all the expected values from the form and prepare them for the query
+ *
+ * @param string $action  String containing the type of action. Currently, should be only 'modify'
+ * @param array $data  Array of pairs variable name/value
+ */
 function variables_execute($action, &$data) {
-  $names = array();
-  for ($i = 0; $variable = $data[$i]; $i++) {
-    if ($action === PATTERNS_DELETE) {
-      variable_del($variable['name']);
+  foreach ($data['values'] as $variable) {
+    $var = variable_get($variable['name'], NULL);
+    if (is_array($var)) {
+      //Make sure we don't lose parts of the array that were not defined by pattern's action
+      $var = array_merge($var, $variable['value']);
+      variable_set($variable['name'], $var);
     }
     else {
-      $var = variable_get($variable['name'], NULL);
-      if (is_array($var)) {
-        // make sure we don't lose parts of the array that were not defined by pattern's action
-        // TODO: is this a good practice?
-        $var = array_merge($var, $variable['value']);
-        variable_set($variable['name'], $var);
-      }
-      else {
-        variable_set($variable['name'], $variable['value']);
-      }
+      variable_set($variable['name'], $variable['value']);
     }
-    $names[] = $variable['name'];
   }
-
-  $msg = t('Variable(s) %vars updated.', array('%vars' => implode(', ', $names)));
-  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
