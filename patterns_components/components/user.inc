@@ -327,6 +327,7 @@ function user_patterns_validate($action, $tag, &$data) {
       switch ($action) {
         case PATTERNS_CREATE:
           //Check mandatory fields
+          //@TO-DO: Get role values?
           $mandatory_attributes = array('name', 'mail', 'password', 'timezone', 'status');
           if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
@@ -590,6 +591,7 @@ function patterns_set_user_permissions($rid, $permissions) {
  * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
  */
 function set_user_values($form, &$form_state) {
+  //@TO-DO: Apply role values?
   // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
   $uid = $form_state['values']['uid'];
   //Prepare all the attributes for the query, but uid

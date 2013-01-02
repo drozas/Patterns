@@ -10,18 +10,19 @@ function system_patterns($data) {
 
   $files = array('modules/system/system.admin.inc');
 
+  //Function not run through form. @TO-DO: create export function
   $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
-    PATTERNS_CREATE => array(),
-    PATTERNS_DELETE => array(),
+    PATTERNS_CREATE => array('modules_execute'),
+    PATTERNS_DELETE => array('modules_execute'),
     PATTERNS_FILES  => $files,
   );
 
-  // Drupal7.x changed the theme setting form, so we use a custom one
+  //Function not run through form. @TO-DO: create export function
   $actions['theme'] = array('descr' => t('Enable (and set default)/Disable Themes'),
     PATTERNS_CREATE => array('set_active_theme'),
     PATTERNS_DELETE => array('set_active_theme'),
     PATTERNS_FILES  => $files,
-  ); // TODO: Don't run through form.
+  );
 
   // Determine necessary forms for action 'form' based on the data.
   $forms = array();
@@ -36,50 +37,105 @@ function system_patterns($data) {
     PATTERNS_FILES  => $files,
   );
 
+  //Function not run through form.
   $actions['call_php_func'] = array('descr' => t('Call PHP Functions'),
     PATTERNS_CREATE => array('call_php_func_form'),
-  ); // TODO: Don't run through form.
-
-  $actions['variables'] = array('descr'  => t('Set/Modify/Delete System Variables'),
-    PATTERNS_CREATE => array(),
-    PATTERNS_MODIFY => array(), // TODO: ??
-    PATTERNS_DELETE => array(),
-    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
   );
 
-//  $actions['variable'] = $actions['variables']; // Alias, not available any more
-
- /* $actions['date'] = array('descr' => t('Create/edit/delete types of date and time'),
-    PATTERNS_CREATE => array('system_configure_date_formats_form','system_add_date_format_type_form'),
-    PATTERNS_MODIFY => array('system_configure_date_formats_form','system_date_time_settings'),
-    PATTERNS_DELETE => array('system_delete_date_format_type_form'),
-    PATTERNS_FILES =>$files
-  );*/
-
+  //Function not run through form.
+  $actions['variables'] = array('descr'  => t('Set/Modify/Delete System Variables'),
+    PATTERNS_MODIFY => array('variables_execute'),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
+  );
   return $actions;
 
 }
 
 
+/**
+ * @TO-DO!
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+/*function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
+ // Taken from the Devel module.
+$query = db_select('variable', 'v')->extend('TableSort');
+$query->fields('v', array('name', 'value'));
+$qresult = $query->execute();
 
+$actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
+foreach ($qresult as $row) {
+$name = $row->name;
+$value = variable_get($name);
+//Apply htmlspecialchars() function recursively to keep the same value input by the user
+_htmlspecialchars_decode($value);
+$action = array('name' => $name, 'value' => $value);
+array_push($actions[PATTERNS_MODIFY], $action);
+}
+$result = array($actions);
+return $result;
+}*/
+
+/**
+ * @TO-DO!
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
+/*function system_patterns_export_all_theme($args = NULL, &$result = NULL) {
+ // Taken from the Devel module.
+$query = db_select('variable', 'v')->extend('TableSort');
+$query->fields('v', array('name', 'value'));
+$qresult = $query->execute();
+
+$actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
+foreach ($qresult as $row) {
+$name = $row->name;
+$value = variable_get($name);
+//Apply htmlspecialchars() function recursively to keep the same value input by the user
+_htmlspecialchars_decode($value);
+$action = array('name' => $name, 'value' => $value);
+array_push($actions[PATTERNS_MODIFY], $action);
+}
+$result = array($actions);
+return $result;
+}*/
+
+/**
+ *
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
+ * currently stored in the system.
+ *
+ * @param string $args
+ * @param string $result
+ * @return array $actions
+ */
 function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   // Taken from the Devel module.
   $query = db_select('variable', 'v')->extend('TableSort');
   $query->fields('v', array('name', 'value'));
   $qresult = $query->execute();
 
-  $actions = array(PATTERNS_CREATE => array('tag' => 'variables'));
+  $actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
   foreach ($qresult as $row) {
     $name = $row->name;
     $value = variable_get($name);
     //Apply htmlspecialchars() function recursively to keep the same value input by the user
     _htmlspecialchars_decode($value);
     $action = array('name' => $name, 'value' => $value);
-    array_push($actions[PATTERNS_CREATE], $action);
+    array_push($actions[PATTERNS_MODIFY], $action);
   }
   $result = array($actions);
   return $result;
 }
+
 
 // Prepare data for processing
 function system_patterns_prepare($action, $tag, &$data) {
@@ -114,26 +170,7 @@ function system_patterns_prepare($action, $tag, &$data) {
       $data['delete'] = $data['disable'];
     }
     unset($data['disable']);
-  }/*
-    elseif($tag=='date'){
-    if(isset($data['format'])){
-      $data['date_format']=$data['format'];
-      unset($data['format']);
-    }
-    if(isset($data['type'])){
-      if(!isset($data['machine_name'])){
-        $data['machine_name']=str_replace(' ', '-', $data['type']);
-      }
-      $data['date_type']=$data['type'];
-      unset($data['type']);
-    }
-  if($action==PATTERNS_MODIFY){
-    if(isset($data['date_type'])&&isset($data['date_format'])){
-      $new='date_format_'.$data['date_type'];
-      $data[$new]=$data['date_format'];
-    }
   }
-  }*/
   elseif ($tag == 'form') {
   }
   else {
