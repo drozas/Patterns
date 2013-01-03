@@ -78,7 +78,57 @@ function color_patterns_prepare($action, $tag, &$data) {
 
 // Validate the values for an action before running the pattern
 function color_patterns_validate($action, $tag, &$data) {
+	$result = array();
   $status = PATTERNS_SUCCESS;
+  $msg = '';
+	/*
+ * Syntactic validation
+ * 
+ */
+	switch ($action) {
+        case PATTERNS_CREATE:
+        	$msg .= t('Color could not be created. Only modify action is possible for Color.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+        case PATTERNS_MODIFY:
+          //Check mandatory fields
+          $mandatory_attributes = array('theme');
+          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //All the fields but uid are in this case optional
+          $interpretable_attributes = array('theme','palette', 'scheme');
+          if(_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_DELETE:
+          //Check mandatory fields, in this case is only one.
+          $msg .= t('Color could not be Deleted. Only modify action is possible for Color.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+      }
+      /*
+ * Semantic validation
+ */
+  	$themes = system_rebuild_theme_data();
+  	$current_themes=array();
+  	foreach ($themes as $key=>$voc) {
+    	$current_themes[$key]=$voc->name;
+    }
+	 switch ($action) {
+        case PATTERNS_MODIFY:
+          $theme = $data['theme'];
+          //Create semantic warning if the theme does not exist
+          if (!array_key_exists($theme, $current_themes)) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The theme %theme does not exist in the system.', array('%theme' =>$theme)));
+          }
+          break;
+      }
+      return patterns_results($status, $msg, $result);
+	
+ /* $status = PATTERNS_SUCCESS;
   $msg = '';
   foreach ($data['palette'] as $key => $color) {
     if (!preg_match('/^#([a-f0-9]{3}){1,2}$/iD', $color)) {
@@ -86,7 +136,7 @@ function color_patterns_validate($action, $tag, &$data) {
       break;
     }
   }
-  return patterns_results($status, $msg);
+  return patterns_results($status, $msg);*/
 }
 
 // Prepare for valid processing of this type of component
