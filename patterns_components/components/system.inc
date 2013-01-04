@@ -88,20 +88,37 @@ function system_patterns($data) {
  * @return array $actions
  */
 function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
-  // Taken from the Devel module.
+  //Get all the currently stored variables
   $query = db_select('variable', 'v')->extend('TableSort');
   $query->fields('v', array('name', 'value'));
   $qresult = $query->execute();
-
-  $actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
-  foreach ($qresult as $row) {
-    $name = $row->name;
-    $value = variable_get($name);
-    //Apply htmlspecialchars() function recursively to keep the same value input by the user
-    _htmlspecialchars_decode($value);
-    $action = array('name' => $name, 'value' => $value);
-    array_push($actions[PATTERNS_MODIFY], $action);
+  
+  //Got through all the variables and prepare set of actions according to the type of export process
+  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      $actions = array(PATTERNS_CREATE => array('tag' => 'variables'));
+      foreach ($qresult as $row) {
+        $name = $row->name;
+        $value = variable_get($name);
+        //Apply htmlspecialchars() function recursively to keep the same value input by the user
+        _htmlspecialchars_decode($value);
+        $action = array('name' => $name, 'value' => $value);
+        array_push($actions[PATTERNS_CREATE], $action);
+      }
+      break;
+    case PATTERNS_MODIFY :
+      $actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
+      foreach ($qresult as $row) {
+        $name = $row->name;
+        $value = variable_get($name);
+        //Apply htmlspecialchars() function recursively to keep the same value input by the user
+        _htmlspecialchars_decode($value);
+        $action = array('name' => $name, 'value' => $value);
+        array_push($actions[PATTERNS_MODIFY], $action);
+      }
+      break;
   }
+    
   $result = array($actions);
   return $result;
 }
@@ -224,7 +241,7 @@ function system_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'variables':
-      if ($action == PATTERNS_CREATE || $action == PATTERNS_DELETE) {
+      if (/*$action == PATTERNS_CREATE ||*/ $action == PATTERNS_DELETE) {
         $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
         return patterns_results(PATTERNS_ERR, $msg);
       }else if($action == PATTERNS_MODIFY) {
