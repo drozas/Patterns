@@ -93,30 +93,18 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   $query->fields('v', array('name', 'value'));
   $qresult = $query->execute();
   
-  //Got through all the variables and prepare set of actions according to the type of export process
-  switch ($args['type']) {
-    case PATTERNS_CREATE :
-      $actions = array(PATTERNS_CREATE => array('tag' => 'variables'));
-      foreach ($qresult as $row) {
-        $name = $row->name;
-        $value = variable_get($name);
-        //Apply htmlspecialchars() function recursively to keep the same value input by the user
-        _htmlspecialchars_decode($value);
-        $action = array('name' => $name, 'value' => $value);
-        array_push($actions[PATTERNS_CREATE], $action);
-      }
-      break;
-    case PATTERNS_MODIFY :
-      $actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
-      foreach ($qresult as $row) {
-        $name = $row->name;
-        $value = variable_get($name);
-        //Apply htmlspecialchars() function recursively to keep the same value input by the user
-        _htmlspecialchars_decode($value);
-        $action = array('name' => $name, 'value' => $value);
-        array_push($actions[PATTERNS_MODIFY], $action);
-      }
-      break;
+  //Got through all the variables and prepare set of actions according 
+  //to the type of export process. In this case both cases have the same syntax
+  if ($args['type'] == PATTERNS_CREATE ||PATTERNS_MODIFY) {
+    $actions = array($args['type'] => array('tag' => 'variables'));
+    foreach ($qresult as $row) {
+      $name = $row->name;
+      $value = variable_get($name);
+      //Apply htmlspecialchars() function recursively to keep the same value input by the user
+      _htmlspecialchars_decode($value);
+      $action = array('name' => $name, 'value' => $value);
+      array_push($actions[$args['type']], $action);
+    }
   }
     
   $result = array($actions);
@@ -242,7 +230,7 @@ function system_patterns_validate($action, $tag, &$data) {
       break;
     case 'variables':
       switch ($action) {
-        //In this case create and modify have the same synatx
+        //In this case create and modify have the same syntax
         case PATTERNS_CREATE || PATTERNS_MODIFY:
           $mandatory_attributes = array('name', 'value');
           //Go through all the variables to check if they have the mandatory attributes
