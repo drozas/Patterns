@@ -80,8 +80,8 @@ function system_patterns($data) {
 
 /**
  *
- * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
- * currently stored in the system.
+ * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions with 
+ * the whole set of variables currently stored in the system.
  *
  * @param string $args
  * @param string $result
@@ -241,24 +241,28 @@ function system_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'variables':
-      if (/*$action == PATTERNS_CREATE ||*/ $action == PATTERNS_DELETE) {
-        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
-        return patterns_results(PATTERNS_ERR, $msg);
-      }else if($action == PATTERNS_MODIFY) {
-        $mandatory_attributes = array('name', 'value');
-        //Go through all the variables to check if they have the mandatory attributes
-        foreach ($data as $variable) {
-          if (!_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
-            return patterns_results(PATTERNS_ERR, $msg);
-          }         
-        }
-        //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
-        foreach ($data as $variable) {
-          if(_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
-            $status = PATTERNS_WARN;
+      switch ($action) {
+        //In this case create and modify have the same synatx
+        case PATTERNS_CREATE || PATTERNS_MODIFY:
+          $mandatory_attributes = array('name', 'value');
+          //Go through all the variables to check if they have the mandatory attributes
+          foreach ($data as $variable) {
+            if (!_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
+              return patterns_results(PATTERNS_ERR, $msg);
+            }
           }
-        }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
+          foreach ($data as $variable) {
+            if(_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
+              $status = PATTERNS_WARN;
+            }
+          }
+          break;
+        case PATTERNS_DELETE:
+
+          break;
       }
+
       break;
   }
 
