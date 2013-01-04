@@ -44,7 +44,9 @@ function system_patterns($data) {
 
   //Function not run through form.
   $actions['variables'] = array('descr'  => t('Set/Modify/Delete System Variables'),
+    PATTERNS_CREATE => array('variables_execute'),
     PATTERNS_MODIFY => array('variables_execute'),
+    PATTERNS_DELETE => array('variables_execute'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
   );
   return $actions;
@@ -230,8 +232,11 @@ function system_patterns_validate($action, $tag, &$data) {
       break;
     case 'variables':
       switch ($action) {
-        //In this case create and modify have the same syntax
-        case PATTERNS_CREATE || PATTERNS_MODIFY:
+        case PATTERNS_CREATE:
+        case PATTERNS_MODIFY:
+        case PATTERNS_DELETE:
+          //In this case even the delete case is the same because the 'value' attribute is added by
+          //the hook_prepare(). We will keep the code (switch with same cases) like this for future extendibility reasons
           $mandatory_attributes = array('name', 'value');
           //Go through all the variables to check if they have the mandatory attributes
           foreach ($data as $variable) {
@@ -246,11 +251,7 @@ function system_patterns_validate($action, $tag, &$data) {
             }
           }
           break;
-        case PATTERNS_DELETE:
-
-          break;
       }
-
       break;
   }
 
