@@ -147,7 +147,7 @@ function taxonomy_patterns_prepare($action, $tag, &$data) {
 
 // Validate the values for an action before running the pattern
 function taxonomy_patterns_validate($action, $tag, &$data) {
-
+ 	$result = array();
   $status = PATTERNS_SUCCESS;
   $msg = '';
 
@@ -210,10 +210,6 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	$status = PATTERNS_ERR;
     $msg = t("Unknown tag: %tag.", array('%tag' => $tag));
   }
-
-  return patterns_results($status, $msg);	
-  
-  /* COMMENTED FOR NOW, BECAUSE THE CORE DOES NOT SUPPORT IT YET
    
   if ($status == PATTERNS_ERR) {
   	return patterns_results($status, $msg);	
@@ -234,7 +230,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	}
   	else if ($action == PATTERNS_MODIFY) {
   		
-  		if (!$voc_exists)) {
+  		if (!$voc_exists) {
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The vocabulary %voc was not found in the system, and cannot be modified.', array('%voc' => $data['machine_name'],)));
       }
@@ -243,7 +239,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	
   	else if ($action == PATTERNS_DELETE) {
   		
-  		if (!$voc_exists)) {
+  		if (!$voc_exists) {
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The vocabulary %voc was not found in the system, and cannot be deleted.', array('%voc' => $data['machine_name'],)));
       }
@@ -252,20 +248,23 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	
   }
   
-  
   else if ($tag == 'term') {
   	
-  	$terms = taxonomy_get_term_by_name($data['name']);
-  	$term_exists = (count($terms) == 1);
-  	
+  	$term_exists = FALSE;
+
   	if ($action == PATTERNS_CREATE) {
-	      
+
+  		$terms = taxonomy_get_term_by_name($data['name']);
+  		$term_exists = (count($terms) == 1);
+  		
       if ($term_exists) {
       	$result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
         	t('The term %term already exists in the system.', array('%term' => $data['name'],)));
       }
   	}
   	else if ($action == PATTERNS_MODIFY) {
+  		
+  		$term_exists = taxonomy_term_load($data['tid']);
   		
   		if (!$term_exists) {
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
@@ -275,7 +274,9 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	
   	else if ($action == PATTERNS_DELETE) {
   		
-  		if (!$term_exists)) {
+  		$term_exists = taxonomy_term_load($data['tid']);
+  		
+  		if (!$term_exists) {
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The term %term was not found in the system, and cannot be deleted.', array('%term' => $data['name'],)));
       }
@@ -285,7 +286,8 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   }
   
   return patterns_results($status, $msg, $result);	
-  */
+  
+  
 }
 
 
@@ -534,7 +536,7 @@ function _taxonomy_patterns_prepare_vocabulary_delete($action, $data) {
 
 function _taxonomy_patterns_vocabulary_exists($machine_name, $vocabs) {
 	foreach ($vocabs as $vid => $vocab) {
-  	if (drupal_strtolower($vocab->name) == drupal_strtolower($machine_name)) {
+  	if (drupal_strtolower($vocab->machine_name) == drupal_strtolower($machine_name)) {
     	return TRUE;
     }
 	}

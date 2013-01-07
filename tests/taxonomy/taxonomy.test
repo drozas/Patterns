@@ -62,8 +62,8 @@ class PatternsTaxonomyTestCase extends PatternsTestCase {
     $name = $taxo->name;
     $descr = $taxo->description;
 
-    $taxo = NULL;
-
+    $taxo = NULL;    
+    
     parent::runFile('taxonomy_vocabulary_modify.yaml', 'Taxonomy_Vocabulary_MODIFY', $this->taxo_tests_dir);
 
     // Seems to fail
