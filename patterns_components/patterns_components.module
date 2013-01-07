@@ -21,7 +21,7 @@ function patterns_patterns_components() {
  * 
  * @TO-DO: Find a cleaner way to input the <br>
  */
-function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg) {
+/*function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg) {
   $result = TRUE;
   foreach ($mandatory_attributes as $att){
     if (!array_key_exists($att, $attributes)) {
@@ -30,7 +30,7 @@ function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg
     }
   }
   return $result;
-}
+}*/
 
 /**
  * 
@@ -44,7 +44,7 @@ function _has_all_mandatory_attributes($attributes, $mandatory_attributes, &$msg
  * 
  * @TO-DO: Find a cleaner way to input the <br>
  */
-function _has_uninterpretable_attributes($attributes, $interpretable_attributes, &$msg) {
+/*function _has_uninterpretable_attributes($attributes, $interpretable_attributes, &$msg) {
   $result = FALSE;
   foreach ($attributes as $att => $value) {
     if (!in_array($att, $interpretable_attributes)) {
@@ -53,7 +53,7 @@ function _has_uninterpretable_attributes($attributes, $interpretable_attributes,
     }
   }
   return $result;
-}
+}*/
 
 
 /**
