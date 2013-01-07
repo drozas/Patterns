@@ -3,6 +3,7 @@
  * TODO: Module enabling/disabling is done using a workaround because
  *       the form submitting way does not work for some reason
  * TODO: Only set a theme default if 'default' is 1.
+ * TODO: Check if it is possible to simplify the prepare hook. Check variables delete validation case
  * @file
  * Patterns component for system related operations.
  */
@@ -240,13 +241,13 @@ function system_patterns_validate($action, $tag, &$data) {
           $mandatory_attributes = array('name', 'value');
           //Go through all the variables to check if they have the mandatory attributes
           foreach ($data as $variable) {
-            if (!_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
+            if (!_patterns_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
               return patterns_results(PATTERNS_ERR, $msg);
             }
           }
           //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
           foreach ($data as $variable) {
-            if(_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
+            if(_patterns_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
               $status = PATTERNS_WARN;
             }
           }
@@ -275,15 +276,26 @@ function system_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'variables':
-      //This is the only case available, the lack of the rest are checking during the syntactic validation
-      if($action == PATTERNS_MODIFY) {
-        //Check all the variables already exist already in the system
-        foreach ($data as $variable) {
-          if (!variable_get($variable['name'])) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
-              t('The variable %var does not exist in the system.', array('%var' =>$variable['name'],)));
-          }  
-        }
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //Check all the variables do not exist already in the system
+          foreach ($data as $variable) {
+            if (variable_get($variable['name'])) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The variable %var already exists in the system.', array('%var' =>$variable['name'],)));
+            }  
+          }
+          break;
+        case PATTERNS_MODIFY:
+        case PATTERNS_DELETE:
+          //Check all the variables already exist already in the system
+          foreach ($data as $variable) {
+            if (!variable_get($variable['name'])) {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('The variable %var does not exist in the system.', array('%var' =>$variable['name'],)));
+            }  
+          }
+          break;
       }
       break;
   }
