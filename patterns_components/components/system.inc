@@ -248,10 +248,59 @@ function system_patterns_validate($action, $tag, &$data) {
       //@TO-DO
       break;
     case 'form':
-      //@TO-DO
+      //Original validation ported to syntactic case as error
+      if (!isset($data['form_id'])) {
+       $status = PATTERNS_ERR;
+       $msg = t('"form_id" is missing.');
+      }
+      // Attempt to load required include file from menu.
+      list($menu, $masks) = menu_router_build();
+      foreach ($menu as $item) {
+       if (isset($item['page arguments'][0]) && $item['page arguments'][0] == $data['form_id']
+           && !empty($item['include file'])) {
+         $data['include'] = $item['include file'];
+         break;
+       }
+      }
+      
+      if (!empty($data['include']) && is_file($data['include'])) {
+       require_once $data['include'];
+      }
+      elseif (is_array($data['include'])) {
+       $data['include'] = drupal_get_path('module', $data['include']['module']) . '/' . $data['include']['file'];
+      }
+      
+      if (!function_exists($data['form_id'])) {
+       if (!empty($data['module']) && is_string($data['module'])) {
+         $modules = module_list();
+         if (in_array($data['module'], $modules)) {
+           // try most common include file names
+           module_load_include('inc', $data['module']);
+           module_load_include('inc', $data['module'], $data['module'] . '.admin');
+           module_load_include('inc', $data['module'], $data['module'] . '.page');
+         }
+       }
+      }
+      if (!function_exists($data['form_id'])) {
+       $status = PATTERNS_ERR;
+       $msg = t("Couldn't load the form %form. Check if all required modules are enabled and try to define 'include' or 'module' for this action.", array('%form' => $data['form_id']));
+      }
       break;
     case 'call_php_func':
-      //@TO-DO
+      //Original validation ported to syntactic case as error
+      if (empty($data['function'])) {
+       $msg = t("A function is required for this tag");
+       return patterns_results(PATTERNS_ERR, $msg);
+      }elseif (!empty($data['type']) && empty($data['module'])) {
+       $msg = t("If you specify a type you must specify a module. See the documentation for module_load_include.");
+       return patterns_results(PATTERNS_ERR, $msg);
+      }elseif (empty($data['type']) && !empty($data['module'])) {
+       $msg = t("If you specify a module you must specify a type. See the documentation for module_load_include.");
+       return patterns_results(PATTERNS_ERR, $msg);
+      }elseif (!empty($data['filepath']) && !file_exists($data['filepath'])) {
+       $msg = t('The file that you specified does not exist: %file', array('%file' => $data['filepath']));
+       return patterns_results(PATTERNS_ERR, $msg);
+      }
       break;
     case 'variables':
       switch ($action) {
@@ -309,12 +358,6 @@ function system_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'theme':
-      //@TO-DO
-      break;
-    case 'form':
-      //@TO-DO
-      break;
-    case 'call_php_func':
       //@TO-DO
       break;
     case 'variables':
