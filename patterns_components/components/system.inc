@@ -220,7 +220,29 @@ function system_patterns_validate($action, $tag, &$data) {
   */
   switch ($tag) {
     case 'modules':
-      //@TO-DO
+        switch ($action) {
+        case PATTERNS_CREATE:
+        case PATTERNS_DELETE:
+          //In this case even the delete case is the same because the 'value' attribute is added by
+          //the hook_prepare(). We will keep the code (switch with same cases) like this for future extendibility reasons
+          $mandatory_attributes = array('value');
+          //Go through all the variables to check if they have the mandatory attributes
+          foreach ($data as $module) {
+            if (!_patterns_has_all_mandatory_attributes($module, $mandatory_attributes, $msg)) {
+              return patterns_results(PATTERNS_ERR, $msg);
+            }
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
+          foreach ($data as $module) {
+            if(_patterns_has_uninterpretable_attributes($module, $mandatory_attributes, $msg)) {
+              $status = PATTERNS_WARN;
+            }
+          }
+          break;
+        default:
+          $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+          return patterns_results(PATTERNS_ERR, $msg);
+      }
       break;
     case 'theme':
       //@TO-DO
