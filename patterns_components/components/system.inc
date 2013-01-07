@@ -1,11 +1,17 @@
 <?php
 /*
- * TODO: Module enabling/disabling is done using a workaround because
- *       the form submitting way does not work for some reason
  * TODO: Only set a theme default if 'default' is 1.
  * TODO: Check if it is possible to simplify the prepare hook. Check variables delete validation case
  * @file
  * Patterns component for system related operations.
+ */
+
+/**
+ * 
+ * Implements hook_patterns().
+ * 
+ * @param string $data
+ * 
  */
 function system_patterns($data) {
 
@@ -115,7 +121,16 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
 }
 
 
-// Prepare data for processing
+/**
+ * @TO-CHECK
+ * 
+ * Prepare data for processing
+ * 
+ * @param string $action
+ * @param string $tag
+ * @param array $data
+ * 
+ */
 function system_patterns_prepare($action, $tag, &$data) {
   if ($tag == 'theme') {
     if ($data['value']) {
@@ -395,7 +410,16 @@ function system_patterns_validate($action, $tag, &$data) {
 }
 
 
-// Prepare for valid processing of this type of component
+/**
+ * 
+ * Prepare for valid processing of this type of component
+ * 
+ * @param string $action
+ * @param string $form_id
+ * @param string $data
+ * @param array $a
+ * 
+ */
 function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
   $status = PATTERNS_SUCCESS;
   $msg = '';
@@ -439,7 +463,16 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
   return patterns_results($status, $msg, $result);
 }
 
-// Build a patterns actions and parameters
+/**
+ * 
+ * Build a patterns actions and parameters
+ * 
+ * @param string $action
+ * @param string $form_id
+ * @param string $data
+ * @param array $a
+ * 
+ */
 function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
   $result = NULL;
 
@@ -467,7 +500,15 @@ function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
 }
 
-// Cleanup any global settings after the action runs
+/**
+ * 
+ * Cleanup any global settings after the action runs
+ * 
+ * @param string $action
+ * @param string $tag
+ * @param array $data
+ * 
+ */
 function system_patterns_cleanup($action, $tag, &$data) {
   if ($tag == 'modules') {
     menu_rebuild(); // TODO: only do this if there has been a module enabled/disabled
@@ -523,6 +564,17 @@ function variables_execute($action, &$data) {
   }
 }
 
+/**
+ * 
+ * @TO-CHECK
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ * @param unknown $theme_default
+ * @param unknown $default
+ * @param unknown $admin
+ * @return multitype:multitype:unknown
+ */
 function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
   return array(
     '#theme' => array(
@@ -533,6 +585,12 @@ function set_active_theme($form, $form_state, $theme_default, $default, $admin) 
   );
 }
 
+/**
+ * @TO-CHECK
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ */
 function set_active_theme_submit($form, &$form_state) {
   $values = $form['#theme'];
   $theme = $values['theme_default'];
@@ -541,7 +599,16 @@ function set_active_theme_submit($form, &$form_state) {
   patterns_system_theme_default($theme, $default, $admin);
 
 }
-// Modified version of system_theme_default
+
+/**
+ * @TO-CHECK
+ * 
+ * Modified version of system_theme_default
+ * 
+ * @param unknown $theme
+ * @param unknown $default
+ * @param unknown $admin
+ */
 function patterns_system_theme_default($theme, $default, $admin) {
   // Get current list of themes.
   $themes = list_themes();
@@ -574,6 +641,19 @@ function patterns_system_theme_default($theme, $default, $admin) {
 
 }
 
+/**
+ * @TO-CHECK
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ * @param unknown $func
+ * @param unknown $type
+ * @param unknown $module
+ * @param unknown $name
+ * @param unknown $filepath
+ * @param unknown $args
+ * @return multitype:multitype:unknown
+ */
 function call_php_func_form($form, $form_state, $func, $type, $module, $name, $filepath, $args) {
   return array(
     '#call_php_func' => array(
@@ -587,6 +667,12 @@ function call_php_func_form($form, $form_state, $func, $type, $module, $name, $f
     );
 }
 
+/**
+ * @TO-CHECK
+ * 
+ * @param unknown $form
+ * @param unknown $form_state
+ */
 function call_php_func_form_submit($form, &$form_state) {
   $values = $form['#call_php_func'];
   _call_php_func_include_files($values);
@@ -594,6 +680,11 @@ function call_php_func_form_submit($form, &$form_state) {
   call_user_func_array($values['function'], $values['arguments']);
 }
 
+/**
+ * @TO-CHECK
+ * 
+ * @param unknown $values
+ */
 function _call_php_func_include_files($values) {
   if ($values['type'] && $values['module']) {
     module_load_include($values['type'], $values['module'], $values['name']);
