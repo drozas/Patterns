@@ -93,12 +93,12 @@ function color_patterns_validate($action, $tag, &$data) {
         case PATTERNS_MODIFY:
           //Check mandatory fields
           $mandatory_attributes = array('theme');
-          if (!_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
           //All the fields but uid are in this case optional
           $interpretable_attributes = array('theme','palette', 'scheme');
-          if(_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
             $status = PATTERNS_WARN;
           }
           break;
