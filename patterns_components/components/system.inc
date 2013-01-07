@@ -241,13 +241,13 @@ function system_patterns_validate($action, $tag, &$data) {
           $mandatory_attributes = array('name', 'value');
           //Go through all the variables to check if they have the mandatory attributes
           foreach ($data as $variable) {
-            if (!_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
+            if (!_patterns_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
               return patterns_results(PATTERNS_ERR, $msg);
             }
           }
           //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
           foreach ($data as $variable) {
-            if(_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
+            if(_patterns_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
               $status = PATTERNS_WARN;
             }
           }
