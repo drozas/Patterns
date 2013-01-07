@@ -151,9 +151,13 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   $status = PATTERNS_SUCCESS;
   $msg = '';
 
+  $vocabs = taxonomy_get_vocabularies();
+   
+  // SYNTACTIC VALIDATION
+  
+  
   if ($tag == 'term') {
     if (!$data['vid'] && !empty($data['vocabulary'])) {
-      $vocabs = taxonomy_get_vocabularies();
 
       foreach ($vocabs as $vid => $vocab) {
         if (drupal_strtolower($vocab->name) == drupal_strtolower($data['vocabulary'])) {
@@ -169,6 +173,9 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
       $msg = t("Vocabulary %vocab doesn't exist.", array('%vocab' => $data['vocabulary']));
     }
   }
+  
+  
+  
   else if ($tag == 'vocabulary') {
   	
   	if ($action == PATTERNS_CREATE) {
@@ -197,12 +204,88 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   	$msg = substr($msg, 0, -2);
   	
   }
+  
+  
   else {
   	$status = PATTERNS_ERR;
     $msg = t("Unknown tag: %tag.", array('%tag' => $tag));
   }
 
-  return patterns_results($status, $msg);
+  return patterns_results($status, $msg);	
+  
+  /* COMMENTED FOR NOW, BECAUSE THE CORE DOES NOT SUPPORT IT YET
+   
+  if ($status == PATTERNS_ERR) {
+  	return patterns_results($status, $msg);	
+  }
+  
+  // SEMANTIC VALIDATION
+  
+  if ($tag == 'vocabulary') {
+  	
+  	$voc_exists = _taxonomy_patterns_vocabulary_exists($data['machine_name'], $vocabs);
+  	
+  	if ($action == PATTERNS_CREATE) {
+  		
+  	 	if ($voc_exists) {
+      	$result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+        	t('The vocabulary %voc already exists in the system.', array('%voc' => $data['machine_name'],)));
+      }
+  	}
+  	else if ($action == PATTERNS_MODIFY) {
+  		
+  		if (!$voc_exists)) {
+      	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+        	t('The vocabulary %voc was not found in the system, and cannot be modified.', array('%voc' => $data['machine_name'],)));
+      }
+  		
+  	}
+  	
+  	else if ($action == PATTERNS_DELETE) {
+  		
+  		if (!$voc_exists)) {
+      	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+        	t('The vocabulary %voc was not found in the system, and cannot be deleted.', array('%voc' => $data['machine_name'],)));
+      }
+  		
+  	}
+  	
+  }
+  
+  
+  else if ($tag == 'term') {
+  	
+  	$terms = taxonomy_get_term_by_name($data['name']);
+  	$term_exists = (count($terms) == 1);
+  	
+  	if ($action == PATTERNS_CREATE) {
+	      
+      if ($term_exists) {
+      	$result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+        	t('The term %term already exists in the system.', array('%term' => $data['name'],)));
+      }
+  	}
+  	else if ($action == PATTERNS_MODIFY) {
+  		
+  		if (!$term_exists) {
+      	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+        	t('The term %term was not found in the system, and cannot be modified.', array('%term' => $data['name'],)));
+      }
+  	}
+  	
+  	else if ($action == PATTERNS_DELETE) {
+  		
+  		if (!$term_exists)) {
+      	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+        	t('The term %term was not found in the system, and cannot be deleted.', array('%term' => $data['name'],)));
+      }
+  		
+  	}
+  		
+  }
+  
+  return patterns_results($status, $msg, $result);	
+  */
 }
 
 
@@ -449,3 +532,12 @@ function _taxonomy_patterns_prepare_vocabulary_delete($action, $data) {
   return $data;
 }
 
+function _taxonomy_patterns_vocabulary_exists($machine_name, $vocabs) {
+	foreach ($vocabs as $vid => $vocab) {
+  	if (drupal_strtolower($vocab->name) == drupal_strtolower($machine_name)) {
+    	return TRUE;
+    }
+	}
+	
+	return FALSE;
+}
