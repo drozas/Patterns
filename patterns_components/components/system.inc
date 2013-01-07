@@ -250,8 +250,8 @@ function system_patterns_validate($action, $tag, &$data) {
     case 'form':
       //Original validation ported to syntactic case as error
       if (!isset($data['form_id'])) {
-       $status = PATTERNS_ERR;
        $msg = t('"form_id" is missing.');
+       return patterns_results(PATTERNS_ERR, $msg);
       }
       // Attempt to load required include file from menu.
       list($menu, $masks) = menu_router_build();
@@ -282,8 +282,8 @@ function system_patterns_validate($action, $tag, &$data) {
        }
       }
       if (!function_exists($data['form_id'])) {
-       $status = PATTERNS_ERR;
        $msg = t("Couldn't load the form %form. Check if all required modules are enabled and try to define 'include' or 'module' for this action.", array('%form' => $data['form_id']));
+       return patterns_results(PATTERNS_ERR, $msg);
       }
       break;
     case 'call_php_func':
