@@ -494,7 +494,7 @@ function system_patterns_validate($action, $tag, &$data) {
 // }
 
 // Return which callback functions to actually use.
-function system_patterns_callbacks($action, $tag, &$data) {
+/*function system_patterns_callbacks($action, $tag, &$data) {
   if ($tag == 'modules') { // Custom functions will do the work.
     $result = array('modules_execute');
   }
@@ -508,7 +508,7 @@ function system_patterns_callbacks($action, $tag, &$data) {
     $result = $desc[$tag][$action];
   }
   return patterns_results(PATTERNS_SUCCESS, t('Execution successful'), $result);
-}
+}*/
 
 // Prepare for valid processing of this type of component
 function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
