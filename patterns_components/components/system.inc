@@ -13,8 +13,8 @@ function system_patterns($data) {
 
   //Function not run through form. @TO-DO: create export function
   $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
-    PATTERNS_CREATE => array('modules_execute'),
-    PATTERNS_DELETE => array('modules_execute'),
+    PATTERNS_CREATE => array('modules_enable'),
+    PATTERNS_DELETE => array('modules_disable'),
     PATTERNS_FILES  => $files,
   );
 
@@ -590,28 +590,31 @@ function system_patterns_cleanup($action, $tag, &$data) {
   return patterns_results();
 }
 
-function modules_execute($action, &$data) {
-  $enabled = $disabled = array();
-  $delete = $action === PATTERNS_DELETE;
-  for ($i = 0; $module = $data[$i]; $i++) {
-    if ($delete) { // TODO: Move this out of loop?
-      module_disable(array($module['value']), TRUE);
-      $disabled[] = $module['value'];
-    }
-    else {
-      if (!module_enable(array($module['value']), TRUE)) {
-        // TODO: use proper logging?
-        drupal_set_message(t('Warning: Could not enable %module because a dependency is missing.', array('%module' => $module)), "warning");
-      }
-      else {
-        $enabled[] = $module['value'];
-      }
-    }
-  }
 
-  $msg =  ((count($enabled) > 0) ? t('Module(s) %vars enabled.', array('%vars' => implode(', ', $enabled))) : t('No modules have been enabled.')) . ' ' .
-          ((count($disabled) > 0) ? t('Module(s) %vars disabled.', array('%vars' => implode(', ', $disabled))) : t('No modules have been disabled.'));
-  //return patterns_results(PATTERN_SUCCESS, $msg);
+/**
+ * Wraps the call to drupal_form_submit to enable modules. It enables automatically all the dependencies
+ *
+ * @param string $action  String containing the type of action. Currently, should be only 'modify'
+ * @param array $data  Array of value variables containing the modules
+ */
+function modules_enable($action, &$data) {
+  $modules = $data;
+  foreach ($data['values'] as $module) {
+    module_enable(array($module['value']), TRUE);
+  }
+}
+
+/**
+ * Wraps the call to drupal_form_submit to disable modules. It disables automatically all the dependencies
+ *
+ * @param string $action  String containing the type of action. Currently, should be only 'modify'
+ * @param array $data  Array of value variables containing the modules
+ */
+function modules_disable($action, &$data) {
+  $modules = $data;
+  foreach ($data['values'] as $module) {
+    module_disable(array($module['value']), TRUE);
+  }
 }
 
 /**
