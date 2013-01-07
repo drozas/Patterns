@@ -286,7 +286,27 @@ function system_patterns_validate($action, $tag, &$data) {
   */
   switch ($tag) {
     case 'modules':
-      //@TO-DO
+        $enabled_modules = module_list();
+        switch ($action) {
+        case PATTERNS_CREATE:
+          //Check the modules are not already enabled
+          foreach ($data as $module) {
+            if (in_array($module['value'], $enabled_modules)) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The module %mod is already enabled.', array('%mod' =>$module['value'],)));
+            }  
+          }
+          break;
+        case PATTERNS_DELETE:
+          //Check the modules are not already disabled
+          foreach ($data as $module) {
+            if (!in_array($module['value'], $enabled_modules)) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The module %mod is already disabled.', array('%mod' =>$module['value'],)));
+            }  
+          }
+          break;
+      }
       break;
     case 'theme':
       //@TO-DO
@@ -591,7 +611,7 @@ function modules_execute($action, &$data) {
 
   $msg =  ((count($enabled) > 0) ? t('Module(s) %vars enabled.', array('%vars' => implode(', ', $enabled))) : t('No modules have been enabled.')) . ' ' .
           ((count($disabled) > 0) ? t('Module(s) %vars disabled.', array('%vars' => implode(', ', $disabled))) : t('No modules have been disabled.'));
-  return patterns_results(PATTERN_SUCCESS, $msg);
+  //return patterns_results(PATTERN_SUCCESS, $msg);
 }
 
 /**
