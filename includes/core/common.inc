@@ -35,47 +35,31 @@ function patterns_prepare_action(&$action, &$data, $actions_map) {
   /////////////////////////////////////////////
   // Prepare actions for validation/processing
   /////////////////////////////////////////////
-//  foreach ($actions as &$action) {
-//    // TODO: error checking.
-    $result = patterns_invoke('prepare', $action, $data);
-//  }
 
-  // @TODO Not sure if prepare and validate could be merged.
-  //       Maybe they were required to be separate when we used to have subpatterns.
-//  foreach ($actions as &$action) {
-    $key = &$action;
-    $data = &$data;
+  $result = patterns_invoke('prepare', $action, $data);
 
-    /////////////////////////////////////////////////////////
-    // This is in case of included patterns. Not for now
-    //    $action_location = patterns_locate_action ($data['tag'], $actions_map);
-    //    $index = $action_location['key'];
-    //    $pattern_title = $action_location['title'];
-    //    $pattern_file = $action_location['file'];
-    /////////////////////////////////////////////////////////
 
-    // TODO: manage multiple pattern includes
-    $pattern_info = reset($actions_map['patterns']);
-    $pattern_title = $pattern_info['title'];
 
-    if (!array_key_exists($data['tag'], $tag_modules)) {
-      // TODO: Use $index when there are multiple patterns again.
-      // $errors[] = t('Action #%num (%tag) in pattern %title: <%tag> is not a valid tag', array('%num' => $index + 1, '%tag' => $data['tag'], '%title' => $pattern_title));
-      $errors[] = t('Pattern %title: <%tag> is not a valid tag', array('%tag' => $data['tag'], '%title' => $pattern_title));
-    }
-    else {
-      //////////////////////////////////////////////////
-      // Validate tags with their appropriate components
-      //////////////////////////////////////////////////
-      $results = patterns_invoke('validate', $key, $data);
+  $key = &$action;
+  $data = &$data;
 
-      if (!patterns_error_check_results($results)) {
-        // TODO: Use $index when there are multiple patterns again.
-        // $errors[] = t('Action #%num (%tag) in pattern %title: !msg', array('!msg' => $results['msg'], '%num' => $index + 1, '%tag' => $data['tag'], '%title' => $pattern_title));
+  // TODO: manage multiple pattern includes
+  $pattern_info = reset($actions_map['patterns']);
+  $pattern_title = $pattern_info['title'];
+
+  if (!array_key_exists($data['tag'], $tag_modules)) {
+  	$errors[] = t('Pattern %title: <%tag> is not a valid tag', array('%tag' => $data['tag'], '%title' => $pattern_title));
+  }
+  else {
+  	//////////////////////////////////////////////////
+    // Validate tags with their appropriate components
+    //////////////////////////////////////////////////
+    $results = patterns_invoke('validate', $key, $data);
+
+    if (!patterns_error_check_results($results)) {
         $errors[] = t('pattern %title: !msg', array('!msg' => $results['msg'], '%tag' => $data['tag'], '%title' => $pattern_title));
-      }
     }
- // }
+  }
 
   if (count($errors)) {
     $message = t('Errors encountered during pre-processing:') . '<br/>' . implode('<br/>', $errors);
