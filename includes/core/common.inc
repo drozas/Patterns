@@ -236,17 +236,17 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
         return $results;
       }
     }
+    
+    ////////////////////
+    // CLEAN UP: Let a component cleanup after each action
+    ////////////////////
+    $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
+
+    // Do not return here, just print on screen
+    patterns_error_check_results($results);
+    
   } // End: Form_id execution
 
-  
-  ////////////////////
-  // CLEAN UP: Let a component cleanup after all actions are executed
-  ////////////////////
-  $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
-
-  // Do not return here, just print on screen
-  patterns_error_check_results($results);
-  
   // Clear the cache in case it causes problems
   cache_clear_all();
 
