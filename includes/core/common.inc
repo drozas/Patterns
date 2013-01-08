@@ -38,8 +38,6 @@ function patterns_prepare_action(&$action, &$data, $actions_map) {
 
   $result = patterns_invoke('prepare', $action, $data);
 
-
-
   $key = &$action;
   $data = &$data;
 
