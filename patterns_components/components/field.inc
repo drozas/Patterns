@@ -245,7 +245,7 @@ function field_patterns_validate($action, $tag, &$data) {
             return patterns_results(PATTERNS_ERR, $msg);
           break;
         case PATTERNS_MODIFY:
-         	//Check mandatory fields, in this case is only one.
+         	//Check mandatory fields.
           $mandatory_attributes = array('field_name','entity_type','bundle');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
@@ -266,7 +266,7 @@ function field_patterns_validate($action, $tag, &$data) {
    case 'instance':
       switch ($action) {
         case PATTERNS_CREATE:
-        	//Check mandatory fields, in this case is only one.
+        	//Check mandatory fields.
           $mandatory_attributes = array('field_name','entity_type','bundle','widget');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
@@ -339,7 +339,7 @@ function field_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_DELETE:
-          if (!exist ) {
+          if (!$exist ) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
              t('The field instance %field_name with entity type %entity_type in bundle %bundle dose not exist in the system.', array('%field_name' =>$data['field_name'],'%entity_type'=>$data['entity_type'],'%bundle'=>$data['bundle'])));
           }
