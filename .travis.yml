@@ -34,6 +34,7 @@ before_script:
   - drush en simpletest patterns --yes #token and libraries also
 
 # SPYC
+	- ls
   - mkdir sites/all/libraries/spyc/
   - mv /home/travis/Spyc.php sites/all/libraries/spyc/spyc.php
 
