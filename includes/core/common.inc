@@ -235,34 +235,20 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
         $results['status'] = PATTERNS_ERR;
         return $results;
       }
-
-      ////////////////////
-      // CLEAN UP: Let a component cleanup after each action
-      ////////////////////
-      $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
-
-      // Do not return here, just print on screen
-      patterns_error_check_results($results);
     }
   } // End: Form_id execution
 
+  
+  ////////////////////
+  // CLEAN UP: Let a component cleanup after all actions are executed
+  ////////////////////
+  $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
+
+  // Do not return here, just print on screen
+  patterns_error_check_results($results);
+  
   // Clear the cache in case it causes problems
   cache_clear_all();
-
-  // STE: This should be done in the cleanup, if the module has changed the menus
-  // Rebuild the menu
-  //variable_set('menu_rebuild_needed', TRUE);
-
-  // TODO:  Check if identifiers are needed
-
-  // Get any primary identifiers from the action for further actions to take advantage of
-//  $id = NULL;
-//  $id = patterns_invoke($clone, 'identifier', $form_id, $action_state);
-//
-//  if (isset($id)) {
-//    $index = isset($clone['action_label']) ? $clone['action_label'] : $place+1;
-//    $identifiers[$index] = $id;
-//  }
 
   patterns_restore_error_handler();
 
