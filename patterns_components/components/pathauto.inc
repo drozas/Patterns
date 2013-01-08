@@ -6,10 +6,13 @@
 function pathauto_patterns() {
   $files = array('sites/all/modules/pathauto/pathauto.admin.inc', 'modules/path/path.admin.inc');
 
-  $actions['pathauto'] = array(
+  $actions['pathauto_setting'] = array(
     PATTERNS_INFO => t('Setting pathauto'),
     PATTERNS_MODIFY => array('pathauto_settings_form'),
     PATTERNS_FILES => $files,
+     PATTERNS_EXPORT => array(
+                            PATTERNS_EXPORT_ALL => 'pathauto_patterns_export_all_pathauto_setting',
+                            ),
   );
   $actions['url_alias'] = array(
     PATTERNS_INFO => t('Create/Edit/Delete URL aliases'),
@@ -25,6 +28,9 @@ function pathauto_patterns() {
     PATTERNS_INFO => t('setting patterns for auto URLs aliases'),
     PATTERNS_MODIFY => array('pathauto_patterns_form', 'pathauto_bulk_update_form'),
     PATTERNS_FILES => $files,
+     PATTERNS_EXPORT => array(
+                            PATTERNS_EXPORT_ALL => 'pathauto_patterns_export_all_pathauto_patterns',
+                            ),
 
   );
 
@@ -34,6 +40,34 @@ function pathauto_patterns() {
 
 
 
+function pathauto_patterns_export_all_pathauto_setting($args = NULL, &$result = NULL) {
+   //$info = pathauto_patterns();
+   //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
+   module_load_include('inc', 'pathauto');
+  $result = array();
+  $data = array('tag' => 'pathauto_setting');
+  $data['pathauto_verbose']=variable_get('pathauto_verbose', FALSE);
+  $data['pathauto_separator'] = variable_get('pathauto_separator', '-');
+  $data['pathauto_case'] = variable_get('pathauto_case', PATHAUTO_CASE_LOWER);
+  $data['pathauto_max_length'] = variable_get('pathauto_max_length', 100);
+  $data['pathauto_max_component_length'] = variable_get('pathauto_max_component_length', 100);
+  $data['pathauto_update_action'] = variable_get('pathauto_update_action', PATHAUTO_UPDATE_ACTION_DELETE);
+  $data['pathauto_transliterate'] =variable_get('pathauto_transliterate', FALSE) && module_exists('transliteration');
+  $data['pathauto_reduce_ascii'] = variable_get('pathauto_reduce_ascii', FALSE);
+  $data['pathauto_ignore_words'] = variable_get('pathauto_ignore_words', PATHAUTO_IGNORE_WORDS);
+  $punctuation = pathauto_punctuation_chars();
+  foreach ($punctuation as $name => $details) {
+    $details['default'] = PATHAUTO_PUNCTUATION_REMOVE;
+    if ($details['value'] == variable_get('pathauto_separator', '-')) {
+      $details['default'] = PATHAUTO_PUNCTUATION_REPLACE;
+    }
+    $data['pathauto_punctuation_' . $name] =variable_get('pathauto_punctuation_' . $name, $details['default']);
+  }
+  $action = array(PATTERNS_MODIFY => $data);
+  array_push($result, $action);
+  
+  return $result;
+}
 function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
    //$info = pathauto_patterns();
    //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
@@ -43,9 +77,12 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
   switch ($args['type']) {
     case PATTERNS_CREATE :
   		foreach ($paths as $path) {
-    		$path = (array) $path;
-    		$data = array('tag' => 'path');
-    		$data = array_merge($data, $path);
+    	//	$path = (array) $path;
+    		$data = array('tag' => 'url_alias');
+    		$data['source']=$path->source;
+    		$data['alias']=$path->alias;
+    		$data['language']=$path->language;
+    		//$data = array_merge($data, $path);
     		$action = array(PATTERNS_CREATE => $data);
     		array_push($result, $action);
    		//  $action = array(PATTERNS_PATTERNS_CREATE => $data);
@@ -57,9 +94,12 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
   		break;
   	case PATTERNS_MODIFY :
    		foreach ($paths as $path) {
-    		$path = (array) $path;
-    		$data = array('tag' => 'path');
-    		$data = array_merge($data, $path);
+    	//	$path = (array) $path;
+    		$data = array('tag' => 'url_alias');
+    		$data['source']=$path->source;
+    		$data['alias']=$path->alias;
+    		$data['language']=$path->language;
+    		//$data = array_merge($data, $path);
     		$action = array(PATTERNS_MODIFY => $data);
     		array_push($result, $action);
     	}
@@ -67,29 +107,52 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
   }
   return $result;
 }
+function pathauto_patterns_export_all_pathauto_patterns($args = NULL, &$result = NULL) {
+   //$info = pathauto_patterns();
+   //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
+  //$loop = TRUE;
+  $result = array();
+   $data = array('tag' => 'pathauto_patterns');
+   $all_settings = module_invoke_all('pathauto', 'settings');
+  foreach ($all_settings as $settings) {
+    $module = $settings->module;
+    $patterndescr = $settings->patterndescr;
+    $patterndefault = $settings->patterndefault;
+    $groupheader = $settings->groupheader;
+    $variable =  'pathauto_'.$module . '_pattern';
+    $data[$variable] = variable_get($variable, $patterndefault);
+
+    // If the module supports a set of specialized patterns, set
+    // them up here
+    if (isset($settings->patternitems)) {
+      foreach ($settings->patternitems as $itemname => $itemlabel) {
+        $variable = 'pathauto_'.$module . '_' . $itemname . '_pattern';
+        $data[$variable] = variable_get($variable, '');
+      }
+    }
+  }
+  $action = array(PATTERNS_MODIFY => $data);
+  array_push($result, $action);
+  return $result;
+}
 
 
 // Prepare data for processing
 function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
-  // dirty fix for the null/0/false/'' problem
-  if (isset($data['pathauto_verbose']) && $data['pathauto_verbose'] === 0)
-    $data['pathauto_verbose'] = NULL;
-  if (isset($data['pathauto_reduce_ascii']) && $data['pathauto_reduce_ascii'] === 0)
-    $data['pathauto_reduce_ascii'] = NULL;
 
   $datacopy = $data;
-  if ($tag == "pathauto_patterns" || $tag == "pathauto") {
+  if ($tag == "pathauto_patterns" || $tag == "pathauto_steeing") {
     foreach ($datacopy as $key => $value) {
-      if (strpos($key, 'pathauto') !== FALSE)
-        continue;
+    /*  if (strpos($key, 'pathauto') !== FALSE)
+        continue;*/
       if (is_array($value)) {
         if ($key != "update") {
           foreach ($value as $i => $v) {
             $new =  'pathauto_' . $i . '_' . $key;
             $data[$new] = $v;
-            unset($data[$key][$i]);
+          //  unset($data[$key][$i]);
           }
-          unset($data[$key]);
+        //  unset($data[$key]);
         }
         elseif ($key == "update") {
           foreach ($value as $i => $v) {
@@ -101,11 +164,6 @@ function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
           }
         }
       }
-      elseif (substr($key, 0, 9) != 'pathauto_') {
-        $new = 'pathauto_' . $key;
-        $data[$new] = $value;
-        unset($data[$key]);
-      }
 
     }
   }
@@ -116,13 +174,176 @@ function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
       }
       $data['values']['confirm'] = 1;
     }
+    if ($action == PATTERNS_MODIFY) {
+      if (!isset($data['pid'])) {
+      	if(isset($data['language'])){
+          	 $alias= _pathauto_existing_alias_data($data['source'],$data['language']);
+          }else{
+          	$alias= _pathauto_existing_alias_data($data['source']);
+          }
+        if($alias)
+         $data['pid'] =$alias->pid;
+      }
+    }
   }
+  
+   // dirty fix for the null/0/false/'' problem
+  if (isset($data['pathauto_verbose']) && $data['pathauto_verbose'] === 0)
+    $data['pathauto_verbose'] = NULL;
+  if (isset($data['pathauto_reduce_ascii']) && $data['pathauto_reduce_ascii'] === 0)
+    $data['pathauto_reduce_ascii'] = NULL;
   return patterns_results();
 }
 
 // Validate the values for an action before running the pattern
 function pathauto_patterns_validate($action, $tag, &$data = NULL) {
+	$result = array();
   $status = PATTERNS_SUCCESS;
+  $msg = '';
+	/*
+ * Syntactic validation
+ * 
+ */
+ switch ($tag) {
+    case 'pathauto_setting':
+	switch ($action) {
+        case PATTERNS_CREATE:
+        	$msg .= t('pathauto_setting could not be created. Only modify action is possible for pathauto_setting.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+        case PATTERNS_MODIFY:
+         	//No mandatory fields in this case.
+          //In this case we will need to define as well the attributes generated by the hook_prepare: uid and pass
+          $interpretable_attributes = 
+          	array('pathauto_verbose','pathauto_separator','pathauto_case','pathauto_max_length','pathauto_max_component_length','pathauto_update_action','pathauto_transliterate','pathauto_reduce_ascii','pathauto_ignore_words');
+          module_load_include('inc', 'pathauto');
+          $punctuation = pathauto_punctuation_chars();
+  		  foreach ($punctuation as $name => $details) {
+    		$interpretable_attributes[]='pathauto_punctuation_' . $name;
+  		  }
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_DELETE:
+          //Check mandatory fields, in this case is only one.
+          $msg .= t('pathauto_setting could not be Deleted. Only modify action is possible for pathauto_setting.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+      }
+      break;
+   case 'url_alias':
+      switch ($action) {
+        case PATTERNS_CREATE:
+        	//Check mandatory fields, in this case is only one.
+          $mandatory_attributes = array('source','alias');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case we will need to define as well the attributes generated by the hook_prepare: uid and pass
+          $interpretable_attributes = array('source','alias','language');
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_MODIFY:
+          //Check mandatory fields
+          $mandatory_attributes = array('source');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          
+          $interpretable_attributes = array('pid','source','alias','language');
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_DELETE:
+           //Check mandatory fields
+          $mandatory_attributes = array('pid');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+          if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+      }
+      break;
+   case 'pathauto_patterns':
+      switch ($action) {
+        case PATTERNS_CREATE:
+        	$msg .= t('pathauto_patterns could not be created. Only modify action is possible for pathauto_patterns.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+        case PATTERNS_MODIFY:
+          //No mandatory fields in this case. 
+          $interpretable_attributes=array();
+          $all_settings = module_invoke_all('pathauto', 'settings');
+  		  foreach ($all_settings as $settings) {
+    		$module = $settings->module;
+    		$variable =  'pathauto_'.$module . '_pattern';
+    		$interpretable_attributes[]=$variable;
+    		// If the module supports a set of specialized patterns, include them  here
+    		if (isset($settings->patternitems)) {
+      			foreach ($settings->patternitems as $itemname => $itemlabel) {
+        			$variable = 'pathauto_'.$module . '_' . $itemname . '_pattern';
+        			$interpretable_attributes[]=$variable;
+      			}
+    	  	}
+  		  }     
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
+        case PATTERNS_DELETE:
+          //Check mandatory fields, in this case is only one.
+          $msg .= t('pathauto_patterns could not be Deleted. Only modify action is possible for pathauto_patterns.<br>');
+            return patterns_results(PATTERNS_ERR, $msg);
+          break;
+      }
+      break;
+ }
+ 
+      /*
+ * Semantic validation
+ */    
+	switch ($tag) {
+	case 'url_alias':
+	  switch ($action) {
+        case PATTERNS_CREATE:
+            //Create semantic warning if the role name has already been defined
+          if(isset($data['language'])){
+          	 $exist= _pathauto_existing_alias_data($data['source'],$data['language']);
+          }else{
+          	$exist= _pathauto_existing_alias_data($data['source']);
+          }	  
+          if ($exist) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+              t('The url alias for source %source already exists in the system.', array('%source' =>$data['source'])));
+          }
+          break;
+        case PATTERNS_MODIFY:
+          //Create semantic warning if the rid does not exist
+          $exist=path_load(array('pid' => $data['pid']));
+          if (!$exist) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The url alias for source %source dose not exist in the system.', array('%source' =>$data['source'])));
+          }
+          break;
+        case PATTERNS_DELETE:
+        	$exist=path_load(array('pid' => $data['pid']));
+          if (!$exist ) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+             t('The url alias with id %pid dose not exist in the system.', array('%pid' =>$data['pid'])));
+          }
+          break;
+      }
+      break;
+  }
+  return patterns_results($status, $msg, $result);
+/*  $status = PATTERNS_SUCCESS;
   $msg = '';
   if ($tag == 'url_alias' && ( $action == PATTERNS_MODIFY || $action == PATTERNS_DELETE)) {
     if (!isset($data['pid'])) {
@@ -145,7 +366,7 @@ function pathauto_patterns_validate($action, $tag, &$data = NULL) {
       $msg = t('The alias %path is already in use in this language.', array('%path' => $data['alias']));
     }
   }
-  return patterns_results($status, $msg);
+  return patterns_results($status, $msg);*/
 }
 
 // Prepare for valid processing of this type of component
