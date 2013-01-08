@@ -27,7 +27,6 @@ function system_patterns($data) {
   //Function not run through form. @TO-DO: create export function
   $actions['theme'] = array('descr' => t('Enable (and set default)/Disable Themes'),
     PATTERNS_MODIFY => array('set_theme_properties'),
-    //PATTERNS_DELETE => array('set_active_theme'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_themes', ),
     PATTERNS_FILES  => $files,
   );
@@ -455,12 +454,13 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
   $msg = '';
   $result = NULL;
 
-  if ($form_id == 'set_active_theme') {
+  /*if ($form_id == 'set_active_theme') {
     $data['op'] = t('Save configuration'); // TODO: ??
     //module_load_include('inc', 'system', 'system.admin');
     // $result = $data;
   }
-  elseif ($form_id == 'call_php_func_form') {
+  else*/
+  if ($form_id == 'call_php_func_form') {
     $data['type'] = empty($data['type']) ? '' : $data['type'];
     $data['module'] = empty($data['module']) ? '' : $data['module'];
     $data['name'] = empty($data['name']) ? '' : $data['name'];
@@ -605,7 +605,7 @@ function variables_execute($action, &$data) {
  * @param unknown $admin
  * @return multitype:multitype:unknown
  */
-function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
+/*function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
   return array(
     '#theme' => array(
       'theme_default' => $theme_default,
@@ -613,7 +613,7 @@ function set_active_theme($form, $form_state, $theme_default, $default, $admin) 
       'admin' => $admin
     ),
   );
-}
+}*/
 
 /**
  * @TO-CHECK
@@ -621,14 +621,14 @@ function set_active_theme($form, $form_state, $theme_default, $default, $admin) 
  * @param unknown $form
  * @param unknown $form_state
  */
-function set_active_theme_submit($form, &$form_state) {
+/*function set_active_theme_submit($form, &$form_state) {
   $values = $form['#theme'];
   $theme = $values['theme_default'];
   $default = $values['default'];
   $admin = $values['admin'];
   patterns_system_theme_default($theme, $default, $admin);
 
-}
+}*/
 
 /**
  * @TO-CHECK
@@ -639,7 +639,7 @@ function set_active_theme_submit($form, &$form_state) {
  * @param unknown $default
  * @param unknown $admin
  */
-function patterns_system_theme_default($theme, $default, $admin) {
+/*function patterns_system_theme_default($theme, $default, $admin) {
   // Get current list of themes.
   $themes = list_themes();
 
@@ -669,6 +669,59 @@ function patterns_system_theme_default($theme, $default, $admin) {
     menu_rebuild();
   }
 
+}*/
+
+function set_theme_properties($action, &$data) {
+  //At this point we can ensure there is a theme value, since is part of the mandatory syntactic analysis
+  $theme = $data['values']['value'];
+  
+  //Rest of operations are optional, we execute them if the value exists, overriding in any case the previous value
+  //Status
+  if (isset($data['values']['status']) && $data['values']['status'] == TRUE) {
+    theme_enable(array($theme));
+  } else if(isset($data['values']['status']) && $data['values']['status'] == FALSE) {
+    theme_disable(array($theme));
+  }
+  
+  //Set default variable if there is any valid value
+  if (isset($data['values']['default'])) {
+    variable_set('theme_default', $data['values']['default']);
+  }
+  
+  //Set admin_them variable if there is any valid value
+  if (isset($data['values']['admin'])) {
+    variable_set('admin_theme', $data['values']['admin']);
+  }
+  
+  
+/*  $themes = list_themes();
+
+  // Check if the specified theme is one recognized by the system.
+  if (!empty($themes[$theme])) {
+    // Enable the theme if it is currently disabled.
+    if (empty($themes[$theme]->status)) {
+      // NOTE: this assumes sites/default/css exists.
+      theme_enable(array($theme));
+    }
+    if ($default) {
+      if ($admin) {
+        // Set the admin theme.
+        variable_set('admin_theme', $theme);
+      }
+      else {
+        // Set the default theme.
+        variable_set('theme_default', $theme);
+      }
+    }
+
+    // Rebuild the menu. This duplicates the menu_rebuild() in theme_enable().
+    // However, modules must know the current default theme in order to use
+    // this information in hook_menu() or hook_menu_alter() implementations,
+    // and doing the variable_set() before the theme_enable() could result
+    // in a race condition where the theme is default but not enabled.
+    menu_rebuild();
+  }
+*/
 }
 
 /**
