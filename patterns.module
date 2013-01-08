@@ -660,7 +660,8 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   }
   /////////////////////////////////////////
   // Get Patterns details
-  $patterns_details = patterns_parser_get_pattern_details($pattern);
+  $patterns_details = patterns_parser_get_pattern_details($pattern, PATTERNS_VALIDATE_TAG_EXISTS);
+  
   if ($patterns_details === FALSE) {
     drupal_set_message(t('Errors where found in the pattern. Aborting.'), 'error');
     return FALSE;
