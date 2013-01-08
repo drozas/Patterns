@@ -338,109 +338,25 @@ function patterns_validate_service() {
  * the pattern files (included).
  *
  * @param stdClass $pattern Pattern object as loaded by patterns_get_pattern().
- * @param bool $recursive If the directive include is valid.
- * @param array $pids ??
+ * @param mixed $validate_level The level of validation required
  *
  * @return array $details
  *   array('pid1' => $details, 'pid2' => $details, ...),
  *   FALSE if there were errors (in which case the errors will be displayed).
  */
-function patterns_parser_get_pattern_details($pattern, $recursive = FALSE, &$pids = array()) {
+function patterns_parser_get_pattern_details($pattern, $validate_level = PATTERNS_VALIDATE_ALL) {
 	$scan = patterns_scan_pattern($pattern->pattern);
-  // This will display errors if there are any.
-  if (!_patterns_scan_validate_patternscan($scan, FALSE, PATTERNS_VALIDATE_ALL, TRUE)) return FALSE;
+	
+  // This will NOT display errors
+  if (!_patterns_scan_validate_patternscan($scan, FALSE, $validate_level)) return FALSE;
 
   $details = array();
 
   $details['info'] = $pattern->pattern['info'];
   $details['sections'] = array_intersect_key($pattern->pattern, $scan['other_sections']);
   $details['modules'] = ($scan['modules'] > 0 ) ? $pattern->pattern['modules'] : array();
-  //if (!$scan['contain_includes'])
-    return array($pattern->pid => $details); // TODO: only one pattern
-  //}
 
-
-
-  ////////////////////////////////////////////////////////////////
-  // IMPORTANT
-  // The part below is for handling the include tag. Not used now
-  // and probably deprecated.
-  ////////////////////////////////////////////////////////////////
-
-
-  // prevent infinite recursion
-  // Disabled! Infinite recursion is possible!
-  // This allows the same pattern to be re-executed with different parameters
-  // TODO: detect recursion, and protect users from it
-  // if (in_array($pattern->pid, $pids)) return array();
-  $pids[$pattern->pid] = $pattern->pid;
-
-
-  $patterns[$pattern->pid] = (array) $pattern;
-  $patterns[$pattern->pid] = array_merge($patterns[$pattern->pid], $patterns[$pattern->pid]['pattern']['info']);
-  unset($patterns[$pattern->pid]['pattern']);
-
-
-  if ($recursive) {
-    $result = array('modules' => $modules, 'info' => $patterns);
-
-    foreach ($actions as $key => $action) {
-      if ($action['tag'] == 'pattern') {
-        // determine pattern name
-        if (!empty($action['value'])) {
-          $name = $action['value'];
-        }
-        elseif (!empty($action['name'])) {
-          $name = $action['name'];
-        }
-        if (!$p = patterns_get_pattern($name)) {
-          // just give a warning and try to continue
-          drupal_set_message(t('Action #%key in %file: Pattern %pattern not found.<br/>Pattern execution will try to continue without it.', array('%key' => $key + 1, '%file' => $pattern->title, '%pattern' => $name)), 'warning');
-          continue;
-        }
-
-
-        $a = patterns_parser_get_pattern_details($p, TRUE, $pids);
-        if ($a === FALSE) { // TODO: error handling
-        }
-        if (is_array($a) && empty($a)) {
-          // An empty array is returned on infinite recursion detection
-          drupal_set_message(t('Action #%key in %file: Infinite recursion detected while attempting to run pattern %pattern.<br/>Pattern execution will try to continue without it.', array('%key' => $key + 1, '%file' => $pattern->title, '%pattern' => $name)), 'warning');
-          continue;
-        }
-        // we replace for tokens in the generated pattern
-        // this is just a proof of concept, so far
-        if (!empty($action['parameters'])) {
-          $tokens = array_keys($action['parameters']);
-          $values = array_values($action['parameters']);
-          // give tokens their delimiters
-          foreach ($tokens as &$token) {
-            $token = "__" . $token . "__";
-          }
-          $a = patterns_array_map('str_replace', $a, array($tokens, $values));
-        }
-        // array_merge doesn't preserve numeric array keys
-        // so we handle 'info' separately
-        $info = $result['info'];
-        $result = array_merge_recursive($result, $a);
-        $result['info'] = $info + $a['info'];
-      }
-      else {
-        $result['actions'][] = $action;
-        $result['actions_map'][] = array(
-          'pid'   => $pattern->pid,
-          'index' => $key,
-        );
-      }
-    }
-    $result['modules'] = array_merge(array_unique($result['modules']));
-    // Remove pid from recursion stack
-    //unset($pids[$pattern->pid]);
-    return $result;
-  }
-  // Remove pid from recursion stack.
-  // unset($pids[$pattern->pid]);
-  return array('actions' => $actions, 'modules' => $modules, 'info' => $patterns);
+  return array($pattern->pid => $details); // TODO: only one pattern
 }
 
 /**
