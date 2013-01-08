@@ -28,6 +28,7 @@ function system_patterns($data) {
   $actions['theme'] = array('descr' => t('Enable (and set default)/Disable Themes'),
     PATTERNS_CREATE => array('set_active_theme'),
     PATTERNS_DELETE => array('set_active_theme'),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_themes', ),
     PATTERNS_FILES  => $files,
   );
 
@@ -76,16 +77,32 @@ function system_patterns($data) {
 
 /**
  * @TO-DO!
- * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of themes
  * currently stored in the system.
  *
  * @param string $args
  * @param string $result
  * @return array $actions
  */
-/*function system_patterns_export_all_theme($args = NULL, &$result = NULL) {
-  @TO-DO
-}*/
+function system_patterns_export_all_themes($args = NULL, &$result = NULL) {
+  //Retrieve the current list of themes and the default and admin values
+  $themes = list_themes();
+  $default_theme = variable_get('theme_default');
+  $admin_theme = variable_get('admin_theme');
+  $result = array();
+  
+  foreach ($themes as $theme) {
+    //Prepare date for modify operation
+    $data = array('tag' => 'theme');
+    $data['value'] = $theme->name;
+    $data['status'] = $theme->status;
+    $data['default'] = ($theme->name == $default_theme);
+    $data['admin'] = ($theme->name == $admin_theme);
+    $action = array(PATTERNS_MODIFY => $data);
+    array_push($result, $action);
+  }
+  return $result;
+}
 
 /**
  *
