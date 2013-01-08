@@ -44,6 +44,7 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
                   'generic_errors' => array(),
   								'unknown_tag' => array(),
   								'tag_errors' => array(),
+                  'semantic_warnings' => array(),
   );
 
   if (empty($pattern)) {
@@ -249,7 +250,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   //Go through all the semantic warnings performing a code-description conversion
-  if (isset($patternscan['semantic_warnings']) && count($patternscan['semantic_warnings']) > 0) {
+  if (count($patternscan['semantic_warnings']) > 0) {
   	$warnings = '';
   	foreach ($patternscan['semantic_warnings'] as $warning) {
   	  switch (key($warning)) {
@@ -268,7 +269,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	  }
   	  $warnings.= $warning[key($warning)] . $br;
   	}
-  	$msgs[] = t('Semantic warnings (this pattern might provoke errors during execution time): ') . $br . $warnings;
+  	$msgs[] = t('Semantic warnings: ') . $br . $warnings;
   }
 
   return $msgs;
@@ -435,12 +436,12 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
   		}
 	  	
   		//Include semantic warnings if requested
-        if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
-          foreach ($validation['result'] as $semantic_warning) {
-            $result['semantic_warnings'][] = $semantic_warning;
-          }
-  		   
-        }
+      if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
+        foreach ($validation['result'] as $semantic_warning) {
+          $result['semantic_warnings'][] = $semantic_warning;
+        }   
+      }
+      
 	  }
   	
   }

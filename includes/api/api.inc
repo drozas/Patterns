@@ -172,13 +172,11 @@ function patterns_api_add_action($action = PATTERNS_CREATE, $data = array(), &$s
  * @return array An associative array of the input values with keys 'status', 'msg', 'result'.
  */
 function patterns_results($status = PATTERNS_SUCCESS, $msg = NULL, $result = NULL) {
-  if ($msg === NULL) {
-    $msg = t('Execution successful');
-  }
-  return array('status' => $status,
-                'msg' => $msg,
-                'result' => $result,
-              );
+  return array(
+    'status' => $status,
+    'msg' => $msg,
+    'result' => $result,
+  );
 }
 
 /**
