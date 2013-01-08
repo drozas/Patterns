@@ -406,14 +406,11 @@ function system_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'theme':
-      //@TO-DO
-      //     // TODO: do this the Drupal7.x way
-      //     $themes = system_rebuild_theme_data();
-      //     if (!array_key_exists($data['theme_default'], $themes)) {
-      //       $status = PATTERNS_ERR;
-      //       $msg = t('%theme is not a valid theme.', array('%theme' => $data['theme_default']));
-      //     }
-      //   }
+      //We raised a semantic error if the theme does not exist. Since only MODIFY actions are supported, it is not necessary to switch
+      if (!array_key_exists($data['value'], list_themes())) {
+        $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+            t('The theme %theme is not currently installed in the system.', array('%theme' =>$data['value'],)));
+      }
       break;
     case 'variables':
       switch ($action) {
