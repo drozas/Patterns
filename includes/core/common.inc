@@ -370,10 +370,7 @@ function patterns_executing($b = NULL) {
  */
 function patterns_is_form($form_id = NULL, $form_state = array(), $args = array()) {
   $form_state = array();
-  try {
-     $result = drupal_retrieve_form1($form_id, $form_state, $args);   
-  }
- 
+  $result = drupal_retrieve_form1($form_id, $form_state, $args);    
   return (isset($result) && is_array($result) && count($result) > 1);
 }
 
