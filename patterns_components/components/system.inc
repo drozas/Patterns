@@ -506,11 +506,12 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
 function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
   $result = NULL;
 
-  if ($form_id == 'set_active_theme') {
+  /*if ($form_id == 'set_active_theme') {
     $result = array($data['theme_default'], isset($data['default']) ? TRUE : FALSE,
       isset($data['admin']) ? TRUE : FALSE);
   }
-  elseif ($form_id == 'call_php_func_form') {
+  else*/
+  if ($form_id == 'call_php_func_form') {
     $result = array($data['function'], $data['type'], $data['module'], $data['name'], $data['filepath'], $data['arguments']);
   }
   // TODO: other forms?
@@ -684,13 +685,15 @@ function set_theme_properties($action, &$data) {
   }
   
   //Set default variable if there is any valid value
-  if (isset($data['values']['default'])) {
-    variable_set('theme_default', $data['values']['default']);
+  $def = variable_get('theme_default');
+  if (isset($data['values']['default']) && $data['values']['default']) {
+    variable_set('theme_default', $theme);
   }
   
+  $adm = variable_get('admin_theme');
   //Set admin_them variable if there is any valid value
-  if (isset($data['values']['admin'])) {
-    variable_set('admin_theme', $data['values']['admin']);
+  if (isset($data['values']['admin']) && $data['values']['admin']) {
+    variable_set('admin_theme', $theme);
   }
   
   
