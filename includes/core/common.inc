@@ -218,6 +218,18 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
       // Execute action: pass action_state and params to a form
       ///////////////////
       
+      // TODO: just execute the function
+      // check the return value
+      // if it is a form structure proceed with form execution
+      // otherwise return
+      //   // Reset form validation.
+      //$form_state['must_validate'] = TRUE;
+      //form_clear_error();
+
+      //drupal_prepare_form($form_id, $form, $form_state);
+      //drupal_process_form($form_id, $form, $form_state);
+      
+      
 //      if (false) { // for the moment ...
       if (!patterns_is_form($form_id, $action_state)) {
         // TODO: check this case
