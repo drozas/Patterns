@@ -218,7 +218,7 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
       // Execute action: pass action_state and params to a form
       ///////////////////
       
-      if (false) // for the moment ...
+      if (false) { // for the moment ...
 //      if (!patterns_is_form($form_id, $action_state, $params)) {
         // TODO: check this case
         // TODO: error checking
