@@ -36,8 +36,10 @@ before_script:
   - drush vset purl_base_domain http://127.0.0.1
   - drush cc all --yes
 
-# ENABLE MODULES
+# SIMPLETEST
   - drush en simpletest patterns --yes #token and libraries also
+  - mkdir sites/default/files/simpletest
+  - chmod 777 sites/default/files/simpletest -R
 
 # SPYC
   - mkdir sites/all/libraries/
