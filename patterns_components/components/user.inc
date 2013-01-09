@@ -1,5 +1,8 @@
 <?php
 /*
+ * TODO: Add more descriptive messages after merging with the new core branch (custom function cases)
+ * TODO: Analyze if feasible the creation of new tag for relationship user <-> role
+ * 
  * @file
  * Patterns component for users.
  */
