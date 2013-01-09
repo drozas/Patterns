@@ -1,3 +1,7 @@
+7100-rc3:
+		- @TO-DO: Aware users about changes in the syntax in system components: 
+		'modules' action renamed to 'module'
+
 7100-rc1:
 
 		- Improved export process
