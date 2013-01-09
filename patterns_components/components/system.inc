@@ -18,7 +18,7 @@ function system_patterns($data) {
   $files = array('modules/system/system.admin.inc');
 
   //Function not run through form. @TO-DO: create export function
-  $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
+  $actions['module'] = array('descr' => t('Enable/Disable Modules'),
     PATTERNS_CREATE => array('modules_enable'),
     PATTERNS_DELETE => array('modules_disable'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_modules', ),   
@@ -72,7 +72,7 @@ function system_patterns($data) {
  * @return array $actions
  */
 function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
-  $actions = array(PATTERNS_CREATE => array('tag' => 'modules'));
+  $actions = array(PATTERNS_CREATE => array('tag' => 'module'));
   foreach (module_list() as $module => $value) {
     $action = array('value' => $module);
     array_push($actions[PATTERNS_CREATE], $action);
@@ -155,7 +155,7 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
  * 
  */
 function system_patterns_prepare($action, $tag, &$data) {
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     // Make a <modules>modulename</modules> style tag work
     if (is_string($data) || (isset($data['value']) && !isset($data[0]))) {
       $data = array($data);
@@ -251,7 +251,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         switch ($action) {
         case PATTERNS_CREATE:
         case PATTERNS_DELETE:
@@ -382,7 +382,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         $enabled_modules = module_list();
         switch ($action) {
         case PATTERNS_CREATE:
@@ -523,7 +523,7 @@ function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
  * 
  */
 function system_patterns_cleanup($action, $tag, &$data) {
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     menu_rebuild(); // TODO: only do this if there has been a module enabled/disabled
   }
   return patterns_results();
