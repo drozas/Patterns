@@ -21,6 +21,7 @@ function system_patterns($data) {
   $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
     PATTERNS_CREATE => array('modules_enable'),
     PATTERNS_DELETE => array('modules_disable'),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_modules', ),   
     PATTERNS_FILES  => $files,
   );
 
@@ -70,9 +71,15 @@ function system_patterns($data) {
  * @param string $result
  * @return array $actions
  */
-/*function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
-  @TO-DO
-}*/
+function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
+  $actions = array(PATTERNS_CREATE => array('tag' => 'modules'));
+  foreach (module_list() as $module => $value) {
+    $action = array('value' => $module);
+    array_push($actions[PATTERNS_CREATE], $action);
+  }
+  $result = array($actions);
+  return $result;
+}
 
 /**
  * @TO-DO!
