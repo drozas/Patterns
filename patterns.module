@@ -655,7 +655,7 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   module_load_include('inc', 'patterns', 'includes/core/' . $mode);
 
   if (empty($pattern)) {
-  	drupal_set_message(t('The pattern seems empty...I cannot run it!'));
+  	drupal_set_message(t('The pattern seems empty...I cannot run it!'), 'error');
   	return FALSE;
   }
   /////////////////////////////////////////
@@ -663,7 +663,7 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   $patterns_details = patterns_parser_get_pattern_details($pattern, PATTERNS_VALIDATE_TAG_EXISTS);
   
   if ($patterns_details === FALSE) {
-    drupal_set_message(t('Errors where found in the pattern. Aborting.'), 'error');
+    drupal_set_message(t('Fatal errors where found in the pattern. Aborting.'), 'error');
     return FALSE;
   }
 
