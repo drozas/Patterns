@@ -148,12 +148,6 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
  * 
  */
 function system_patterns_prepare($action, $tag, &$data) {
-  /*if ($tag == 'theme') {
-    if ($data['value']) {
-      $data['theme_default'] = $data['value'];
-    }
-  }
-  else*/
   if ($tag == 'modules') {
     // Make a <modules>modulename</modules> style tag work
     if (is_string($data) || (isset($data['value']) && !isset($data[0]))) {
@@ -454,12 +448,6 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
   $msg = '';
   $result = NULL;
 
-  /*if ($form_id == 'set_active_theme') {
-    $data['op'] = t('Save configuration'); // TODO: ??
-    //module_load_include('inc', 'system', 'system.admin');
-    // $result = $data;
-  }
-  else*/
   if ($form_id == 'call_php_func_form') {
     $data['type'] = empty($data['type']) ? '' : $data['type'];
     $data['module'] = empty($data['module']) ? '' : $data['module'];
@@ -506,21 +494,9 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
 function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
   $result = NULL;
 
-  if ($form_id == 'set_active_theme') {
-    $result = array($data['theme_default'], isset($data['default']) ? TRUE : FALSE,
-      isset($data['admin']) ? TRUE : FALSE);
-  }
-  elseif ($form_id == 'call_php_func_form') {
+  if ($form_id == 'call_php_func_form') {
     $result = array($data['function'], $data['type'], $data['module'], $data['name'], $data['filepath'], $data['arguments']);
-  }
-  // TODO: other forms?
-
-  /*
-  elseif($form_id=='system_delete_date_format_type_form'){
-    $data['confirm']=1;
-    $result=array($data['date_type']);
-  }*/
-  else { // Running a user-provided form through tag 'form'.
+  }else { // Running a user-provided form through tag 'form'.
     if (isset($data['args'])) {
       $params = $data['args'];
       unset($data['args']);
@@ -595,133 +571,29 @@ function variables_execute($action, &$data) {
 }
 
 /**
- * 
- * @TO-CHECK
- * 
- * @param unknown $form
- * @param unknown $form_state
- * @param unknown $theme_default
- * @param unknown $default
- * @param unknown $admin
- * @return multitype:multitype:unknown
+ * Wraps the call to drupal_form_submit to set the theme properties.
+ *
+ * @param string $action  String containing the type of action. Currently, should be only 'modify'
+ * @param array $data  Action parsed, containing the statements in $data['values']
  */
-/*function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
-  return array(
-    '#theme' => array(
-      'theme_default' => $theme_default,
-      'default' => $default,
-      'admin' => $admin
-    ),
-  );
-}*/
-
-/**
- * @TO-CHECK
- * 
- * @param unknown $form
- * @param unknown $form_state
- */
-/*function set_active_theme_submit($form, &$form_state) {
-  $values = $form['#theme'];
-  $theme = $values['theme_default'];
-  $default = $values['default'];
-  $admin = $values['admin'];
-  patterns_system_theme_default($theme, $default, $admin);
-
-}*/
-
-/**
- * @TO-CHECK
- * 
- * Modified version of system_theme_default
- * 
- * @param unknown $theme
- * @param unknown $default
- * @param unknown $admin
- */
-/*function patterns_system_theme_default($theme, $default, $admin) {
-  // Get current list of themes.
-  $themes = list_themes();
-
-  // Check if the specified theme is one recognized by the system.
-  if (!empty($themes[$theme])) {
-    // Enable the theme if it is currently disabled.
-    if (empty($themes[$theme]->status)) {
-      // NOTE: this assumes sites/default/css exists.
-      theme_enable(array($theme));
-    }
-    if ($default) {
-      if ($admin) {
-        // Set the admin theme.
-        variable_set('admin_theme', $theme);
-      }
-      else {
-        // Set the default theme.
-        variable_set('theme_default', $theme);
-      }
-    }
-
-    // Rebuild the menu. This duplicates the menu_rebuild() in theme_enable().
-    // However, modules must know the current default theme in order to use
-    // this information in hook_menu() or hook_menu_alter() implementations,
-    // and doing the variable_set() before the theme_enable() could result
-    // in a race condition where the theme is default but not enabled.
-    menu_rebuild();
-  }
-
-}*/
-
 function set_theme_properties($action, &$data) {
   //At this point we can ensure there is a theme value, since is part of the mandatory syntactic analysis
   $theme = $data['values']['value'];
   
-  //Rest of operations are optional, we execute them if the value exists, overriding in any case the previous value
-  //Status
+  //Enable or disable the the if there is any valid value in status
   if (isset($data['values']['status']) && $data['values']['status'] == TRUE) {
     theme_enable(array($theme));
   } else if(isset($data['values']['status']) && $data['values']['status'] == FALSE) {
     theme_disable(array($theme));
   }
-  
-  //Set default variable if there is any valid value
-  if (isset($data['values']['default'])) {
-    variable_set('theme_default', $data['values']['default']);
+  //Set this theme as default if default is set and is true
+  if (isset($data['values']['default']) && $data['values']['default']) {
+    variable_set('theme_default', $theme);
   }
-  
-  //Set admin_them variable if there is any valid value
-  if (isset($data['values']['admin'])) {
-    variable_set('admin_theme', $data['values']['admin']);
+  //Set this theme as administrative if admin is set and is true
+  if (isset($data['values']['admin']) && $data['values']['admin']) {
+    variable_set('admin_theme', $theme);
   }
-  
-  
-/*  $themes = list_themes();
-
-  // Check if the specified theme is one recognized by the system.
-  if (!empty($themes[$theme])) {
-    // Enable the theme if it is currently disabled.
-    if (empty($themes[$theme]->status)) {
-      // NOTE: this assumes sites/default/css exists.
-      theme_enable(array($theme));
-    }
-    if ($default) {
-      if ($admin) {
-        // Set the admin theme.
-        variable_set('admin_theme', $theme);
-      }
-      else {
-        // Set the default theme.
-        variable_set('theme_default', $theme);
-      }
-    }
-
-    // Rebuild the menu. This duplicates the menu_rebuild() in theme_enable().
-    // However, modules must know the current default theme in order to use
-    // this information in hook_menu() or hook_menu_alter() implementations,
-    // and doing the variable_set() before the theme_enable() could result
-    // in a race condition where the theme is default but not enabled.
-    menu_rebuild();
-  }
-*/
 }
 
 /**
