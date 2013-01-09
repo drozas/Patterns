@@ -49,6 +49,11 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give Web server some time to bind to sockets, etc
 
-script: 
-  - sudo drush http://127.0.0.1 runserver --server=builtin 80 &
-  - sudo drush test-run Patterns --uri=http://127.0.0.1/drupal/
+# START DRUSH BUILT-IN SERVER
+  - sudo drush runserver --server=builtin 8080 &
+  - sleep 4
+  - drush vset --yes simpletest_verbose FALSE
+
+script:
+  - sudo drush test-run Patterns --xml --uri=http://127.0.0.1:8080
+
