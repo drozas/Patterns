@@ -2,7 +2,6 @@ language: php
 
 php:
   - 5.4
-  - 5.3
 
 mysql:
   database: drupal_patterns
@@ -36,6 +35,7 @@ before_script:
 
 # SPYC
   - ls
+  - mkdir sites/all/libraries/
   - mkdir sites/all/libraries/spyc/
   - mv /home/travis/Spyc.php sites/all/libraries/spyc/spyc.php
 
