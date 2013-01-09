@@ -8,11 +8,11 @@
     <core>7.x</core>
   </info>
   <actions>
-    <create tag="modules">
+    <create tag="module">
       <value>forum</value>
       <value>member</value>
     </create>
-    <delete tag="modules">
+    <delete tag="module">
       <value>admin_menu</value>
       <value>overlay</value>
       <value>aggregator</value>
