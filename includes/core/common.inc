@@ -115,7 +115,7 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
 
   // If no special callback was returned, we use the functions
   // specified in the hook_patterns for the action
-   if (!isset($results['result']) || empty($results['result'])) {
+  if (!isset($results['result']) || empty($results['result'])) {
   	$funcs = $form_ids;
   }
   else {
@@ -343,9 +343,9 @@ function patterns_locate_action($key, $actions_map) {
 
 /**
  *
- * @TODO Doc.
+ * Keep tracks of whether the patterns engine is currently executing a pattern
  *
- * @param unknown_type $b
+ * @param boolean $b Set the status of the engine
  */
 function patterns_executing($b = NULL) {
   static $executing = FALSE;
@@ -356,3 +356,5 @@ function patterns_executing($b = NULL) {
 
   return $executing;
 }
+
+
