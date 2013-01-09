@@ -342,10 +342,10 @@ function patterns_locate_action($key, $actions_map) {
 }
 
 /**
- *
- * Keep tracks of whether the patterns engine is currently executing a pattern
+ * Keeps tracks of whether the patterns engine is currently executing a pattern
  *
  * @param boolean $b Set the status of the engine
+ * @return boolean The status of the engine
  */
 function patterns_executing($b = NULL) {
   static $executing = FALSE;
@@ -357,4 +357,15 @@ function patterns_executing($b = NULL) {
   return $executing;
 }
 
+/**
+ * Heuristically determines if a function is a form or not
+ * 
+ * @param mixed $form_id The name of the function
+ * @return boolean TRUE, if the function name maps to an existing form
+ */
+function patterns_is_form($form_id = NULL) {
+  $form_state = array();
+  $result = @drupal_retrieve_form($form_id, $b);
+  return (isset($result) && is_array($result) && count($result) > 1);
+}
 
