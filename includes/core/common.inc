@@ -122,9 +122,17 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
   	$funcs = $results['result'];
   }
   
+  // Auto include FILES
+  if (!empty($tag_info[PATTERNS_FILES])) {
+    foreach ($tag_info[PATTERNS_FILES] as $file) {
+      require_once($file);
+    }
+  }
+  
   // Build the action
   foreach ($funcs as $func) {
-    if (!in_array($func, $form_ids)) {
+    
+    if (!patterns_is_form($func)) {
 			// TODO: check this case
 			// TODO: error checking
     	// Run it as a custom callback function.
@@ -164,13 +172,6 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
 		  else {
 		  	$form_obj = $results['result'];
 		  }
-
-      // Auto include FILES
-      if (!empty($tag_info[PATTERNS_FILES])) {
-        foreach ($tag_info[PATTERNS_FILES] as $file) {
-          require_once($file);
-        }
-      }
 
       // We check for the 'storage' and 'submitted' values in the object to see
       // if it is a form_state instead of form_values. There could be a better way
