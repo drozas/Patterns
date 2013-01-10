@@ -52,7 +52,7 @@ before_script:
   - sleep 3 # give Web server some time to bind to sockets, etc
 
 # START DRUSH BUILT-IN SERVER
-  - sudo drush runserver --server=builtin 8080 &
+  - sudo drush runserver --server=builtin 8080 --user=1 &
   - sleep 4
   - drush vset --yes simpletest_verbose FALSE
 
