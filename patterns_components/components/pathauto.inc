@@ -14,7 +14,8 @@ function pathauto_patterns() {
                             PATTERNS_EXPORT_ALL => 'pathauto_patterns_export_all_pathauto_setting',
                             ),
   );
-  $actions['url_alias'] = array(
+/* delete tag url_alias?
+ *  $actions['url_alias'] = array(
     PATTERNS_INFO => t('Create/Edit/Delete URL aliases'),
     PATTERNS_CREATE => array('path_admin_form'),
     PATTERNS_MODIFY => array('path_admin_form'),
@@ -23,7 +24,7 @@ function pathauto_patterns() {
     PATTERNS_EXPORT => array(
                             PATTERNS_EXPORT_ALL => 'pathauto_patterns_export_all_url_alias',
                             ),
-  );
+  );*/
   $actions['pathauto_patterns'] = array(
     PATTERNS_INFO => t('setting patterns for auto URLs aliases'),
     PATTERNS_MODIFY => array('pathauto_patterns_form', 'pathauto_bulk_update_form'),
@@ -68,7 +69,7 @@ function pathauto_patterns_export_all_pathauto_setting($args = NULL, &$result = 
   
   return $result;
 }
-function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
+/*function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
    //$info = pathauto_patterns();
    //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
   //$loop = TRUE;
@@ -106,7 +107,7 @@ function pathauto_patterns_export_all_url_alias($args = NULL, &$result = NULL) {
   		break;
   }
   return $result;
-}
+}*/
 function pathauto_patterns_export_all_pathauto_patterns($args = NULL, &$result = NULL) {
    //$info = pathauto_patterns();
    //$form_id = current($info['url_alias'][PATTERNS_MODIFY]);
@@ -167,7 +168,7 @@ function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
 
     }
   }
-  elseif ($tag == "url_alias") {
+/*  elseif ($tag == "url_alias") {
     if ($action == PATTERNS_DELETE) {
       if (isset($data['pid'])) {
         $data['path']['pid'] = $data['pid'];
@@ -185,7 +186,7 @@ function pathauto_patterns_prepare($action, $tag, &$data = NULL) {
          $data['pid'] =$alias->pid;
       }
     }
-  }
+  }*/
   
    // dirty fix for the null/0/false/'' problem
   if (isset($data['pathauto_verbose']) && $data['pathauto_verbose'] === 0)
@@ -232,7 +233,7 @@ function pathauto_patterns_validate($action, $tag, &$data = NULL) {
           break;
       }
       break;
-   case 'url_alias':
+/*   case 'url_alias':
       switch ($action) {
         case PATTERNS_CREATE:
         	//Check mandatory fields, in this case is only one.
@@ -270,7 +271,7 @@ function pathauto_patterns_validate($action, $tag, &$data = NULL) {
           }
           break;
       }
-      break;
+      break;*/
    case 'pathauto_patterns':
       switch ($action) {
         case PATTERNS_CREATE:
@@ -308,7 +309,7 @@ function pathauto_patterns_validate($action, $tag, &$data = NULL) {
  
       /*
  * Semantic validation
- */    
+ *    
 	switch ($tag) {
 	case 'url_alias':
 	  switch ($action) {
@@ -341,7 +342,7 @@ function pathauto_patterns_validate($action, $tag, &$data = NULL) {
           break;
       }
       break;
-  }
+  }*/
   return patterns_results($status, $msg, $result);
 /*  $status = PATTERNS_SUCCESS;
   $msg = '';
