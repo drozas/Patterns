@@ -59,7 +59,25 @@ abstract class PatternsTestCase extends DrupalWebTestCase {
     $this->pat_user = $this->drupalCreateUser(array('administer patterns'));
     // Login the patterns administrator.
     $this->drupalLogin($this->pat_user);
-  }
+
+    //fix simpletest error of importing&exporting.
+    //hook_update_N in patterns.install, but hook_update_N can only be run called by update.php. so I just put the code here. 
+    //by Rui.2013.1.10
+    $uuuid = array(
+      'type' => 'varchar',
+      'length' => 50,
+      'default' => '',
+      'description' => 'Identify patterns and their parent',
+    );
+    db_add_field('patterns', 'uuuid', $uuuid);
+    $author = array(
+      'type' => 'varchar',
+      'length' => 30,
+      'default' => '',
+      'description' => 'pattern\'s author',
+    );
+    db_add_field('patterns', 'author', $author);
+}
 
   /**
    * Loads a pattern file and runs it.
