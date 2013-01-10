@@ -217,32 +217,8 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
       ///////////////////
       // Execute action: pass action_state and params to a form
       ///////////////////
+      patterns_execute_action($form_id, $action_state, $params);
       
-      // TODO: just execute the function
-      // check the return value
-      // if it is a form structure proceed with form execution
-      // otherwise return
-      //   // Reset form validation.
-      //$form_state['must_validate'] = TRUE;
-      //form_clear_error();
-
-      //drupal_prepare_form($form_id, $form, $form_state);
-      //drupal_process_form($form_id, $form, $form_state);
-      
-      
-//      if (false) { // for the moment ...
-      if (!patterns_is_form($form_id, $action_state)) {
-        // TODO: check this case
-        // TODO: error checking
-        // Run it as a custom callback function.
-        $result = $func($action, $data); 
-        if (isset($result['msg'])) {
-          drupal_set_message($result['msg']);
-        }
-      }
-      else {
-        patterns_execute_action($form_id, $action_state, $params);
-      }
       
       
       // @TODO: do we need this?
@@ -279,6 +255,68 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
  * @param array $form_state The form_state object.
  * @param array $params Extra parameters to be passed to the form function.
  */
+function patterns_execute_action2($form_id, &$form_state, $params) {
+  
+	patterns_executing(TRUE);
+	
+	$args = is_array($params) ? array_merge(array(&$form_state), &$params)
+														: array(&$form_state);
+	
+	// We don't know here whether we are executing a callback
+	// or building a form														
+	//$result = call_user_func_array($form_id, $args);
+	$result = $form_id($form_state, &$params);
+														
+	// Check whether it is callback or a form submission
+	if (_patterns_is_patterns_results($result)) {
+		// Callback: nothing to do anymore
+		if (isset($result['msg'])) {
+    	drupal_set_message($result['msg']);
+    }
+	}
+	else {
+		// Form: we just built it, and not we need to submit it
+      	
+		// Make sure we always have a clear cache for everything.
+  	// Code taken from drupal_flush_all_caches().
+
+  	// Don't clear cache_form - in-progress form submissions may break.
+  	// Ordered so clearing the page cache will always be the last action.
+	  $core = array('cache', 'cache_block', 'cache_filter', 'cache_page');
+	  $cache_tables = array_merge(module_invoke_all('flush_caches'), $core);
+	  foreach ($cache_tables as $table) {
+	    cache_clear_all('*', $table, TRUE);
+	  }
+	
+	  $args = array_unshift($args, $form_id);
+
+  	$return = call_user_func_array('drupal_form_submit', $args);
+	  
+  	// POSSIBLY THE FOLLOWING IS FASTER, BUT CREATES SOME PROBLEMS NOW
+	  /*
+		$form = $result;
+		$form['#form_id'] = $form_id;
+		
+		// Merge in default values.
+  	$form_state += form_state_defaults();
+  	$form_state['input'] = $form_state['values'];
+  	$form_state['programmed'] = TRUE;
+		// Programmed forms are always submitted.
+  	$form_state['submitted'] = TRUE;
+		
+		// Reset form validation.
+    $form_state['must_validate'] = TRUE;
+    form_clear_error();
+
+    drupal_prepare_form($form_id, $form, $form_state);
+    drupal_process_form($form_id, $form, $form_state);
+		*/
+	}
+	
+  patterns_executing(FALSE);
+}
+
+
 function patterns_execute_action($form_id, &$form_state, $params) {
   // Make sure we always have a clear cache for everything.
   // Code taken from drupal_flush_all_caches().
@@ -312,6 +350,42 @@ function patterns_execute_action($form_id, &$form_state, $params) {
   //$batch = $batch_clone;
 
 }
+
+/*
+$form	Array [11]	
+	#vocabulary	stdClass	
+	name	Array [5]	
+	machine_name	Array [4]	
+	old_machine_name	Array [2]	
+	description	Array [3]	
+	hierarchy	Array [2]	
+	actions	Array [3]	
+	vid	Array [2]	
+	module	Array [2]	
+	#validate	Array [1]	
+	#form_id	taxonomy_form_vocabulary	
+
+
+$form_state	Array [17]	
+	storage	<Uninitialized>	
+	submitted	true	
+	build_info	Array [3]	
+	values	Array [8]	
+	rebuild	false	
+	rebuild_info	Array [0]	
+	redirect	<Uninitialized>	
+	temporary	Array [0]	
+	executed	false	
+	programmed	true	
+	cache	false	
+	method	post	
+	groups	Array [0]	
+	buttons	Array [0]	
+	input	Array [8]	
+	vocabulary	stdClass	
+	must_validate	true	
+
+*/
 
 /**
  * Group the action and the data fields.
