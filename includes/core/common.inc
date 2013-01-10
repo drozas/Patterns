@@ -115,7 +115,7 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
 
   // If no special callback was returned, we use the functions
   // specified in the hook_patterns for the action
-   if (!isset($results['result']) || empty($results['result'])) {
+  if (!isset($results['result']) || empty($results['result'])) {
   	$funcs = $form_ids;
   }
   else {
@@ -235,34 +235,20 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
         $results['status'] = PATTERNS_ERR;
         return $results;
       }
-
-      ////////////////////
-      // CLEAN UP: Let a component cleanup after each action
-      ////////////////////
-      $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
-
-      // Do not return here, just print on screen
-      patterns_error_check_results($results);
     }
+    
+    ////////////////////
+    // CLEAN UP: Let a component cleanup after each action
+    ////////////////////
+    $results = patterns_invoke('cleanup', $action, $clone, $form_id, $action_state);
+
+    // Do not return here, just print on screen
+    patterns_error_check_results($results);
+    
   } // End: Form_id execution
 
   // Clear the cache in case it causes problems
   cache_clear_all();
-
-  // STE: This should be done in the cleanup, if the module has changed the menus
-  // Rebuild the menu
-  //variable_set('menu_rebuild_needed', TRUE);
-
-  // TODO:  Check if identifiers are needed
-
-  // Get any primary identifiers from the action for further actions to take advantage of
-//  $id = NULL;
-//  $id = patterns_invoke($clone, 'identifier', $form_id, $action_state);
-//
-//  if (isset($id)) {
-//    $index = isset($clone['action_label']) ? $clone['action_label'] : $place+1;
-//    $identifiers[$index] = $id;
-//  }
 
   patterns_restore_error_handler();
 
@@ -356,10 +342,10 @@ function patterns_locate_action($key, $actions_map) {
 }
 
 /**
+ * Keeps tracks of whether the patterns engine is currently executing a pattern
  *
- * @TODO Doc.
- *
- * @param unknown_type $b
+ * @param boolean $b Set the status of the engine
+ * @return boolean The status of the engine
  */
 function patterns_executing($b = NULL) {
   static $executing = FALSE;
@@ -370,3 +356,16 @@ function patterns_executing($b = NULL) {
 
   return $executing;
 }
+
+/**
+ * Heuristically determines if a function is a form or not
+ * 
+ * @param mixed $form_id The name of the function
+ * @return boolean TRUE, if the function name maps to an existing form
+ */
+function patterns_is_form($form_id = NULL) {
+  $form_state = array();
+  $result = @drupal_retrieve_form($form_id, $b);
+  return (isset($result) && is_array($result) && count($result) > 1);
+}
+

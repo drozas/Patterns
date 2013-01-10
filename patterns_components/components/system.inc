@@ -1,7 +1,8 @@
 <?php
 /*
- * TODO: Only set a theme default if 'default' is 1.
- * TODO: Check if it is possible to simplify the prepare hook. Check variables delete validation case
+ * TODO: Check if it is possible to simplify the prepare hook. 
+ * TODO: Check variables delete validation case
+ * TODO: Add more descriptive messages after merging with the new core branch (custom function cases)
  * @file
  * Patterns component for system related operations.
  */
@@ -17,17 +18,17 @@ function system_patterns($data) {
 
   $files = array('modules/system/system.admin.inc');
 
-  //Function not run through form. @TO-DO: create export function
-  $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
+  //Function not run through form.
+  $actions['module'] = array('descr' => t('Enable/Disable Modules'),
     PATTERNS_CREATE => array('modules_enable'),
     PATTERNS_DELETE => array('modules_disable'),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_modules', ),   
     PATTERNS_FILES  => $files,
   );
 
-  //Function not run through form. @TO-DO: create export function
+  //Function not run through form.
   $actions['theme'] = array('descr' => t('Enable (and set default)/Disable Themes'),
     PATTERNS_MODIFY => array('set_theme_properties'),
-    //PATTERNS_DELETE => array('set_active_theme'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_themes', ),
     PATTERNS_FILES  => $files,
   );
@@ -63,22 +64,28 @@ function system_patterns($data) {
 
 
 /**
- * @TO-DO!
- * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
- * currently stored in the system.
+ * 
+ * Returns a set of PATTERNS_CREATE actions with the whole set of modules
+ * currently enabled in the system.
  *
  * @param string $args
  * @param string $result
  * @return array $actions
  */
-/*function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
-  @TO-DO
-}*/
+function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
+  $actions = array(PATTERNS_CREATE => array('tag' => 'module'));
+  foreach (module_list() as $module => $value) {
+    $action = array('value' => $module);
+    array_push($actions[PATTERNS_CREATE], $action);
+  }
+  $result = array($actions);
+  return $result;
+}
 
 /**
- * @TO-DO!
- * Returns a set of PATTERNS_MODIFY actions with the whole set of themes
- * currently stored in the system.
+ * 
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of themes'
+ * settings currently stored in the system.
  *
  * @param string $args
  * @param string $result
@@ -119,8 +126,7 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   $query->fields('v', array('name', 'value'));
   $qresult = $query->execute();
   
-  //Got through all the variables and prepare set of actions according 
-  //to the type of export process. In this case both cases have the same syntax
+  //Got through all the variables and prepare set of CREATE or MODIFY actions
   if ($args['type'] == PATTERNS_CREATE ||PATTERNS_MODIFY) {
     $actions = array($args['type'] => array('tag' => 'variables'));
     foreach ($qresult as $row) {
@@ -139,7 +145,6 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
 
 
 /**
- * @TO-CHECK
  * 
  * Prepare data for processing
  * 
@@ -149,25 +154,17 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
  * 
  */
 function system_patterns_prepare($action, $tag, &$data) {
-  /*if ($tag == 'theme') {
-    if ($data['value']) {
-      $data['theme_default'] = $data['value'];
-    }
-  }
-  else*/
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     // Make a <modules>modulename</modules> style tag work
     if (is_string($data) || (isset($data['value']) && !isset($data[0]))) {
       $data = array($data);
     }
-
     // Ensure proper data format for cases when <modules> tag contains
     // only single <module> tag.
     if (!empty($data['module']) && is_string($data['module'])) {
       $data[0]['value'] = $data['module'];
       unset($data['module']);
     }
-
     foreach ($data as &$item) {
       // Ensure that modules with tags like <module>modulename</module>
       // are represented as an array instead of a string
@@ -175,7 +172,6 @@ function system_patterns_prepare($action, $tag, &$data) {
         $item = array('value' => $item);
       }
     }
-
     // proccess alias for delete
     if (isset($data['disable']) && !isset($data['delete'])) {
       $data['delete'] = $data['disable'];
@@ -192,7 +188,6 @@ function system_patterns_prepare($action, $tag, &$data) {
         $data = array($data);
       case 'variables':
         // Make a <variables>modulename</variables> style tag work
-
         if (!$data[0]) {
           if ($data['variable'] && isset($data['variable'][0])) {
             $data = $data['variable'];
@@ -208,22 +203,17 @@ function system_patterns_prepare($action, $tag, &$data) {
             unset($data['id'], $data['value'], $data['delete']);
           }
         }
-
         for ($i = 0, $total = count($data); $i < $total; $i++) {
           $item = &$data[$i];
-
           if (!isset($item['value']) && (!isset($item['delete']) || !$item['delete'])) {
             $value = $item;
             unset($value['name']);
             $item = array('name' => $item['name'], 'value' => $value);
           }
-
         }
-
         break;
     }
   }
-
   return patterns_results();
 }
 
@@ -251,7 +241,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         switch ($action) {
         case PATTERNS_CREATE:
         case PATTERNS_DELETE:
@@ -382,7 +372,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         $enabled_modules = module_list();
         switch ($action) {
         case PATTERNS_CREATE:
@@ -455,12 +445,7 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
   $msg = '';
   $result = NULL;
 
-  if ($form_id == 'set_active_theme') {
-    $data['op'] = t('Save configuration'); // TODO: ??
-    //module_load_include('inc', 'system', 'system.admin');
-    // $result = $data;
-  }
-  elseif ($form_id == 'call_php_func_form') {
+  if ($form_id == 'call_php_func_form') {
     $data['type'] = empty($data['type']) ? '' : $data['type'];
     $data['module'] = empty($data['module']) ? '' : $data['module'];
     $data['name'] = empty($data['name']) ? '' : $data['name'];
@@ -506,21 +491,9 @@ function system_patterns_build($action, $form_id, &$data = NULL, &$a) {
 function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
   $result = NULL;
 
-  if ($form_id == 'set_active_theme') {
-    $result = array($data['theme_default'], isset($data['default']) ? TRUE : FALSE,
-      isset($data['admin']) ? TRUE : FALSE);
-  }
-  elseif ($form_id == 'call_php_func_form') {
+  if ($form_id == 'call_php_func_form') {
     $result = array($data['function'], $data['type'], $data['module'], $data['name'], $data['filepath'], $data['arguments']);
-  }
-  // TODO: other forms?
-
-  /*
-  elseif($form_id=='system_delete_date_format_type_form'){
-    $data['confirm']=1;
-    $result=array($data['date_type']);
-  }*/
-  else { // Running a user-provided form through tag 'form'.
+  }else { // Running a user-provided form through tag 'form'.
     if (isset($data['args'])) {
       $params = $data['args'];
       unset($data['args']);
@@ -540,7 +513,7 @@ function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
  * 
  */
 function system_patterns_cleanup($action, $tag, &$data) {
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     menu_rebuild(); // TODO: only do this if there has been a module enabled/disabled
   }
   return patterns_results();
@@ -595,84 +568,33 @@ function variables_execute($action, &$data) {
 }
 
 /**
- * 
- * @TO-CHECK
- * 
- * @param unknown $form
- * @param unknown $form_state
- * @param unknown $theme_default
- * @param unknown $default
- * @param unknown $admin
- * @return multitype:multitype:unknown
+ * Wraps the call to drupal_form_submit to set the theme properties.
+ *
+ * @param string $action  String containing the type of action. Currently, should be only 'modify'
+ * @param array $data  Action parsed, containing the statements in $data['values']
  */
-function set_active_theme($form, $form_state, $theme_default, $default, $admin) {
-  return array(
-    '#theme' => array(
-      'theme_default' => $theme_default,
-      'default' => $default,
-      'admin' => $admin
-    ),
-  );
-}
-
-/**
- * @TO-CHECK
- * 
- * @param unknown $form
- * @param unknown $form_state
- */
-function set_active_theme_submit($form, &$form_state) {
-  $values = $form['#theme'];
-  $theme = $values['theme_default'];
-  $default = $values['default'];
-  $admin = $values['admin'];
-  patterns_system_theme_default($theme, $default, $admin);
-
-}
-
-/**
- * @TO-CHECK
- * 
- * Modified version of system_theme_default
- * 
- * @param unknown $theme
- * @param unknown $default
- * @param unknown $admin
- */
-function patterns_system_theme_default($theme, $default, $admin) {
-  // Get current list of themes.
-  $themes = list_themes();
-
-  // Check if the specified theme is one recognized by the system.
-  if (!empty($themes[$theme])) {
-    // Enable the theme if it is currently disabled.
-    if (empty($themes[$theme]->status)) {
-      // NOTE: this assumes sites/default/css exists.
-      theme_enable(array($theme));
-    }
-    if ($default) {
-      if ($admin) {
-        // Set the admin theme.
-        variable_set('admin_theme', $theme);
-      }
-      else {
-        // Set the default theme.
-        variable_set('theme_default', $theme);
-      }
-    }
-
-    // Rebuild the menu. This duplicates the menu_rebuild() in theme_enable().
-    // However, modules must know the current default theme in order to use
-    // this information in hook_menu() or hook_menu_alter() implementations,
-    // and doing the variable_set() before the theme_enable() could result
-    // in a race condition where the theme is default but not enabled.
-    menu_rebuild();
+function set_theme_properties($action, &$data) {
+  //At this point we can ensure there is a theme value, since is part of the mandatory syntactic analysis
+  $theme = $data['values']['value'];
+  
+  //Enable or disable the the if there is any valid value in status
+  if (isset($data['values']['status']) && $data['values']['status'] == TRUE) {
+    theme_enable(array($theme));
+  } else if(isset($data['values']['status']) && $data['values']['status'] == FALSE) {
+    theme_disable(array($theme));
   }
-
+  //Set this theme as default if default is set and is true
+  if (isset($data['values']['default']) && $data['values']['default']) {
+    variable_set('theme_default', $theme);
+  }
+  //Set this theme as administrative if admin is set and is true
+  if (isset($data['values']['admin']) && $data['values']['admin']) {
+    variable_set('admin_theme', $theme);
+  }
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $form
  * @param unknown $form_state
@@ -698,7 +620,7 @@ function call_php_func_form($form, $form_state, $func, $type, $module, $name, $f
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $form
  * @param unknown $form_state
@@ -711,7 +633,7 @@ function call_php_func_form_submit($form, &$form_state) {
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $values
  */

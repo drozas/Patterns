@@ -13,14 +13,20 @@ before_script:
 # MYSQL
   - "mysql -e 'create database drupal_patterns;'"
 
-# DOWNLOAD LIBRARIES
+# INSTALL DRUSH
   - pear channel-discover pear.drush.org
   - pear install drush/drush
   - phpenv rehash
+
+# GO TO HOME DIR
+  - cd ~
+
+# DOWNLOAD SPYC
   - wget https://raw.github.com/mustangostang/spyc/master/Spyc.php
+  - pwd
+  - ls
 
 # INSTALL DRUPAL
-  - cd ~
   - drush dl drupal
   - mv drupal-7.18 drupal
   - mv /home/travis/builds/QScience/Patterns ./drupal/sites/all/modules/patterns
@@ -34,7 +40,7 @@ before_script:
   - drush en simpletest patterns --yes #token and libraries also
 
 # SPYC
-	- ls
+  - mkdir sites/all/libraries/
   - mkdir sites/all/libraries/spyc/
   - mv /home/travis/Spyc.php sites/all/libraries/spyc/spyc.php
 

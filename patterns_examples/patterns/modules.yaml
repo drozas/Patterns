@@ -13,12 +13,12 @@ info:
 actions:
 
   - create:
-      tag: modules
+      tag: module
       - value: forum
       - value: number
 
   - delete:
-      tag: modules
+      tag: module
       - value: admin_menu
       - value: overlay
       - value: aggregator
