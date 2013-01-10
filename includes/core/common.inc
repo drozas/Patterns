@@ -255,17 +255,17 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
  * @param array $form_state The form_state object.
  * @param array $params Extra parameters to be passed to the form function.
  */
-function patterns_execute_action2($form_id, &$form_state, $params) {
+function patterns_execute_action($form_id, &$form_state, $params) {
   
 	patterns_executing(TRUE);
 	
-	$args = is_array($params) ? array_merge(array(&$form_state), &$params)
-														: array(&$form_state);
+	$args = is_array($params) ? array_merge(array($form_state), $params)
+														: array($form_state);
 	
 	// We don't know here whether we are executing a callback
 	// or building a form														
 	//$result = call_user_func_array($form_id, $args);
-	$result = $form_id($form_state, &$params);
+	$result = $form_id($form_state, $params);
 														
 	// Check whether it is callback or a form submission
 	if (_patterns_is_patterns_results($result)) {
@@ -317,7 +317,7 @@ function patterns_execute_action2($form_id, &$form_state, $params) {
 }
 
 
-function patterns_execute_action($form_id, &$form_state, $params) {
+function patterns_execute_action1($form_id, &$form_state, $params) {
   // Make sure we always have a clear cache for everything.
   // Code taken from drupal_flush_all_caches().
 
