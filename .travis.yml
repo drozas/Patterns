@@ -57,5 +57,5 @@ before_script:
   - drush vset --yes simpletest_verbose FALSE
 
 script:
-  - drush test-run PatternsTaxonomyTestCase --xml --uri=http://128.0.0.1:8080
+  - drush test-run PatternsGeneralTestCase --xml --uri=http://128.0.0.1:8080
 
