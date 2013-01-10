@@ -259,14 +259,16 @@ function patterns_execute_action($form_id, &$form_state, $params) {
   
 	patterns_executing(TRUE);
 	
-	$args = is_array($params) ? array_merge(array($form_state), $params)
-														: array($form_state);
+	//$args = is_array($params) ? array_merge(array($form_state), $params)
+	//													: array($form_state);
 	
 	// We don't know here whether we are executing a callback
 	// or building a form														
 	//$result = call_user_func_array($form_id, $args);
-	$result = $form_id($form_state, $params);
-														
+	//$result1 = $form_id($form_state, $params);
+
+	$result = drupal_retrieve_form($form_id, $form_state, $params); 
+	
 	// Check whether it is callback or a form submission
 	if (_patterns_is_patterns_results($result)) {
 		// Callback: nothing to do anymore
@@ -288,14 +290,14 @@ function patterns_execute_action($form_id, &$form_state, $params) {
 	    cache_clear_all('*', $table, TRUE);
 	  }
 	
-	  $args = array_unshift($args, $form_id);
-
-  	$return = call_user_func_array('drupal_form_submit', $args);
+	  // This is the old way of executing the form: it is slower
+	  // because it needs to rebuilds it
+	  //////////////////////////////////////////////////////////////
+	  //$args = array_unshift($args, $form_id);
+  	//$return = call_user_func_array('drupal_form_submit', $args);
+	  ///////////////////////////////////////////////////////////////
 	  
-  	// POSSIBLY THE FOLLOWING IS FASTER, BUT CREATES SOME PROBLEMS NOW
-	  /*
 		$form = $result;
-		$form['#form_id'] = $form_id;
 		
 		// Merge in default values.
   	$form_state += form_state_defaults();
@@ -310,7 +312,7 @@ function patterns_execute_action($form_id, &$form_state, $params) {
 
     drupal_prepare_form($form_id, $form, $form_state);
     drupal_process_form($form_id, $form, $form_state);
-		*/
+		
 	}
 	
   patterns_executing(FALSE);
