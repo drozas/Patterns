@@ -88,7 +88,7 @@ class PatternsSystemTestCase extends PatternsTestCase {
     
     
     // Run the pattern.
-    parent::runFile('variables.yaml', 'Create and delete variables', $this->system_tests_dir);
+    parent::runFile('variables.yaml', 'Modify variables values', $this->system_tests_dir);
 
     //TODO: Re-enable and adapt once the branch is merged with 'refactored_core'
     /*$this->assertUniqueText(t('Variable(s) votingapi_anonymous_window, fivestar_widget updated.'), t('The votingapi_anonymous_window, fivestar_widget variables should get updated.'));
