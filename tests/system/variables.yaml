@@ -19,6 +19,3 @@ actions:
       - variable
         name: user_register
         value: 1
-
-
-

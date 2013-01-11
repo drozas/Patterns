@@ -76,21 +76,28 @@ class PatternsSystemTestCase extends PatternsTestCase {
         ->execute()
         ->fetchAll());
      */
-    $this->assertNotIdentical(variable_get('user_pictures', NULL), NULL, t('user_pictures variable should be set.'));
+    /*$this->assertNotIdentical(variable_get('user_pictures', NULL), NULL, t('user_pictures variable should be set.'));
     $this->assertIdentical(variable_get('votingapi_anonymous_window', NULL), NULL, t('votingapi_anonymous_window variable should not be set.'));
     $this->assertIdentical(variable_get('fivestar_widget', NULL), NULL, t('fivestar_widget variable should not be set.'));
-
+    */
+    
+    //Checking the variables already exist
+    $this->assertNotNull(variable_get('user_picture_file_size', NULL), 'user_picture_file_size should be set.');
+    $this->assertNotNull(variable_get('user_register', NULL), 'user_register should be set.');
+    
+    
+    
     // Run the pattern.
     parent::runFile('variables.yaml', 'Create and delete variables', $this->system_tests_dir);
 
-    $this->assertUniqueText(t('Variable(s) votingapi_anonymous_window, fivestar_widget updated.'), t('The votingapi_anonymous_window, fivestar_widget variables should get updated.'));
-    $this->assertUniqueText(t('Variable(s) user_pictures updated.'), t('The user_pitures variabcle should get updated.'));
+    //TODO: Re-enable and adapt once the branch is merged with 'refactored_core'
+    /*$this->assertUniqueText(t('Variable(s) votingapi_anonymous_window, fivestar_widget updated.'), t('The votingapi_anonymous_window, fivestar_widget variables should get updated.'));
+    $this->assertUniqueText(t('Variable(s) user_pictures updated.'), t('The user_pitures variabcle should get updated.'));*/
 
 
-    // Check for variables after running the pattern.
-    $this->assertIdentical(variable_get('user_pictures', NULL), NULL, t('user_pictures variable should not be set.'));
-    $this->assertIdentical(variable_get('votingapi_anonymous_window', NULL), 3600, t('votingapi_anonymous_window variable should be set properly.'));
-    $this->assertIdentical(variable_get('fivestar_widget', NULL), 'sites/all/modules/fivestar/widgets/craft/craft.css', t('fivestar_widget variable should be set properly.'));
+    // Check for variables after running the pattern that modifies the values
+    $this->assertIdentical(variable_get('user_picture_file_size', NULL), 800, 'user_picture_file_size should be set properly.');
+    $this->assertIdentical(variable_get('user_register', NULL), 1, t('user_register variable should be set properly.'));
     /* debug(db_select('variable', 'v')
         ->fields('v', array('name'))
         ->execute()
