@@ -8,20 +8,6 @@
  */
 
 /**
- * 
- *   Take a look to this function for the implementation. Possible syntax
- *    user_multiple_role_edit(array($uid), 'add_role', $role->rid);
- *    
- *    editor 
- *     - john
- *     - pete
- *     - david
- *    developer
- *     - javi
- *     - david
- */
-
-/**
  * Implements hook_patterns() for the user module.
  */
 function user_patterns($data) {
@@ -54,7 +40,7 @@ function user_patterns($data) {
   );
   
   $actions['role_users'] = array(
-      PATTERNS_INFO => t('Add/Remove rolest to users'),
+      PATTERNS_INFO => t('Add/Remove roles to users'),
       PATTERNS_CREATE => array('set_role_users'), // Run through custom function.
       PATTERNS_DELETE => array('unset_role_users'), // Run through custom function.
       PATTERNS_FILES => $files,
@@ -415,6 +401,25 @@ function user_patterns_validate($action, $tag, &$data) {
           break;
       }
       break;
+      case 'role_users':
+        switch ($action) {
+          case PATTERNS_CREATE:
+          case PATTERNS_DELETE:
+            //Check mandatory fields, in this case the syntax is the same for DELETE and CREATE
+            $mandatory_attributes = array('role', 'users');
+            if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+              return patterns_results(PATTERNS_ERR, $msg);
+            }
+            //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+            if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+              $status = PATTERNS_WARN;
+            }
+            break;
+        default:
+          $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+          return patterns_results(PATTERNS_ERR, $msg);
+        }
+        break;
   }
   
 /*
