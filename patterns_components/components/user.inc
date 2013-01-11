@@ -687,6 +687,44 @@ function patterns_set_user_values($uid, $attributes) {
   ->execute();
 }
 
+
+/**
+ * Wraps the call to drupal_form_submit() to assign roles
+ *
+ * @param string $action  String containing the type of action. It wilb be obsolete
+ * @param array $data  Action parsed, containing the statements in $data['values']
+ */
+function set_role_users($action, &$data) {
+  //Transform names in identifiers for role and users
+  $role = user_role_load_by_name($data['values']['role']);
+  $uids = array();
+  foreach ($data['values']['users'] as $username) {
+    $u = user_load_by_name($username);
+    $uids[] = $u->uid;
+  }
+  //Add the role to the list of urls
+  user_multiple_role_edit($uids, 'add_role', $role->rid);
+}
+
+/**
+ * Wraps the call to drupal_form_submit() to remove roles
+ *
+ * @param string $action  String containing the type of action. It wilb be obsolete
+ * @param array $data  Action parsed, containing the statements in $data['values']
+ */
+function unset_role_users($action, &$data) {
+  //Transform names in identifiers for role and users
+  $role = user_role_load_by_name($data['values']['role']);
+  $uids = array();
+  foreach ($data['values']['users'] as $username) {
+    $u = user_load_by_name($username);
+    $uids[] = $u->uid;
+  }
+  //Add the role to the list of urls
+  user_multiple_role_edit($uids, 'remove_role', $role->rid);
+}
+
+
 /**
  * Returns all the users currently stored in the system, excluding the anonymous.
  */
