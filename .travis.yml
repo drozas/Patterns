@@ -34,12 +34,16 @@ before_script:
   - bash sites/all/modules/patterns/scripts/setup
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
+
+# INSTALL OTHER MODULES
+  - drush dl date pathauto --yes
   - drush cc all --yes
 
 # SIMPLETEST
   - drush en simpletest patterns --yes #token and libraries also
   - mkdir sites/default/files/simpletest
   - chmod 777 sites/default/files/simpletest -R
+
 
 # SPYC
   - mkdir sites/all/libraries/
