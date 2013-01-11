@@ -227,21 +227,6 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
 
-  // FULL SYNTACTIC VALIDATION:
-  // This level includes the tag errors reported by the components, but not the semantic warnings
-  ////////////////////////////
-  if ($level < PATTERNS_VALIDATE_TAG_ERRORS) {
-  	return $msgs;
-  }
-  
-  if (count($patternscan['tag_errors']) != 0) {
-  	$errors = '';
-  	foreach ($patternscan['tag_errors'] as $error) {
-  		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
-  	}
-  	$msgs[] = t('Components reported errors/warnings about tags: ') . $br . $errors;
-  }
-  
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without execution errors
   ////////////////////////////
@@ -448,22 +433,6 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
       	}
 			}   
     }
-	  
-	  //else if ($level >= PATTERNS_VALIDATE_TAG_ERRORS) {
-
-	  	/*
-	  	patterns_invoke('prepare', $key, $action);
-			$validation = patterns_invoke('validate', $key, $action);
-			
-	  	if ($validation['status'] <= PATTERNS_WARN) {
-	  		$tag_error_msg = implode(', ', $validation['result']);
-    		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $tag_error_msg);
-  		}
-	  	*/
-	  	
-  		
-      
-	  //}
   	
   }
   //else {
