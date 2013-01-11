@@ -17,7 +17,6 @@ actions:
       mail: testemail@example.com
       password: test_password
       timezone: Europe/Berlin
-      roles: 2
       status: 1
 
   - create:
@@ -29,3 +28,8 @@ actions:
       rid: 5
       value: administer menu, bypass node access
 
+  - create:
+      tag: role_users
+      role: manager
+      users:
+        - test_uid
