@@ -43,6 +43,26 @@ abstract class PatternsTestCase extends DrupalWebTestCase {
     // Enable any modules required for the tests.
     parent::setUp($modules);
 
+    //fix simpletest error of importing&exporting.
+    //hook_update_N() is in patterns.install, but hook_update_N can only be run by update.php. so I just put the code here. 
+    //by Rui.2013.1.11
+    if(db_table_exists('patterns')) {
+      $uuuid = array(
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+        'description' => 'Identify patterns and their parent',
+      );
+      db_add_field('patterns', 'uuuid', $uuuid);
+      $author = array(
+        'type' => 'varchar',
+        'length' => 30,
+        'default' => '',
+        'description' => 'pattern\'s author',
+      );
+      db_add_field('patterns', 'author', $author);
+    }
+ 
     if (!$first) {
       // 'patterns_first_install' => PATTERNS_FIRST_INSTALL in
       // includes/variables.inc (may be not yet loaded)
@@ -52,32 +72,13 @@ abstract class PatternsTestCase extends DrupalWebTestCase {
       menu_rebuild();
     }
 		variable_set('patterns_save_file', 'public:///patterns_tests-' . rand(0,1000000)); 
-
     // TODO: how to ensure that Spyc is installed?
 
     // Create users.
     $this->pat_user = $this->drupalCreateUser(array('administer patterns'));
     // Login the patterns administrator.
     $this->drupalLogin($this->pat_user);
-
-    //fix simpletest error of importing&exporting.
-    //hook_update_N in patterns.install, but hook_update_N can only be run called by update.php. so I just put the code here. 
-    //by Rui.2013.1.10
-    $uuuid = array(
-      'type' => 'varchar',
-      'length' => 50,
-      'default' => '',
-      'description' => 'Identify patterns and their parent',
-    );
-    db_add_field('patterns', 'uuuid', $uuuid);
-    $author = array(
-      'type' => 'varchar',
-      'length' => 30,
-      'default' => '',
-      'description' => 'pattern\'s author',
-    );
-    db_add_field('patterns', 'author', $author);
-}
+  }
 
   /**
    * Loads a pattern file and runs it.
