@@ -38,6 +38,14 @@ function user_patterns($data) {
       PATTERNS_FILES => $files,
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
   );
+  
+  $actions['roles_user'] = array(
+      PATTERNS_INFO => t('Add/Remove rolest to users'),
+      PATTERNS_CREATE => array('set_user_role'), // Run through custom function.
+      PATTERNS_DELETE => array('unset_user_role'), // Run through custom function.
+      PATTERNS_FILES => $files,
+      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_roles_user', ),
+  );
   return $actions;
 
 }
