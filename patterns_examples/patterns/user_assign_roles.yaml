@@ -10,14 +10,14 @@ info:
 actions:
 
   - create:
-      tag: module
+      tag: role_users
       - role: editor
       - users:
       	- homer
         - fry
         - bender
   - delete:
-      tag: module
+      tag: role_users
       - role: developer
       - users:
       	- bender

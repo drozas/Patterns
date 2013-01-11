@@ -53,12 +53,12 @@ function user_patterns($data) {
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
   );
   
-  $actions['roles_user'] = array(
+  $actions['role_users'] = array(
       PATTERNS_INFO => t('Add/Remove rolest to users'),
-      PATTERNS_CREATE => array('set_user_role'), // Run through custom function.
-      PATTERNS_DELETE => array('unset_user_role'), // Run through custom function.
+      PATTERNS_CREATE => array('set_role_users'), // Run through custom function.
+      PATTERNS_DELETE => array('unset_role_users'), // Run through custom function.
       PATTERNS_FILES => $files,
-      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_roles_user', ),
+      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_role_users', ),
   );
   return $actions;
 
@@ -187,41 +187,26 @@ function user_patterns_export_all_users($args = NULL, &$result = NULL) {
 
 /**
  *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of roles currently stored in the system.
+ * Returns a set of PATTERNS_CREATE actionswith the whole set of 
+ * relationsps between users and roles currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
  *
  * @return array $result  Set of actions after performing the changes.
  */
-function user_patterns_export_all_roles_user($args = NULL, &$result = NULL) {
-  //@TO-DO
+function user_patterns_export_all_role_users($args = NULL, &$result = NULL) {
   $roles = user_roles(TRUE);
   $result = array();
-
-  //Got through all the roles and prepare set of actions according to the type of export process
-  /*switch ($args['type']) {
-    case PATTERNS_CREATE :
-      foreach ($roles as $rid => $role) {
-        //Create operations just require the name
-        $data = array('tag' => 'role');
-        $data['name'] = $role;
-        $action = array(PATTERNS_CREATE => $data);
-        array_push($result, $action);
-      }
-      break;
-    case PATTERNS_MODIFY :
-      foreach ($roles as $rid => $role) {
-        //Modify operations require the name and the rid
-        $data = array('tag' => 'role');
-        $data['name'] = $role;
-        $data['rid'] = $rid;
-        $action = array(PATTERNS_MODIFY => $data);
-        array_push($result, $action);
-      }
-      break;
-  }*/
+  
+  //A PATTERNS_CREATE action is generated for each role
+  foreach ($roles as $rid => $role) {
+    $data = array('tag' => 'role_users');
+    $data['role'] = $role;
+    $data['users'] = _user_patterns_users_with_role($role);
+    $action = array(PATTERNS_CREATE => $data);
+    array_push($result, $action);
+  }
 
   return $result;
 }
@@ -690,4 +675,26 @@ function _user_patterns_get_all_users() {
   $query->condition('uid', '0', '<>');
   $uids = $query->execute()->fetchCol();
   return user_load_multiple($uids);
+}
+
+/**
+ * 
+ * Returns a list of usernames that belong to the given Role ID
+ * 
+ * @param string $role  Role ID to filter by
+ * @return array List of usernames that currently hold that role
+ */
+function _user_patterns_users_with_role($role) {
+  $users_with_role = array();
+  //Get rid and load users
+  $role_info = user_role_load_by_name($role);
+  $users = entity_load('user');
+
+  //Filter all users that do not have the given role
+  foreach($users as $user) {
+    if (array_key_exists($role_info->rid, $user->roles)) {
+      array_push($users_with_role, $user->name);
+    }
+  }
+  return $users_with_role;
 }
