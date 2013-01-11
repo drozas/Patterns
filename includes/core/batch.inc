@@ -46,6 +46,10 @@ function patterns_execute_pattern_batch($pattern, $params, $patterns_details, $a
   ///////////////////////////////
   $tot_sec = count($sections);
   $cur_sec = 1;
+  
+  $_SESSION['patterns_batch_counter'] = 0;
+  $_SESSION['patterns_batch_total'] = $tot_sec;
+  
   foreach ($sections as $section => $actions) {
     // by default this pattern should run included ?
     // this setting can be overwritten by the pattern file itself
@@ -95,6 +99,8 @@ function patterns_execute_pattern_batch($pattern, $params, $patterns_details, $a
       $i++;
     }
 
+    
+    
     $_SESSION['patterns_batch_info'] = $infos;
     batch_set($batch);
     $cur_sec++;
@@ -141,10 +147,11 @@ function patterns_batch_action($action, $data, $place, $actions_map, $section, &
   // PREPARATION
   $results = patterns_prepare_action($action, $data, $actions_map);
 
-  if (!patterns_error_check_results($results)) {
+  if ($results['status'] == PATTERNS_ERR) {
     $context['finished'] = 1;
     $context['results']['abort'] = 1;
-		$context['results']['error_message'] = t('An error occurred while preparing the actions.', 'error');
+		$context['results']['error_message'] = NULL;
+		$context['results']['idx'] = $place;
     return FALSE;
   }
   ///////////////////////
@@ -170,32 +177,69 @@ function patterns_batch_action($action, $data, $place, $actions_map, $section, &
 
 /**
  * Finishes a batch operation.
- * @TODO Doc.
+ * 
+ * When a section has been executed, check its status and print an output to screen
+ * 
+ * @param $success boolean Whether the section was completed (with or without errors)
+ * @param $results array Detailed report of the execution of the section
+ * @param @operations array Additional information by the batch (not used for now)
  */
 function patterns_batch_finish($success, $results, $operations) {
   $info = $_SESSION['patterns_batch_info'];
+  $pid = key($info);
+  $pattern = $info[$pid];
   $section = $results['section'];
+  
   if (empty($results['abort'])) {
-    foreach ($info as $key => $i) {
-      drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', array('@pattern' => $i['title'],
-                                                                                             '@section' => $section,
-      )));
-      $query_params = array(':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
-                            ':pid' => $key,
-                            ':en' => PATTERNS_STATUS_ENABLED,
-      );
-      db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
-    }
+  	_patterns_section_success($pid, $pattern['title'], $section);
   }
   else {
-    $pattern = reset($info);
-    drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors. Check the error messages to get more details.',
-      array('@pattern' => $pattern['title'], '@section' => $section, )
-      ),
-     'error');
-    drupal_set_message($results['error_message'], 'error');
+    _patterns_section_fail($pid, $pattern['title'], $section, $results['error_message']);
   }
 
-  unset($_SESSION['patterns_batch_info']);
-  drupal_flush_all_caches();
+  // If this is the last section to finish, unset all $_SESSION variables
+  // and flush caches
+ 	$_SESSION['patterns_batch_counter']++;
+ 	
+ 	if ($_SESSION['patterns_batch_counter'] >= $_SESSION['patterns_batch_total']){
+ 		unset($_SESSION['patterns_batch_info']);
+ 		unset($_SESSION['patterns_batch_counter']);
+ 		unset($_SESSION['patterns_batch_total']);
+  	drupal_flush_all_caches();	
+ 	}
+  
 }
+
+
+
+function _patterns_section_success($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);
+	drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', $params));
+	if (!empty($msg)) {
+ 		drupal_set_message($msg);	
+ 	}
+  
+	$query_params = array(
+		':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
+    ':pid' => $pid,
+    ':en' => PATTERNS_STATUS_ENABLED,
+  );
+  
+  db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+}
+
+function _patterns_section_fail($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);  
+ 	drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors. Check the error messages to get more details.', $params), 'warning');
+ 	if (!empty($msg)) {
+ 		drupal_set_message($msg, 'error');	
+ 	}
+}
+    
+    

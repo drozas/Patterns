@@ -53,17 +53,12 @@ function patterns_prepare_action(&$action, &$data, &$actions_map) {
     //////////////////////////////////////////////////
     $results = patterns_invoke('validate', $key, $data);
 
-    if (!patterns_error_check_results($results)) {
-        $errors[] = t('pattern %title: !msg', array('!msg' => $results['msg'], '%tag' => $data['tag'], '%title' => $pattern_title));
-    }
+   	$prefix = t('Errors during pre-processing.');
+    patterns_error_check_results($results, $prefix);
+
   }
 
-  if (count($errors)) {
-    $message = t('Errors encountered during pre-processing:') . '<br/>' . implode('<br/>', $errors);
-    $status = PATTERNS_ERR;
-  }
-
-  return patterns_results($status, $message);
+  return $results;
 }
 
 /**
@@ -87,8 +82,13 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
   // Refresh the list of forms based on the data we have.
   $tagmodules = patterns_tagmodules_get_index($data);
   $tag_info = patterns_tagmodules_filter($tagmodules, $data['tag']);
+  
+  $tag_description = isset($tag_info['description']) ? $tag_info['description'] : 'no description';
+   
   $form_ids = $tag_info[$action];
 
+  
+  
   // Gather info about the action
   $action_location = patterns_locate_action($place, $actions_map);
   $index = $action_location['key'] + 1;
@@ -209,7 +209,7 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
       drupal_set_message(print_r($errors, true));
       $errors_tokens =  array(
         '%num' => $index, 
-        '%action' => $action_description, 
+        '%action' => $tag_description,
         '%title' => $pattern_title, 
         '%errors' => str_replace('][', '->', implode(', ', array_keys($errors))),
       );

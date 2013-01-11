@@ -140,7 +140,7 @@ function patterns_error_last($error = NULL) {
 /**
  * Helper function for checking errors.
  */
-function patterns_error_check_results(&$result) {
+function patterns_error_check_results(&$result, $prefix = '') {
   if ($result['status'] == PATTERNS_ERR) {
     $return = FALSE;
     $wd_type = WATCHDOG_ERROR;
@@ -155,11 +155,10 @@ function patterns_error_check_results(&$result) {
     return TRUE;
   }
 
-  // TODO: t()?
-  $msg = 'Error occurred in ';
+  $msg = $prefix . t(' Error occurred in: ');
 
   if (isset($result['details'])) {
-    $msg = 'Hook: ' . $result['details']['hook'];
+    $msg .= 'Hook: ' . $result['details']['hook'];
     $msg .= ', Action: ' . $result['details']['action'];
     $msg .= ', Function: ' . $result['details']['function'] . '. ';
   }
@@ -168,8 +167,9 @@ function patterns_error_check_results(&$result) {
   }
 
   $msg = (empty($result['msg'])) ? $msg : $msg . $result['msg'];
+  $result['msg'] = $msg;
   watchdog('patterns', $msg, array(), $wd_type); // TODO: $msg is not a literal string.
-  drupal_set_message($result['msg'], $msg_type);
+  drupal_set_message($msg, $msg_type);
 
   return $return;
 }

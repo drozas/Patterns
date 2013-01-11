@@ -258,6 +258,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = (count($terms) == 1);
   		
       if ($term_exists) {
+      	$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
         	t('The term %term already exists in the system.', array('%term' => $data['name'],)));
       }
@@ -267,6 +268,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = taxonomy_term_load($data['tid']);
   		
   		if (!$term_exists) {
+  			$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The term %term was not found in the system, and cannot be modified.', array('%term' => $data['name'],)));
       }
@@ -277,6 +279,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = taxonomy_term_load($data['tid']);
   		
   		if (!$term_exists) {
+  			$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The term %term was not found in the system, and cannot be deleted.', array('%term' => $data['name'],)));
       }

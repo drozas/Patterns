@@ -790,7 +790,7 @@ function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$extra
 
   $return['details']['action'] = $action;
   $return['details']['hook'] = $hook;
-  $return['details']['function'] = $form_id;
+  $return['details']['function'] = $func;
 
   $data['tag'] = $tag;
   return $return;
