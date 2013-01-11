@@ -26,7 +26,10 @@ actions:
   - modify:
       tag: permission
       rid: 5
-      value: administer menu, bypass node access
+      value:
+        - administer blocks
+        - administer image styles
+        - create url aliases
 
   - create:
       tag: role_users
