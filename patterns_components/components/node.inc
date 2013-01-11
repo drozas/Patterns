@@ -158,38 +158,63 @@ function node_patterns_prepare($action, $tag, &$data) {
 function node_patterns_validate($action, $tag, &$data) {
   $status = PATTERNS_SUCCESS;
   $msg = '';
-  $result = NULL;
+  $result = array();
 
-  if ($tag == 'node') {
-    if ($action !== PATTERNS_CREATE) {
-      $data['node'] = node_load($data['nid']);
-      if ($data['node'] === FALSE) {
-        $status = PATTERNS_ERR;
-        $msg = t('Cannot modify or delete a nonexistent Node.');
+  switch ($tag) {
+    case 'node' :
+      switch ($action) {
+        case PATTERNS_CREATE :
+          if (empty($data['type'])) {
+            $status = PATTERNS_ERR;
+            $msg = t('"type" field is required.');
+            return patterns_results($status, $msg, $result);
+          }
+          break;
+        case PATTERNS_MODIFY :
+          if (empty($data['nid'])) {
+            $status = PATTERNS_ERR;
+            $msg = t('"id" field is required.');
+            return patterns_results($status, $msg, $result);
+          }
+          $data['node'] = node_load($data['nid']);
+          if ($data['node'] === FALSE) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The node %oldname does not exist in the system.', array('%oldname' =>$data[''],)));
+          }
+          $data['node'] = (object) $data['node'];
+          if ($data['type'] != $data['node']->type) {
+            $status = PATTERNS_ERR;
+            $msg = t("You can't change content type for already existing node.");
+            return patterns_results($status, $msg, $result);
+          }
+          break;
+        case PATTERNS_DELETE :
+          if (empty($data['nid'])) {
+            $status = PATTERNS_ERR;
+            $msg = t('"id" field is required.');
+            return patterns_results($status, $msg, $result);
+          }
+          $data['node'] = node_load($data['nid']);
+          if ($data['node'] === FALSE) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The node %oldname does not exist in the system.', array('%oldname' =>$data[''],)));
+          }
+          $data['node'] = (object) $data['node'];
+          break;
       }
-      else{
-        $data['node'] = (object) $data['node'];
-        if ($action === PATTERNS_MODIFY && $data['type'] != $data['node']->type) {
-          $status = PATTERNS_ERR;
-          $msg = t("You can't change content type for already existing node.");
-        }
+      break;
+    case 'content_type' :
+      //TODO: check required fields for content types
+      switch ($action) {
+        case PATTERNS_CREATE :
+          break;
+        case PATTERNS_MODIFY :
+          break;
+        case PATTERNS_DELETE :
+          break;
       }
-    }
-
-    if (empty($data['type']) && $action === PATTERNS_CREATE) {
-      $status = PATTERNS_ERR;
-      $msg = t('"type" field is required.');
-    }
-    elseif ($action === PATTERNS_DELETE && empty($data['nid'])) {
-      $status = PATTERNS_ERR;
-      $msg = t('"id" field is required.');
-    }
-  // TODO: validate name field - should be valid/existing username
+      break;
   }
-  elseif ($tag == 'content_type') {
-    // TODO: check required fields for content types
-  }
-
   return patterns_results($status, $msg, $result);
 }
 
