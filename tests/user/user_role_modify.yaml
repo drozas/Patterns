@@ -13,5 +13,5 @@ info:
 actions:
   - modify:
       tag: role
-      rid: test_role
+      rid: 4
       name: test_role_mod
