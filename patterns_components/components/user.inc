@@ -515,6 +515,7 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
       }
+      break;
       case 'role_users':
         switch ($action) {
           case PATTERNS_CREATE:
