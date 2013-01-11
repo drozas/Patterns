@@ -2,8 +2,8 @@
 # QScience
 
 info:
-  title: Create and delete variables
-  description: Based on http://drupal.org/node/409180
+  title: Modify variables
+  description: New test case adapted to new syntax
   author: QScience
   category: System
   version: 1.0
@@ -11,24 +11,12 @@ info:
   author_website: http://qlectives.eu/
 
 actions:
-  - create:
+  - modify:
       tag: variables
       - variable
-        name: votingapi_anonymous_window
-        value: 3600
+        name: user_picture_file_size
+        value: 800
       - variable
-        name: fivestar_widget
-        value: sites/all/modules/fivestar/widgets/craft/craft.css
-
-  - delete:
-      tag: variables
-      - variable
-        name: user_pictures
-
-# <variable name="theme_settings">
-# <toggle_node_info_page>0</toggle_node_info_page>
-# <toggle_node_info_example>0</toggle_node_info_example>
-# <toggle_node_info_blog>1</toggle_node_info_blog>
-# <toggle_favicon>0</toggle_favicon>
-# </variable>
+        name: user_register
+        value: 1
 

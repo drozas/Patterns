@@ -12,14 +12,13 @@ info:
 
 actions:
 
-    - create:
+    - modify:
         tag: theme
         value: garland
         default: true
 
-    - create:
+    - modify:
         tag: theme
         value: bartik
-        default: true
+        default: false
         admin: true
-

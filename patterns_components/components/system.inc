@@ -1,7 +1,8 @@
 <?php
 /*
- * TODO: Only set a theme default if 'default' is 1.
- * TODO: Check if it is possible to simplify the prepare hook. Check variables delete validation case
+ * TODO: Check if it is possible to simplify the prepare hook. 
+ * TODO: Check variables delete validation case
+ * TODO: Add more descriptive messages after merging with the new core branch (custom function cases)
  * @file
  * Patterns component for system related operations.
  */
@@ -17,14 +18,15 @@ function system_patterns($data) {
 
   $files = array('modules/system/system.admin.inc');
 
-  //Function not run through form. @TO-DO: create export function
-  $actions['modules'] = array('descr' => t('Enable/Disable Modules'),
+  //Function not run through form.
+  $actions['module'] = array('descr' => t('Enable/Disable Modules'),
     PATTERNS_CREATE => array('modules_enable'),
     PATTERNS_DELETE => array('modules_disable'),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_modules', ),   
     PATTERNS_FILES  => $files,
   );
 
-  //Function not run through form. @TO-DO: create export function
+  //Function not run through form.
   $actions['theme'] = array('descr' => t('Enable (and set default)/Disable Themes'),
     PATTERNS_MODIFY => array('set_theme_properties'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_themes', ),
@@ -51,9 +53,7 @@ function system_patterns($data) {
 
   //Function not run through form.
   $actions['variables'] = array('descr'  => t('Set/Modify/Delete System Variables'),
-    PATTERNS_CREATE => array('variables_execute'),
     PATTERNS_MODIFY => array('variables_execute'),
-    PATTERNS_DELETE => array('variables_execute'),
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'system_patterns_export_all_variables', ),
   );
   return $actions;
@@ -62,22 +62,28 @@ function system_patterns($data) {
 
 
 /**
- * @TO-DO!
- * Returns a set of PATTERNS_MODIFY actions with the whole set of variables
- * currently stored in the system.
+ * 
+ * Returns a set of PATTERNS_CREATE actions with the whole set of modules
+ * currently enabled in the system.
  *
  * @param string $args
  * @param string $result
  * @return array $actions
  */
-/*function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
-  @TO-DO
-}*/
+function system_patterns_export_all_modules($args = NULL, &$result = NULL) {
+  $actions = array(PATTERNS_CREATE => array('tag' => 'module'));
+  foreach (module_list() as $module => $value) {
+    $action = array('value' => $module);
+    array_push($actions[PATTERNS_CREATE], $action);
+  }
+  $result = array($actions);
+  return $result;
+}
 
 /**
- * @TO-DO!
- * Returns a set of PATTERNS_MODIFY actions with the whole set of themes
- * currently stored in the system.
+ * 
+ * Returns a set of PATTERNS_MODIFY actions with the whole set of themes'
+ * settings currently stored in the system.
  *
  * @param string $args
  * @param string $result
@@ -105,7 +111,7 @@ function system_patterns_export_all_themes($args = NULL, &$result = NULL) {
 
 /**
  *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions with 
+ * Returns a set of PATTERNS_MODIFY actions with 
  * the whole set of variables currently stored in the system.
  *
  * @param string $args
@@ -118,18 +124,15 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
   $query->fields('v', array('name', 'value'));
   $qresult = $query->execute();
   
-  //Got through all the variables and prepare set of actions according 
-  //to the type of export process. In this case both cases have the same syntax
-  if ($args['type'] == PATTERNS_CREATE ||PATTERNS_MODIFY) {
-    $actions = array($args['type'] => array('tag' => 'variables'));
-    foreach ($qresult as $row) {
-      $name = $row->name;
-      $value = variable_get($name);
-      //Apply htmlspecialchars() function recursively to keep the same value input by the user
-      _htmlspecialchars_decode($value);
-      $action = array('name' => $name, 'value' => $value);
-      array_push($actions[$args['type']], $action);
-    }
+  //Got through all the variables and prepare set of CREATE or MODIFY actions
+  $actions = array(PATTERNS_MODIFY => array('tag' => 'variables'));
+  foreach ($qresult as $row) {
+    $name = $row->name;
+    $value = variable_get($name);
+    //Apply htmlspecialchars() function recursively to keep the same value input by the user
+    _htmlspecialchars_decode($value);
+    $action = array('name' => $name, 'value' => $value);
+    array_push($actions[PATTERNS_MODIFY], $action);
   }
     
   $result = array($actions);
@@ -138,7 +141,6 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
 
 
 /**
- * @TO-CHECK
  * 
  * Prepare data for processing
  * 
@@ -148,19 +150,17 @@ function system_patterns_export_all_variables($args = NULL, &$result = NULL) {
  * 
  */
 function system_patterns_prepare($action, $tag, &$data) {
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     // Make a <modules>modulename</modules> style tag work
     if (is_string($data) || (isset($data['value']) && !isset($data[0]))) {
       $data = array($data);
     }
-
     // Ensure proper data format for cases when <modules> tag contains
     // only single <module> tag.
     if (!empty($data['module']) && is_string($data['module'])) {
       $data[0]['value'] = $data['module'];
       unset($data['module']);
     }
-
     foreach ($data as &$item) {
       // Ensure that modules with tags like <module>modulename</module>
       // are represented as an array instead of a string
@@ -168,7 +168,6 @@ function system_patterns_prepare($action, $tag, &$data) {
         $item = array('value' => $item);
       }
     }
-
     // proccess alias for delete
     if (isset($data['disable']) && !isset($data['delete'])) {
       $data['delete'] = $data['disable'];
@@ -185,7 +184,6 @@ function system_patterns_prepare($action, $tag, &$data) {
         $data = array($data);
       case 'variables':
         // Make a <variables>modulename</variables> style tag work
-
         if (!$data[0]) {
           if ($data['variable'] && isset($data['variable'][0])) {
             $data = $data['variable'];
@@ -201,22 +199,17 @@ function system_patterns_prepare($action, $tag, &$data) {
             unset($data['id'], $data['value'], $data['delete']);
           }
         }
-
         for ($i = 0, $total = count($data); $i < $total; $i++) {
           $item = &$data[$i];
-
           if (!isset($item['value']) && (!isset($item['delete']) || !$item['delete'])) {
             $value = $item;
             unset($value['name']);
             $item = array('name' => $item['name'], 'value' => $value);
           }
-
         }
-
         break;
     }
   }
-
   return patterns_results();
 }
 
@@ -244,7 +237,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         switch ($action) {
         case PATTERNS_CREATE:
         case PATTERNS_DELETE:
@@ -344,26 +337,26 @@ function system_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'variables':
-      switch ($action) {
-        case PATTERNS_CREATE:
-        case PATTERNS_MODIFY:
-        case PATTERNS_DELETE:
-          //In this case even the delete case is the same because the 'value' attribute is added by
-          //the hook_prepare(). We will keep the code (switch with same cases) like this for future extendibility reasons
-          $mandatory_attributes = array('name', 'value');
-          //Go through all the variables to check if they have the mandatory attributes
-          foreach ($data as $variable) {
-            if (!_patterns_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
-              return patterns_results(PATTERNS_ERR, $msg);
-            }
+      //The only actions syntactically valid with variables is MODIFY
+      if($action == PATTERNS_MODIFY) {
+        //Prepare mandatory attributes
+        $mandatory_attributes = array('name', 'value');
+        //Go through all the variables to check if they have the mandatory attributes
+        foreach ($data as $variable) {
+          if (!_patterns_has_all_mandatory_attributes($variable, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
           }
-          //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
-          foreach ($data as $variable) {
-            if(_patterns_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
-              $status = PATTERNS_WARN;
-            }
+        }
+        //In this case there are not optional attributes, so we can also use this set as interpretable attributes. Go through all variables
+        foreach ($data as $variable) {
+          if(_patterns_has_uninterpretable_attributes($variable, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
           }
-          break;
+        }
+      }else{
+        //Rest of  actions for the permission case are considered as syntactical errors
+        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+        return patterns_results(PATTERNS_ERR, $msg);
       }
       break;
   }
@@ -375,7 +368,7 @@ function system_patterns_validate($action, $tag, &$data) {
   *
   */
   switch ($tag) {
-    case 'modules':
+    case 'module':
         $enabled_modules = module_list();
         switch ($action) {
         case PATTERNS_CREATE:
@@ -406,26 +399,12 @@ function system_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'variables':
-      switch ($action) {
-        case PATTERNS_CREATE:
-          //Check all the variables do not exist already in the system
-          foreach ($data as $variable) {
-            if (variable_get($variable['name'])) {
-              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
-                t('The variable %var already exists in the system.', array('%var' =>$variable['name'],)));
-            }  
-          }
-          break;
-        case PATTERNS_MODIFY:
-        case PATTERNS_DELETE:
-          //Check all the variables already exist already in the system
-          foreach ($data as $variable) {
-            if (!variable_get($variable['name'])) {
-              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
-                t('The variable %var does not exist in the system.', array('%var' =>$variable['name'],)));
-            }  
-          }
-          break;
+      //We raised a semantic error for each variable that does not exist. Since only MODIFY actions are supported, it is not necessary to switch
+      foreach ($data as $variable) {
+        if (!variable_get($variable['name'])) {
+          $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+              t('The variable %var does not exist in the system.', array('%var' =>$variable['name'],)));
+        }
       }
       break;
   }
@@ -516,7 +495,7 @@ function system_patterns_params($action, $form_id, &$data = NULL, &$a) {
  * 
  */
 function system_patterns_cleanup($action, $tag, &$data) {
-  if ($tag == 'modules') {
+  if ($tag == 'module') {
     menu_rebuild(); // TODO: only do this if there has been a module enabled/disabled
   }
   return patterns_results();
@@ -597,7 +576,7 @@ function set_theme_properties($action, &$data) {
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $form
  * @param unknown $form_state
@@ -623,7 +602,7 @@ function call_php_func_form($form, $form_state, $func, $type, $module, $name, $f
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $form
  * @param unknown $form_state
@@ -636,7 +615,7 @@ function call_php_func_form_submit($form, &$form_state) {
 }
 
 /**
- * @TO-CHECK
+ * TODO: Document function
  * 
  * @param unknown $values
  */
