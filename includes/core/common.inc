@@ -306,6 +306,53 @@ function patterns_execute_action($form_id, &$form_state, $params) {
   patterns_executing(FALSE);
 }
 
+/**
+ * Outputs information about a successful execution of a section of a pattern
+ * and updates its db status
+ * 
+ * @param mixed $pid The pid of the pattern
+ * @param mixed $pattern_title The title of the pattern
+ * @param mixed $section The title of the section executed
+ * @param mixed $msg Optional. An additional message to be displayed
+ */
+function _patterns_section_success($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);
+	drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', $params));
+	if (!empty($msg)) {
+ 		drupal_set_message($msg);	
+ 	}
+  
+	$query_params = array(
+		':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
+    ':pid' => $pid,
+    ':en' => PATTERNS_STATUS_ENABLED,
+  );
+  
+  db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+}
+
+/**
+ * Outputs information about an un-successful execution of a section of a pattern
+ * 
+ * @param mixed $pid The pid of the pattern
+ * @param mixed $pattern_title The title of the pattern
+ * @param mixed $section The title of the section executed
+ * @param mixed $msg Optional. An additional message to be displayed
+ */
+function _patterns_section_fail($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);  
+ 	drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors. Check the error messages to get more details.', $params), 'warning');
+ 	if (!empty($msg)) {
+ 		drupal_set_message($msg, 'error');	
+ 	}
+}
+
 
 function patterns_execute_action1($form_id, &$form_state, $params) {
   // Make sure we always have a clear cache for everything.
@@ -340,42 +387,6 @@ function patterns_execute_action1($form_id, &$form_state, $params) {
   //$batch = $batch_clone;
 
 }
-
-/*
-$form	Array [11]	
-	#vocabulary	stdClass	
-	name	Array [5]	
-	machine_name	Array [4]	
-	old_machine_name	Array [2]	
-	description	Array [3]	
-	hierarchy	Array [2]	
-	actions	Array [3]	
-	vid	Array [2]	
-	module	Array [2]	
-	#validate	Array [1]	
-	#form_id	taxonomy_form_vocabulary	
-
-
-$form_state	Array [17]	
-	storage	<Uninitialized>	
-	submitted	true	
-	build_info	Array [3]	
-	values	Array [8]	
-	rebuild	false	
-	rebuild_info	Array [0]	
-	redirect	<Uninitialized>	
-	temporary	Array [0]	
-	executed	false	
-	programmed	true	
-	cache	false	
-	method	post	
-	groups	Array [0]	
-	buttons	Array [0]	
-	input	Array [8]	
-	vocabulary	stdClass	
-	must_validate	true	
-
-*/
 
 /**
  * Group the action and the data fields.

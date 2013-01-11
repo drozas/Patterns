@@ -209,37 +209,5 @@ function patterns_batch_finish($success, $results, $operations) {
  	}
   
 }
-
-
-
-function _patterns_section_success($pid, $pattern_title, $section, $msg = NULL) {
-	$params =  array(
-		'@pattern' => $pattern_title,
-    '@section' => $section,
- 	);
-	drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', $params));
-	if (!empty($msg)) {
- 		drupal_set_message($msg);	
- 	}
-  
-	$query_params = array(
-		':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
-    ':pid' => $pid,
-    ':en' => PATTERNS_STATUS_ENABLED,
-  );
-  
-  db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
-}
-
-function _patterns_section_fail($pid, $pattern_title, $section, $msg = NULL) {
-	$params =  array(
-		'@pattern' => $pattern_title,
-    '@section' => $section,
- 	);  
- 	drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors. Check the error messages to get more details.', $params), 'warning');
- 	if (!empty($msg)) {
- 		drupal_set_message($msg, 'error');	
- 	}
-}
     
     
