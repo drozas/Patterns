@@ -365,7 +365,6 @@ function user_patterns_validate($action, $tag, &$data) {
       switch ($action) {
         case PATTERNS_CREATE:
           //Check mandatory fields
-          //@TO-DO: Get role values?
           $mandatory_attributes = array('name', 'mail', 'password', 'timezone', 'status');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
@@ -517,6 +516,24 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
       }
+      case 'role_users':
+        switch ($action) {
+          case PATTERNS_CREATE:
+          case PATTERNS_DELETE:
+            //Create semantic warning if the role does not exist
+            if (!user_role_load_by_name($data['role'])) {
+              $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                  t('The role %role does not exist in the system.', array('%role' =>$data['role'],)));
+            }
+            //We raised a semantic error for each username that does not exist. 
+            foreach ($data['users'] as $username) {
+              if (!user_load_by_name($username)) {
+                $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                    t('The username %username does not exist in the system.', array('%username' =>$username,)));
+              }
+            }
+            break;
+        }
       break;
   }
   return patterns_results($status, $msg, $result);
@@ -648,7 +665,6 @@ function patterns_set_user_permissions($rid, $permissions) {
  * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
  */
 function set_user_values($form, &$form_state) {
-  //@TO-DO: Apply role values?
   // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
   $uid = $form_state['values']['uid'];
   //Prepare all the attributes for the query, but uid
