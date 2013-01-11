@@ -23,7 +23,7 @@ actions:
       tag: role
       name: manager
 
-  - create:
+  - modify:
       tag: permission
       rid: 5
       value: administer menu, bypass node access
