@@ -133,7 +133,6 @@ $this->verbose(print_r($role_permissions, true));
     $role_count = db_select('role', 'r')
       ->fields('r', array('name'))
       ->condition('name', 'test_role_mod')
-      ->condition('weight', '10')
       ->countQuery()->execute()->fetchField();
     $this->assertIdentical($role_count, '1', t('The role should exist with the modified values.'));
     //$this->testPermissionModify();

@@ -15,4 +15,3 @@ actions:
       tag: role
       rid: test_role
       name: test_role_mod
-      weight: 10
