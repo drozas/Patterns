@@ -145,7 +145,7 @@ function patterns_batch_action($action, $data, $place, $actions_map, $section, &
 
   /////////////////////////
   // PREPARATION
-  $results = patterns_prepare_action($action, $data, $actions_map);
+  $results = patterns_prepare_action($action, $data);
 
   if ($results['status'] == PATTERNS_ERR) {
     $context['finished'] = 1;

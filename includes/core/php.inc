@@ -68,7 +68,7 @@ function patterns_execute_pattern_php($pattern, $params, $patterns_details, $act
       $i++;
     }
     if ($success) {
-    		_patterns_section_success($pid, $info['title'], $section);
+    	_patterns_section_success($pid, $info['title'], $section);
     }
   }
   drupal_flush_all_caches();
@@ -96,7 +96,7 @@ function patterns_php_action($action, $data, $place, $actions_map) {
   }
 
   // $actions passed as reference.
-  $results = patterns_prepare_action($action, $data, $actions_map);
+  $results = patterns_prepare_action($action, $data);
   if ($results['status'] == PATTERNS_ERR) {
     return $results;
   }

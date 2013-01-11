@@ -17,46 +17,44 @@
  * @return array $results array containing the description of eventual errors
  * @TODO Doc.
  */
-function patterns_prepare_action(&$action, &$data, &$actions_map) {
+function patterns_prepare_action(&$action, &$data) {
 
   $status = PATTERNS_SUCCESS;
   $message = '';
 
   if (empty($action)) {
-    return patterns_results();
+    return patterns_results(PATTERNS_ERR, t('An unspecified error occurred. No valid action found'));
   }
 
   // Keep a list of which modules handle what tags.
   $tag_modules = patterns_tagmodules_get_index($data);
 
-  $errors = array();
+  if (!array_key_exists($data['tag'], $tag_modules)) {
+  	$msg = t('<%tag> is not a valid tag', array('%tag' => $data['tag']));
+  	return patterns_results(PATTERNS_ERR, $msg);
+  }
 
+  $err_prefix = t('Errors during pre-processing.');
+  
   /////////////////////////////////////////////
   // Prepare actions for validation/processing
   /////////////////////////////////////////////
 
-  $result = patterns_invoke('prepare', $action, $data);
+  $results = patterns_invoke('prepare', $action, $data);
 
+  if (!patterns_error_check_results($results, $err_prefix)){
+  	return $results;
+  }
+  
   $key = &$action;
   $data = &$data;
-
-  // TODO: manage multiple pattern includes
-  $pattern_info = reset($actions_map['patterns']);
-  $pattern_title = $pattern_info['title'];
   
-  if (!array_key_exists($data['tag'], $tag_modules)) {
-  	$errors[] = t('Pattern %title: <%tag> is not a valid tag', array('%tag' => $data['tag'], '%title' => $pattern_title));
-  }
-  else {
-  	//////////////////////////////////////////////////
-    // Validate tags with their appropriate components
-    //////////////////////////////////////////////////
-    $results = patterns_invoke('validate', $key, $data);
+	//////////////////////////////////////////////////
+  // Validate tags with their appropriate components
+  //////////////////////////////////////////////////
+  $results = patterns_invoke('validate', $key, $data);
 
-   	$prefix = t('Errors during pre-processing.');
-    patterns_error_check_results($results, $prefix);
-
-  }
+  patterns_error_check_results($results, $err_prefix);
 
   return $results;
 }
