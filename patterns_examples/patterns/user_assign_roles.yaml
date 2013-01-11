@@ -1,0 +1,25 @@
+info:
+  title: Assign/Remove roles
+  description: Based on http://drupal.org/node/408960
+  author: QScience
+  category: User
+  version: 1.0
+  core: 7.x
+  author_website: http://qlectives.eu/
+
+actions:
+
+  - create:
+      tag: module
+      - role: editor
+      - users:
+      	- homer
+        - fry
+        - bender
+  - delete:
+      tag: module
+      - role: developer
+      - users:
+      	- bender
+        - leela
+
