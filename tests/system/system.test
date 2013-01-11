@@ -123,7 +123,6 @@ class PatternsSystemTestCase extends PatternsTestCase {
   }
 
   public function testTheme() {
-    // TODO: test when 'default' is not set
     // Check for the current theme.
     $this->assertIdentical(variable_get('theme_default', NULL), 'bartik', t('The default theme is bartik.'));
     $this->assertIdentical(variable_get('admin_theme', NULL), 'seven', t('The default admin theme is seven.'));
