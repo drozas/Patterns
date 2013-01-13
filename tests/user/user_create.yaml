@@ -3,7 +3,7 @@
 
 info:
   title: Users (create)
-  description: Creates a few users
+  description: Creates a user and assign him administrator role
   author: QScience
   category: Users
   version: 1.0
@@ -17,6 +17,10 @@ actions:
       mail: testemail@example.com
       password: test_password
       timezone: Europe/Berlin
-      roles: 2
       status: 1
 
+  - create:
+      tag: role_users
+      role: administrator
+      users:
+        - test_uid

@@ -14,4 +14,3 @@ actions:
   - create:
       tag: role
       name: test_role
-      weight: 8

@@ -1,7 +1,6 @@
 <?php
 /*
  * TODO: Add more descriptive messages after merging with the new core branch (custom function cases)
- * TODO: Analyze if feasible the creation of new tag for relationship user <-> role
  * 
  * @file
  * Patterns component for users.
@@ -37,6 +36,14 @@ function user_patterns($data) {
       PATTERNS_DELETE => array('user_cancel_confirm_form'),
       PATTERNS_FILES => $files,
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_users', ),
+  );
+  
+  $actions['role_users'] = array(
+      PATTERNS_INFO => t('Add/Remove roles to users'),
+      PATTERNS_CREATE => array('set_role_users'), // Run through custom function.
+      PATTERNS_DELETE => array('unset_role_users'), // Run through custom function.
+      PATTERNS_FILES => $files,
+      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'user_patterns_export_all_role_users', ),
   );
   return $actions;
 
@@ -157,6 +164,33 @@ function user_patterns_export_all_users($args = NULL, &$result = NULL) {
         array_push($result, $action);
       }
       break;
+  }
+
+  return $result;
+}
+
+
+/**
+ *
+ * Returns a set of PATTERNS_CREATE actionswith the whole set of 
+ * relationsps between users and roles currently stored in the system.
+ *
+ * @param array $args  Set of arguments received from the form.
+ * @param string $result  Current set of actions for the whole process.
+ *
+ * @return array $result  Set of actions after performing the changes.
+ */
+function user_patterns_export_all_role_users($args = NULL, &$result = NULL) {
+  $roles = user_roles(TRUE);
+  $result = array();
+  
+  //A PATTERNS_CREATE action is generated for each role
+  foreach ($roles as $rid => $role) {
+    $data = array('tag' => 'role_users');
+    $data['role'] = $role;
+    $data['users'] = _user_patterns_users_with_role($role);
+    $action = array(PATTERNS_CREATE => $data);
+    array_push($result, $action);
   }
 
   return $result;
@@ -330,7 +364,6 @@ function user_patterns_validate($action, $tag, &$data) {
       switch ($action) {
         case PATTERNS_CREATE:
           //Check mandatory fields
-          //@TO-DO: Get role values?
           $mandatory_attributes = array('name', 'mail', 'password', 'timezone', 'status');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
@@ -366,6 +399,25 @@ function user_patterns_validate($action, $tag, &$data) {
           break;
       }
       break;
+      case 'role_users':
+        switch ($action) {
+          case PATTERNS_CREATE:
+          case PATTERNS_DELETE:
+            //Check mandatory fields, in this case the syntax is the same for DELETE and CREATE
+            $mandatory_attributes = array('role', 'users');
+            if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+              return patterns_results(PATTERNS_ERR, $msg);
+            }
+            //In this case there are not optional attributes, so we can also use this set as interpretable attributes
+            if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+              $status = PATTERNS_WARN;
+            }
+            break;
+        default:
+          $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+          return patterns_results(PATTERNS_ERR, $msg);
+        }
+        break;
   }
   
 /*
@@ -463,6 +515,25 @@ function user_patterns_validate($action, $tag, &$data) {
           }
           break;
       }
+      break;
+      case 'role_users':
+        switch ($action) {
+          case PATTERNS_CREATE:
+          case PATTERNS_DELETE:
+            //Create semantic warning if the role does not exist
+            if (!user_role_load_by_name($data['role'])) {
+              $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                  t('The role %role does not exist in the system.', array('%role' =>$data['role'],)));
+            }
+            //We raised a semantic error for each username that does not exist. 
+            foreach ($data['users'] as $username) {
+              if (!user_load_by_name($username)) {
+                $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                    t('The username %username does not exist in the system.', array('%username' =>$username,)));
+              }
+            }
+            break;
+        }
       break;
   }
   return patterns_results($status, $msg, $result);
@@ -594,7 +665,6 @@ function patterns_set_user_permissions($rid, $permissions) {
  * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
  */
 function set_user_values($form, &$form_state) {
-  //@TO-DO: Apply role values?
   // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
   $uid = $form_state['values']['uid'];
   //Prepare all the attributes for the query, but uid
@@ -617,6 +687,44 @@ function patterns_set_user_values($uid, $attributes) {
   ->execute();
 }
 
+
+/**
+ * Wraps the call to drupal_form_submit() to assign roles
+ *
+ * @param string $action  String containing the type of action. It wilb be obsolete
+ * @param array $data  Action parsed, containing the statements in $data['values']
+ */
+function set_role_users($action, &$data) {
+  //Transform names in identifiers for role and users
+  $role = user_role_load_by_name($data['values']['role']);
+  $uids = array();
+  foreach ($data['values']['users'] as $username) {
+    $u = user_load_by_name($username);
+    $uids[] = $u->uid;
+  }
+  //Add the role to the list of urls
+  user_multiple_role_edit($uids, 'add_role', $role->rid);
+}
+
+/**
+ * Wraps the call to drupal_form_submit() to remove roles
+ *
+ * @param string $action  String containing the type of action. It wilb be obsolete
+ * @param array $data  Action parsed, containing the statements in $data['values']
+ */
+function unset_role_users($action, &$data) {
+  //Transform names in identifiers for role and users
+  $role = user_role_load_by_name($data['values']['role']);
+  $uids = array();
+  foreach ($data['values']['users'] as $username) {
+    $u = user_load_by_name($username);
+    $uids[] = $u->uid;
+  }
+  //Add the role to the list of urls
+  user_multiple_role_edit($uids, 'remove_role', $role->rid);
+}
+
+
 /**
  * Returns all the users currently stored in the system, excluding the anonymous.
  */
@@ -626,4 +734,26 @@ function _user_patterns_get_all_users() {
   $query->condition('uid', '0', '<>');
   $uids = $query->execute()->fetchCol();
   return user_load_multiple($uids);
+}
+
+/**
+ * 
+ * Returns a list of usernames that belong to the given Role ID
+ * 
+ * @param string $role  Role ID to filter by
+ * @return array List of usernames that currently hold that role
+ */
+function _user_patterns_users_with_role($role) {
+  $users_with_role = array();
+  //Get rid and load users
+  $role_info = user_role_load_by_name($role);
+  $users = entity_load('user');
+
+  //Filter all users that do not have the given role
+  foreach($users as $user) {
+    if (array_key_exists($role_info->rid, $user->roles)) {
+      array_push($users_with_role, $user->name);
+    }
+  }
+  return $users_with_role;
 }

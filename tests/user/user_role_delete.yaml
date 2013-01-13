@@ -13,4 +13,4 @@ info:
 actions:
   - delete:
       tag: role
-      rid: test_role_mod
+      rid: 4
