@@ -204,7 +204,13 @@ function node_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'content_type' :
-      //TODO: check required fields for content types
+      // three action all need to check 'type'
+      if (empty($data['type'])) {
+        $status = PATTERNS_ERR;
+        $msg = t('"type" field is required.');
+        return patterns_results($status, $msg, $result);
+      }
+      //TODO: check more required fields for content types
       switch ($action) {
         case PATTERNS_CREATE :
           break;
