@@ -632,8 +632,8 @@ function user_patterns_cleanup($action, $tag, &$data) {
  * @param array $form_state  Set of values after parsing the action.
  */
 function set_user_permissions($form_id, &$form_state) {
-  // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
-  $rid = $form_state['values']['rid'];
+  //Transform the rolename into a role object, we don't need to check existance since we did it previously
+  $role = user_role_load_by_name($form_state['values']['role']);
   //Prepare all the attributes for the query, but uid
   $permissions = $form_state['values']['value'];
   //Remove all permissions not associated to any module (due to http://drupal.org/node/737816)
@@ -643,9 +643,9 @@ function set_user_permissions($form_id, &$form_state) {
       unset($permissions[$key]);
     }
   }
-  patterns_set_user_permissions($rid, $permissions);
+  patterns_set_user_permissions($role->rid, $permissions);
   
-  $msg = t('Permissions for role %rid successfully updated.', array('%rid' => $rid));
+  $msg = t('Permissions for role %role successfully updated.', array('%role' => $role->name));
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
