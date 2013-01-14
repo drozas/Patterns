@@ -16,9 +16,9 @@ actions:
 
   - create:
       tag: instance
-      entity: node
+      entity_type: node
       bundle: article
-      name: date
+      field_name: date
       label: date Name
       type: datetime
       widget: date_select

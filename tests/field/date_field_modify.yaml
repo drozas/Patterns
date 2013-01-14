@@ -15,7 +15,7 @@ actions:
 
   - modify:
       tag: instance
-      entity: node
+      entity_type: node
       bundle: article
       name: date
       cardinality: 2
