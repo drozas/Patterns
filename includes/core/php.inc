@@ -37,6 +37,7 @@ function patterns_execute_pattern_php($pattern, $params, $patterns_details, $act
 
   $include_options = patterns_parser_build_include_options($pid, $params['run-subpatterns']);
 
+  $global_success = TRUE;
   ///////////////////////////////
   // Looping through the sections
   ///////////////////////////////
@@ -57,29 +58,22 @@ function patterns_execute_pattern_php($pattern, $params, $patterns_details, $act
     $success = TRUE;
     foreach ($actions as $action) {
       $results = patterns_php_action($action['action'], $action['data'], $i, $actions_map);
-      if (!patterns_error_check_results($results)) {
-        drupal_set_message(t('Section "%section" of pattern "%pattern" ran with errors. Check the error messages to get more details.', array('%pattern' => $info['title'],
-                                                                                                                                              '%section' => $section,
-        )));
+      
+      if ($results['status'] == PATTERNS_ERR) {
+        _patterns_section_fail($pid, $info['title'], $section);
         $success = FALSE;
+        $global_success = FALSE;
         break;
       }
       $i++;
     }
     if ($success) {
-      drupal_set_message(t('Section "%section" of pattern "%pattern" ran successfully.', array('%pattern' => $info['title'],
-                                                                                               '%section' => $section,
-      )));
-      $query_params = array(':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
-                            ':pid' => $pid,
-                            ':en' => PATTERNS_STATUS_ENABLED,
-      );
-      db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+    	_patterns_section_success($pid, $info['title'], $section);
     }
   }
   drupal_flush_all_caches();
-  // @TODO: return false in case of errors
-  return TRUE;
+ 
+  return $global_success;
 }
 
 /**
@@ -102,8 +96,8 @@ function patterns_php_action($action, $data, $place, $actions_map) {
   }
 
   // $actions passed as reference.
-  $results = patterns_prepare_action($action, $data, $actions_map);
-  if (!patterns_error_check_results($results)) {
+  $results = patterns_prepare_action($action, $data);
+  if ($results['status'] == PATTERNS_ERR) {
     return $results;
   }
 

@@ -1,5 +1,6 @@
 <?php
 /*
+ * TODO: Use rolename instead of rid in the case of permissions
  * TODO: Add more descriptive messages after merging with the new core branch (custom function cases)
  * 
  * @file

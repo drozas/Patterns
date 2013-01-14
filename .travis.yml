@@ -34,10 +34,16 @@ before_script:
   - bash sites/all/modules/patterns/scripts/setup
   - drush si standard --db-url=mysql://root:@127.0.0.1/drupal_patterns --account-pass=admin --yes
   - drush vset purl_base_domain http://127.0.0.1
+
+# INSTALL OTHER MODULES
+  - drush dl date pathauto --yes
   - drush cc all --yes
 
-# ENABLE MODULES
+# SIMPLETEST
   - drush en simpletest patterns --yes #token and libraries also
+  - mkdir sites/default/files/simpletest
+  - chmod 777 sites/default/files/simpletest -R
+
 
 # SPYC
   - mkdir sites/all/libraries/
@@ -49,6 +55,11 @@ before_script:
   - "sh -e /etc/init.d/xvfb start"
   - sleep 3 # give Web server some time to bind to sockets, etc
 
-script: 
-  - sudo drush http://127.0.0.1 runserver --server=builtin 80 &
-  - sudo drush test-run Patterns --uri=http://127.0.0.1/drupal/
+# START DRUSH BUILT-IN SERVER
+  - drush runserver --server=builtin 8080 --user=1 &
+  - sleep 4
+  - drush vset --yes simpletest_verbose FALSE
+
+script:
+  - drush test-run PatternsGeneralTestCase --xml --uri=http://128.0.0.1:8080
+

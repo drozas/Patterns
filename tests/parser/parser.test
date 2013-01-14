@@ -27,9 +27,9 @@ class PatternsParserTestCase extends PatternsTestCase {
     parent::setUp($modules);
   }
 
-  public function testValidP() {
-    $dir = $this->parser_tests_dir . 'valid/';
-    $this->callbackOnDir($dir, array(&$this, 'check_valid'));
+  public function testValidSyntaxP() {
+    $dir = $this->parser_tests_dir . 'valid_syntax/';
+    $this->callbackOnDir($dir, array(&$this, 'check_valid_syntax_only'));
   }
 
   public function testInvalidP() {
@@ -37,21 +37,50 @@ class PatternsParserTestCase extends PatternsTestCase {
     $this->callbackOnDir($dir, array(&$this, 'check_invalid'));
   }
 
-  private function basic_checks($pattern) {
+  public function testvalidP() {
+    $dir = $this->parser_tests_dir . 'valid_semantics/';
+    $this->callbackOnDir($dir, array(&$this, 'check_valid_semantics'));
+  }
+  
+  private function scan_pattern($pattern) {
     $scan = patterns_scan_pattern($pattern);
     $this->assertNotNull($scan, t('Pattern file loaded and scanned.'));
-    $analysis = _patterns_scan_analyze_patternscan($scan);
+    return $scan;
+  }
+
+	private function analyze_scan($scan, $level, $include = FALSE) {
+    $analysis = _patterns_scan_analyze_patternscan($scan, $include, $level);
     $this->assertNotNull($analysis, t('Pattern-scan was analyzed successfully.'));
     return $analysis;
   }
-
-  public function check_valid($pattern) {
-    $analysis = $this->basic_checks($pattern);
-    $this->assertEqual(count($analysis), 0, t('No error message generated while parsing valid pattern.'));
+  
+  public function check_valid_syntax_only($pattern) {
+    $scan = $this->scan_pattern($pattern);
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_SYNTAX);
+    $this->assertEqual(count($analysis), 0, t('No error message generated while parsing syntactically valid pattern.'));
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_ALL);
+    $this->assertNotEqual(count($analysis), 0, t('Error messages generated while parsing semantically invalid pattern.'));
+  }
+  
+  public function check_valid_semantics($pattern) {
+    $scan = $this->scan_pattern($pattern);
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_SYNTAX);
+    $this->assertEqual(count($analysis), 0, t('No error message generated while parsing syntactically valid pattern.'));
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_ALL);
+    $this->assertEqual(count($analysis), 0, t('Error messages generated while parsing semantically invalid pattern.'));
   }
 
   public function check_invalid($pattern) {
-    $analysis = $this->basic_checks($pattern);
-    $this->assertNotEqual(count($analysis), 0, t('Error messages generated while parsing invalid pattern.'));
+    $scan = $this->scan_pattern($pattern);
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_SYNTAX);
+    $this->assertNotEqual(count($analysis), 0, t('No error message generated while parsing syntactically valid pattern.'));
+    
+    $analysis = $this->analyze_scan($scan, PATTERNS_VALIDATE_ALL);
+    $this->assertNotEqual(count($analysis), 0, t('Error messages generated while parsing semantically invalid pattern.'));
   }
 }

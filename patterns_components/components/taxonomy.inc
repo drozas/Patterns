@@ -157,10 +157,10 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   
   
   if ($tag == 'term') {
-    if (!$data['vid'] && !empty($data['vocabulary'])) {
+    if (!isset($data['vid']) && !empty($data['vocabulary_machine_name'])) {
 
       foreach ($vocabs as $vid => $vocab) {
-        if (drupal_strtolower($vocab->name) == drupal_strtolower($data['vocabulary'])) {
+        if (drupal_strtolower($vocab->name) == drupal_strtolower($data['vocabulary_machine_name'])) {
           $data['vid'] = $vid;
           break;
         }
@@ -170,7 +170,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
     // we can't proceed without valid vocabulary ID
     if (empty($data['vid'])) {
       $status = PATTERNS_ERR;
-      $msg = t("Vocabulary %vocab doesn't exist.", array('%vocab' => $data['vocabulary']));
+      $msg = t("Vocabulary %vocab doesn't exist.", array('%vocab' => $data['vocabulary_machine_name']));
     }
   }
   
@@ -258,6 +258,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = (count($terms) == 1);
   		
       if ($term_exists) {
+      	$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
         	t('The term %term already exists in the system.', array('%term' => $data['name'],)));
       }
@@ -267,6 +268,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = taxonomy_term_load($data['tid']);
   		
   		if (!$term_exists) {
+  			$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The term %term was not found in the system, and cannot be modified.', array('%term' => $data['name'],)));
       }
@@ -277,6 +279,7 @@ function taxonomy_patterns_validate($action, $tag, &$data) {
   		$term_exists = taxonomy_term_load($data['tid']);
   		
   		if (!$term_exists) {
+  			$status = PATTERNS_ERR;
       	$result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
         	t('The term %term was not found in the system, and cannot be deleted.', array('%term' => $data['name'],)));
       }
@@ -364,7 +367,9 @@ function _taxonomy_patterns_prepare_term($action, $data, $vid = NULL) {
     // Search for it
     else {
       $taxo = taxonomy_vocabulary_machine_name_load($data['vocabulary_machine_name']);
-      $data['vid'] = $taxo->vid;
+      if (!empty($taxo)) {
+        $data['vid'] = $taxo->vid;  
+      }
     }
 
   }
