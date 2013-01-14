@@ -25,7 +25,7 @@ actions:
 
   - modify:
       tag: permission
-      rid: manager
+      role: manager
       value:
         - administer blocks
         - administer image styles
