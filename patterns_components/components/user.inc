@@ -625,13 +625,13 @@ function user_patterns_cleanup($action, $tag, &$data) {
 
 /**
  *
- * Wraps the call to drupal_form_submit for 'user_profile_form'
+ * Wraps the call to drupal_form_submit for 'user_profile_form'.
  * Gathers all the expected values from the form and prepare them for the query.
  *
- * @param array $form  Equivalent of the $form variable. It will be empty.
- * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function set_user_permissions($form, &$form_state) {
+function set_user_permissions($form_id, &$form_state) {
   // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
   $rid = $form_state['values']['rid'];
   //Prepare all the attributes for the query, but uid
@@ -644,6 +644,9 @@ function set_user_permissions($form, &$form_state) {
     }
   }
   patterns_set_user_permissions($rid, $permissions);
+  
+  $msg = t('Permissions for role %rid successfully updated.', array('%rid' => $rid));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
