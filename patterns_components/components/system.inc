@@ -377,7 +377,6 @@ function system_patterns_validate($action, $tag, &$data) {
             if (in_array($module['value'], $enabled_modules)) {
               $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                 t('The module %mod is already enabled.', array('%mod' =>$module['value'],)));
-              $status = PATTERNS_WARN;
             }  
           }
           break;
