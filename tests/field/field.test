@@ -42,13 +42,13 @@ class PatternsFieldTestCase extends PatternsTestCase {
     //break;
     $this->assertNotNull($inst, t('Instance created.'));
 
-    $weight = $inst['widget']['weight'];
+ /*   $weight = $inst['widget']['weight'];
     // Run the pattern.
     parent::runFile('field_weight_modify.yaml', 'Modify field weight', $this->field_tests_dir);
     _field_info_collate_fields(true);
     $inst = field_info_instance($entity_type, $name, $bundle_name);
     $this->assertNotNull($inst, t('Instance created.'));
-    $this->assertNotEqual($inst['widget']['weight'], $weight, t('Modify Field pattern change instance weight correctly.'));
+    $this->assertNotEqual($inst['widget']['weight'], $weight, t('Modify Field pattern change instance weight correctly.'));*/
 
 
     $field = field_info_field($name);

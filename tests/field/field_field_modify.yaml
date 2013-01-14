@@ -15,7 +15,7 @@ actions:
 
   - modify:
       tag: field
-      entity: node
+      entity_type: node
       bundle: article
       name: first
       settings:      

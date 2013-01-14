@@ -15,9 +15,9 @@ actions:
 
   - create:
       tag: instance
-      entity: node
+      entity_type: node
       bundle: article
-      name: first 
+      field_name: first 
       label: first
       type: text
       widget: text_textfield

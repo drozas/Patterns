@@ -15,6 +15,6 @@ actions:
 
   - delete:
       tag: instance
-      entity: node
+      entity_type: node
       bundle: article
       name: first
