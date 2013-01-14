@@ -573,6 +573,8 @@ function set_theme_properties($action, &$data) {
   if (isset($data['values']['admin']) && $data['values']['admin']) {
     variable_set('admin_theme', $theme);
   }
+  
+  return patterns_results(PATTERNS_SUCCESS, 'Oki doki');
 }
 
 /**

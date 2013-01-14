@@ -153,7 +153,7 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
     // to do this.
     if (array_key_exists('submitted', (array) $form_obj) && array_key_exists('storage', (array) $form_obj)) {
       $action_state = $form_obj;
-      $need_buildinfo = FALSE;
+      $need_buildinfo = TRUE;
     }
     else {
 
@@ -253,6 +253,7 @@ function patterns_execute_action($form_id, &$form_state, $params) {
 	//$result = call_user_func_array($form_id, $args);
 	//$result1 = $form_id($form_state, $params);
 
+	
 	$result = drupal_retrieve_form($form_id, $form_state, $params); 
 	
 	// Check whether it is callback or a form submission
