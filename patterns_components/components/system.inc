@@ -552,29 +552,30 @@ function variables_execute($action, &$data) {
 /**
  * Wraps the call to drupal_form_submit to set the theme properties.
  *
- * @param string $action  String containing the type of action. Currently, should be only 'modify'
- * @param array $data  Action parsed, containing the statements in $data['values']
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function set_theme_properties($action, &$data) {
+function set_theme_properties($form_id, &$form_state) {
   //At this point we can ensure there is a theme value, since is part of the mandatory syntactic analysis
-  $theme = $data['values']['value'];
+  $theme = $form_state['values']['value'];
   
-  //Enable or disable the the if there is any valid value in status
-  if (isset($data['values']['status']) && $data['values']['status'] == TRUE) {
+  //Enable or disable the if there is any valid value in status
+  if (isset($form_state['values']['status']) && $form_state['values']['status'] == TRUE) {
     theme_enable(array($theme));
-  } else if(isset($data['values']['status']) && $data['values']['status'] == FALSE) {
+  } else if(isset($form_state['values']['status']) && $form_state['values']['status'] == FALSE) {
     theme_disable(array($theme));
   }
   //Set this theme as default if default is set and is true
-  if (isset($data['values']['default']) && $data['values']['default']) {
+  if (isset($form_state['values']['default']) && $form_state['values']['default']) {
     variable_set('theme_default', $theme);
   }
   //Set this theme as administrative if admin is set and is true
-  if (isset($data['values']['admin']) && $data['values']['admin']) {
+  if (isset($form_state['values']['admin']) && $form_state['values']['admin']) {
     variable_set('admin_theme', $theme);
   }
   
-  return patterns_results(PATTERNS_SUCCESS, 'Oki doki');
+  $msg = t('Properties(s) of theme %theme updated.', array('%theme' => $theme));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
