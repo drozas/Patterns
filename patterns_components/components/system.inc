@@ -505,14 +505,19 @@ function system_patterns_cleanup($action, $tag, &$data) {
 /**
  * Wraps the call to drupal_form_submit to enable modules. It enables automatically all the dependencies
  *
- * @param string $action  String containing the type of action. Currently, should be only 'modify'
- * @param array $data  Array of value variables containing the modules
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function modules_enable($action, &$data) {
-  $modules = $data;
-  foreach ($data['values'] as $module) {
+function modules_enable($form_id, &$form_state) {
+  $modules_enabled = array();
+  foreach ($form_state['values'] as $module) {
     module_enable(array($module['value']), TRUE);
+    $modules_enabled = $module['value'];
   }
+  
+  $msg = ((count($modules_enabled) > 0) ? t('Module(s) %modules enabled.', 
+      array('%modules' => implode(', ', $modules_enabled))) : t('No modules have been enabled.'));
+  return patterns_results(PATTERN_SUCCESS, $msg);
 }
 
 /**
@@ -522,12 +527,14 @@ function modules_enable($action, &$data) {
  * @param array $form_state  Set of values after parsing the action.
  */
 function modules_disable($form_id, &$form_state) {
-  $modules_disabled = $data;
+  $modules_disabled = array();
   foreach ($form_state['values'] as $module) {
     module_disable(array($module['value']), TRUE);
+    $modules_disabled = $module['value'];
   }
-  $msg = ((count($modules_disabled) > 0) ? t('Module(s) %modules disabled.', array('%modules' => implode(', ', $modules_disabled))) : t('No modules have been disabled.'));
   
+  $msg = ((count($modules_disabled) > 0) ? t('Module(s) %modules disabled.', 
+      array('%modules' => implode(', ', $modules_disabled))) : t('No modules have been disabled.'));
   return patterns_results(PATTERN_SUCCESS, $msg);
 }
 
