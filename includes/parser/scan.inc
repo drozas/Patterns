@@ -6,6 +6,8 @@
  * Helping functions for the parser.
  *
  * Functions related to parsing the abstract array structure
+ * 
+ * TODO: Make a distinction between the cases where there are warnings only, errors or no messages at all
  *
  */
 
@@ -426,12 +428,11 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
     	patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
-			if ($validation['status'] <= PATTERNS_WARN && isset($validation['result'])) {
-			
-      	foreach ($validation['result'] as $semantic_warning) {
+		if (isset($validation['result'])) {
+      	  foreach ($validation['result'] as $semantic_warning) {
         	$result['semantic_warnings'][] = array('action' => $key, 'tag' => $tag, 'warning' => $semantic_warning);;
-      	}
-			}   
+      	  }
+		}   
     }
   	
   }

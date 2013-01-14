@@ -377,6 +377,7 @@ function system_patterns_validate($action, $tag, &$data) {
             if (in_array($module['value'], $enabled_modules)) {
               $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                 t('The module %mod is already enabled.', array('%mod' =>$module['value'],)));
+              $status = PATTERNS_WARN;
             }  
           }
           break;
@@ -512,7 +513,7 @@ function modules_enable($form_id, &$form_state) {
   $modules_enabled = array();
   foreach ($form_state['values'] as $module) {
     module_enable(array($module['value']), TRUE);
-    $modules_enabled = $module['value'];
+    $modules_enabled[] = $module['value'];
   }
   
   $msg = ((count($modules_enabled) > 0) ? t('Module(s) %modules enabled.', 
@@ -530,7 +531,7 @@ function modules_disable($form_id, &$form_state) {
   $modules_disabled = array();
   foreach ($form_state['values'] as $module) {
     module_disable(array($module['value']), TRUE);
-    $modules_disabled = $module['value'];
+    $modules_disabled[] = $module['value'];
   }
   
   $msg = ((count($modules_disabled) > 0) ? t('Module(s) %modules disabled.', 
