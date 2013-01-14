@@ -70,7 +70,8 @@ define('PATTERNS_EXPORT_MODE_NAME', 'name');
 
 
 define('PATTERNS_VALIDATE_ALL', 10);        // Pattern has valid content. Currently this is the same level as PATTERNS_VALIDATE_SEMANTIC
-define('PATTERNS_VALIDATE_SEMANTIC', 8);    // This level includes the errors raised by the components
+define('PATTERNS_VALIDATE_SEMANTIC', 8);    // This level includes the semantic errors/warnings raised by the components
+define('PATTERNS_VALIDATE_TAG_SYNTAX', 7);  //This level includes the syntactic errors/warnings raised by the components.
 define('PATTERNS_VALIDATE_TAG_EXISTS', 5);	// tags exist
 define('PATTERNS_VALIDATE_INCLUDE', 3);		// syntax check for included patterns
 define('PATTERNS_VALIDATE_SYNTAX', 2);		// basic syntax is correct (info, modules, and 1 section)

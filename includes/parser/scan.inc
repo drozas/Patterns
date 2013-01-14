@@ -44,9 +44,10 @@ function patterns_scan_pattern($pattern, $include = FALSE, $level = PATTERNS_VAL
                   'contain_includes' => FALSE,
                   'include_scans' => array(),
                   'generic_errors' => array(),
-  								'unknown_tag' => array(),
-  								'tag_errors' => array(),
-                  'semantic_warnings' => array(),
+				  'unknown_tag' => array(),
+                  'tag_syntactic_errors' => array(),
+                  'tag_syntactic_warnings' => array(),
+                  'tag_semantic_warnings' => array(),
   );
 
   if (empty($pattern)) {
@@ -228,7 +229,36 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	$msgs[] = t('The following unknown tags were found: %utags.', array('%utags' => $utags));
   }
   
+  // FULL SEMANTIC VALIDATION:
+  // This level ensures the pattern will run without execution errors
+  ////////////////////////////
+  if ($level < PATTERNS_VALIDATE_TAG_SYNTAX) {
+    return $msgs;
+  }
 
+  $tag_errors = NULL;
+  //Go through all the semantic warnings performing a code-description conversion
+  if (count($patternscan['tag_syntactic_warnings']) > 0) {
+    $tag_errors = $patternscan['tag_syntactic_warnings'];
+  }else if (count($patternscan['tag_syntactic_errors']) > 0) {
+    $tag_errors = $patternscan['tag_syntactic_errors'];
+  }
+  
+  if (isset($tag_errors)) {
+    $warnings = '';
+    foreach ($tag_errors as $warn_data) {
+    
+      $warnings.= '[' . $warn_data['action'] . ':' . $warn_data['tag'] . '] ';
+    
+      $warnings.= $warn_data['msg'] . $br;
+       
+    }
+    $msgs[] = t('Tag syntactic errors/warnings: ') . $br . $warnings;
+  }
+    
+  
+  
+  
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without execution errors
   ////////////////////////////
@@ -237,9 +267,9 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
   //Go through all the semantic warnings performing a code-description conversion
-  if (count($patternscan['semantic_warnings']) > 0) {
+  if (count($patternscan['tag_semantic_warnings']) > 0) {
   	$warnings = '';
-  	foreach ($patternscan['semantic_warnings'] as $warn_data) {
+  	foreach ($patternscan['tag_semantic_warnings'] as $warn_data) {
   		
   		$warnings.= '[' . $warn_data['action'] . ':' . $warn_data['tag'] . '] ';
   		
@@ -263,7 +293,7 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   	  $warnings.= reset($warn_data['warning']) . $br;
   	  
   	}
-  	$msgs[] = t('Semantic warnings: ') . $br . $warnings;
+  	$msgs[] = t('Tag semantic warnings: ') . $br . $warnings;
   }
 
   return $msgs;
@@ -422,17 +452,32 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  	$result['unknown_tag'][] = $tag;
 	  }
 	  
-    //Include semantic warnings if requested
-    else if ($level >= PATTERNS_VALIDATE_SEMANTIC) {
+    
+    else if ($level >= PATTERNS_VALIDATE_TAG_SYNTAX) {
     	
     	patterns_invoke('prepare', $key, $action);
-			$validation = patterns_invoke('validate', $key, $action);
+		$validation = patterns_invoke('validate', $key, $action);
+		
+		if ($validation['status'] == PATTERNS_WARN) {
+		  $result['tag_syntactic_warnings'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
+		}
+		else if ($validation['status'] == PATTERNS_ERR) {
+		  $result['tag_syntactic_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
+		}
+		
+		//Include semantic warnings if requested
+		if ($level >= PATTERNS_VALIDATE_SEMANTIC) {
+		  if (isset($validation['result'])) {
+		    foreach ($validation['result'] as $semantic_warning) {
+		      $result['tag_semantic_warnings'][] = array('action' => $key, 'tag' => $tag, 'warning' => $semantic_warning);
+		    }
+		  }
+		}
+		
 			
-		if (isset($validation['result'])) {
-      	  foreach ($validation['result'] as $semantic_warning) {
-        	$result['semantic_warnings'][] = array('action' => $key, 'tag' => $tag, 'warning' => $semantic_warning);;
-      	  }
-		}   
+			
+			
+  
     }
   	
   }
