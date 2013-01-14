@@ -292,7 +292,7 @@ function _patterns_scan_validate_patternscan($patternscan, $include = FALSE, $le
     return TRUE;
   }
   if ($display_errors) {
-    drupal_set_message(t('Error(s) while processing pattern:') . '<ul><li>' . implode('</li><li>', $analysis) . '</li></ul>', 'error');
+    drupal_set_message(t('Error(s) and/or warning(s) while processing pattern:') . '<ul><li>' . implode('</li><li>', $analysis) . '</li></ul>', 'error');
   }
   return FALSE;
 }
