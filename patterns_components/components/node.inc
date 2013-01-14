@@ -169,6 +169,15 @@ function node_patterns_validate($action, $tag, &$data) {
             $msg = t('"type" field is required.');
             return patterns_results($status, $msg, $result);
           }
+          $set = db_select('node_type', 'nt')
+                    ->fields('nt', array('name'))
+                    ->condition('type', $data['type'])
+                    ->execute()
+                    ->fetchField();
+          if (!$set) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The content type: "%oldname" does not exist in the system.', array('%oldname' =>$data['type'],)));
+          }
           break;
         case PATTERNS_MODIFY :
           if (empty($data['nid'])) {
@@ -179,13 +188,15 @@ function node_patterns_validate($action, $tag, &$data) {
           $data['node'] = node_load($data['nid']);
           if ($data['node'] === FALSE) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The node %oldname does not exist in the system.', array('%oldname' =>$data[''],)));
-          }
-          $data['node'] = (object) $data['node'];
-          if ($data['type'] != $data['node']->type) {
-            $status = PATTERNS_ERR;
-            $msg = t("You can't change content type for already existing node.");
-            return patterns_results($status, $msg, $result);
+              t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['title'],)));
+          } 
+          else {
+            $data['node'] = (object) $data['node'];
+            if ($data['type'] != $data['node']->type) {
+              $status = PATTERNS_ERR;
+              $msg = t("You can't change content type for already existing node.");
+              return patterns_results($status, $msg, $result);
+            }
           }
           break;
         case PATTERNS_DELETE :
@@ -197,7 +208,7 @@ function node_patterns_validate($action, $tag, &$data) {
           $data['node'] = node_load($data['nid']);
           if ($data['node'] === FALSE) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The node %oldname does not exist in the system.', array('%oldname' =>$data[''],)));
+              t('The node %oldname does not exist in the system.', array('%oldname' =>$data['nid'],)));
           }
           $data['node'] = (object) $data['node'];
           break;
@@ -210,15 +221,49 @@ function node_patterns_validate($action, $tag, &$data) {
         $msg = t('"type" field is required.');
         return patterns_results($status, $msg, $result);
       }
+      if (empty($data['name'])) {
+        $status = PATTERNS_ERR;
+        $msg = t('"name" field is required.');
+        return patterns_results($status, $msg, $result);
+      }
+
       //TODO: check more required fields for content types
       switch ($action) {
         case PATTERNS_CREATE :
+          $set = db_select('node_type', 'nt')
+                    ->fields('nt', array('type'))
+                    ->condition('name', $data['name'])
+                    ->execute()
+                    ->fetchField();
+          if ($set) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+                t('The content_type: "%set_name" already exists in the system', array('%set_name' => $data['name'],)));
+          }
+          $set = db_select('node_type', 'nt')
+                    ->fields('nt', array('name'))
+                    ->condition('type', $data['type'])
+                    ->execute()
+                    ->fetchField();
+          if ($set) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT => 
+                t('The type: %type already exists in the system', array('%type' => $data['type'],)));
+          }
           break;
         case PATTERNS_MODIFY :
-          break;
         case PATTERNS_DELETE :
+          $set = db_select('node_type', 'nt')
+                    ->fields('nt', array('type'))
+                    ->condition('name', $data['name'])
+                    ->condition('type', $data['type'])
+                    ->execute()
+                    ->fetchField();
+          if (!$set) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+              t('The content type: "%oldname" does not exist in the system.', array('%oldname' =>$data['name'],)));
+          }
           break;
       }
+
       break;
   }
   return patterns_results($status, $msg, $result);
