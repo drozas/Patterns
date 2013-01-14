@@ -2,8 +2,8 @@
 # QScience
 
 info:
-  title: Users, roles, and permissions (create)
-  description: Creates a few users with roles, permissions
+  title: User with new role and permissions
+  description: Creates a test user, a new role with a set of permissions, and assign it to that user.
   author: QScience
   category: Users
   version: 1.0
@@ -25,7 +25,7 @@ actions:
 
   - modify:
       tag: permission
-      rid: 5
+      role: manager
       value:
         - administer blocks
         - administer image styles

@@ -112,8 +112,8 @@ function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
     $action = array(
       PATTERNS_MODIFY => array(
         'tag' => 'permission',
-        'rid' => $rid,
-        'value' => $permissions
+        'role' => $roles[$rid],
+        'value' => $permissions,
       )
     );
     array_push($result, $action);
@@ -350,7 +350,7 @@ function user_patterns_validate($action, $tag, &$data) {
         $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
         return patterns_results(PATTERNS_ERR, $msg);
       }else if($action == PATTERNS_MODIFY) {
-        $mandatory_attributes = array('rid', 'value');
+        $mandatory_attributes = array('role', 'value');
         if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
           return patterns_results(PATTERNS_ERR, $msg);
         }
@@ -467,7 +467,7 @@ function user_patterns_validate($action, $tag, &$data) {
       //This is the only case available, the lack of the rest are checking during the syntactic validation
       if($action == PATTERNS_MODIFY) {
         $permissions = $data['value'];
-        $rid = $data['rid'];
+        $role = $data['role'];
         //Check if all permissions exist, if any of them don't raise a syntactic warning
         $available_permissions = user_permission_get_modules();
         $msg = "";
@@ -479,10 +479,10 @@ function user_patterns_validate($action, $tag, &$data) {
         if ($msg !="") {
           $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => $msg);
         }
-        //Raise semantic warning if the rid does not exist
-        if (!array_key_exists($rid, user_roles())) {
+        //Raise semantic warning if the role name does not exist
+        if (!user_role_load_by_name($role)) {
           $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
-              t('The role id %rid does not exist in the system.', array('%rid' =>$rid,)));
+              t('The role %role does not exist in the system.', array('%role' =>$role,)));
         }
       }
             
@@ -632,8 +632,8 @@ function user_patterns_cleanup($action, $tag, &$data) {
  * @param array $form_state  Set of values after parsing the action.
  */
 function set_user_permissions($form_id, &$form_state) {
-  // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
-  $rid = $form_state['values']['rid'];
+  //Transform the rolename into a role object, we don't need to check existance since we did it previously
+  $role = user_role_load_by_name($form_state['values']['role']);
   //Prepare all the attributes for the query, but uid
   $permissions = $form_state['values']['value'];
   //Remove all permissions not associated to any module (due to http://drupal.org/node/737816)
@@ -643,9 +643,9 @@ function set_user_permissions($form_id, &$form_state) {
       unset($permissions[$key]);
     }
   }
-  patterns_set_user_permissions($rid, $permissions);
+  patterns_set_user_permissions($role->rid, $permissions);
   
-  $msg = t('Permissions for role %rid successfully updated.', array('%rid' => $rid));
+  $msg = t('Permissions for role %role successfully updated.', array('%role' => $role->name));
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
@@ -662,18 +662,21 @@ function patterns_set_user_permissions($rid, $permissions) {
 
 /**
  * 
- * Wraps the call to drupal_form_submit for 'user_profile_form'
- * Gathers all the expected values from the form and prepare them for the query
+ * Wraps the call to drupal_form_submit for 'user_profile_form'.
+ * Gathers all the expected values from the form and prepare them for the query.
  * 
- * @param array $form  Equivalent of the $form variable. It will be empty.
- * @param array $form_state  Equivalent of the $form_state variable. Contains the values proccessed in the pattern
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function set_user_values($form, &$form_state) {
+function set_user_values($form_id, &$form_state) {
   // The only mandatory attribute is uid, but it should not be re-validate it (we are imitating the behaviour of the form execution)
   $uid = $form_state['values']['uid'];
   //Prepare all the attributes for the query, but uid
   $attributes = array_diff_key($form_state['values'], array('uid' => $uid));
   patterns_set_user_values($uid, $attributes);
+  
+  $msg = t('Information for user %uid successfully updated.', array('%uid' => $uid));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
@@ -693,39 +696,48 @@ function patterns_set_user_values($uid, $attributes) {
 
 
 /**
- * Wraps the call to drupal_form_submit() to assign roles
+ * Wraps the call to drupal_form_submit() to assign roles.
  *
- * @param string $action  String containing the type of action. It wilb be obsolete
- * @param array $data  Action parsed, containing the statements in $data['values']
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function set_role_users($action, &$data) {
+function set_role_users($form_id, &$form_state) {
   //Transform names in identifiers for role and users
-  $role = user_role_load_by_name($data['values']['role']);
+  $role = user_role_load_by_name($form_state['values']['role']);
   $uids = array();
-  foreach ($data['values']['users'] as $username) {
+  foreach ($form_state['values']['users'] as $username) {
     $u = user_load_by_name($username);
     $uids[] = $u->uid;
   }
-  //Add the role to the list of urls
+  //Add the role to the list of uids
   user_multiple_role_edit($uids, 'add_role', $role->rid);
+  
+  $msg = ((count($uids) > 0) ? t('Role %role was assigned to the following users: %users.',
+      array('%role' => $form_state['values']['role'],'%users' => implode(', ', $uids))) : t('Role %role was applied to no user.', array('%role' => $form_state['values']['role'])));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
- * Wraps the call to drupal_form_submit() to remove roles
+ * Wraps the call to drupal_form_submit() to remove roles.
  *
- * @param string $action  String containing the type of action. It wilb be obsolete
- * @param array $data  Action parsed, containing the statements in $data['values']
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function unset_role_users($action, &$data) {
+function unset_role_users($form_id, &$form_state) {
   //Transform names in identifiers for role and users
-  $role = user_role_load_by_name($data['values']['role']);
+  $role = user_role_load_by_name($form_state['values']['role']);
   $uids = array();
-  foreach ($data['values']['users'] as $username) {
+  foreach ($form_state['values']['users'] as $username) {
     $u = user_load_by_name($username);
     $uids[] = $u->uid;
   }
-  //Add the role to the list of urls
+  
+  //Remove the role to the list of urls
   user_multiple_role_edit($uids, 'remove_role', $role->rid);
+  
+  $msg = ((count($uids) > 0) ? t('Role %role was removed to the following users: %users.',
+      array('%role' => $form_state['values']['role'],'%users' => implode(', ', $uids))) : t('Role %role was removed to no user.', array('%role' => $form_state['values']['role'])));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 
