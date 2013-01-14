@@ -703,14 +703,6 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
     $pattern->subpatterns_run_mode = $params['run-subpatterns'];
   }
 
-  // Ste: Actions_map seems to be used with includes. Probably we do not need it now.
-  //$actions_map = array('patterns' => $pattern_details['info'], 'map' => $pattern_details['actions_map']);
-
-  // TODO: Patterns details was returning this in case of recursive includes.
-  //  $result['actions_map'][] = array(
-  //          'pid'   => $pattern->pid,
-  //          'index' => $key,
-  //        );
   $actions_map = array('patterns' => $infos, 'map' => NULL); // Fix this.
   ////////////////////////////////////////
 	
@@ -721,6 +713,8 @@ function patterns_start_engine($pattern, $params = array(), $mode = 'batch') {
   // Execute the Pattern using the selected mode.
   $fun($pattern, $params, $patterns_details, $actions_map);
 
+  // TODO: in batch execution should the modules be disabled at batch finish?
+  // TODO: maybe keeping them installed
   // Disable the modules enabled just for executing the pattern
   if (!empty($installed_modules['installed'])) {
     patterns_disable_modules($installed_modules['installed']);
@@ -796,7 +790,7 @@ function patterns_invoke($hook, $action, &$data = NULL, $form_id = NULL, &$extra
 
   $return['details']['action'] = $action;
   $return['details']['hook'] = $hook;
-  $return['details']['function'] = $form_id;
+  $return['details']['function'] = $func;
 
   $data['tag'] = $tag;
   return $return;

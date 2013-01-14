@@ -227,21 +227,6 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   }
   
 
-  // FULL SYNTACTIC VALIDATION:
-  // This level includes the tag errors reported by the components, but not the semantic warnings
-  ////////////////////////////
-  if ($level < PATTERNS_VALIDATE_TAG_ERRORS) {
-  	return $msgs;
-  }
-  
-  if (count($patternscan['tag_errors']) != 0) {
-  	$errors = '';
-  	foreach ($patternscan['tag_errors'] as $error) {
-  		$errors .= '[' .$error['action'] . '|' . $error['tag'] . '] ' . $error['msg'] . '</br>';  
-  	}
-  	$msgs[] = t('Components reported errors/warnings about tags: ') . $br . $errors;
-  }
-  
   // FULL SEMANTIC VALIDATION:
   // This level ensures the pattern will run without execution errors
   ////////////////////////////
@@ -252,8 +237,13 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
   //Go through all the semantic warnings performing a code-description conversion
   if (count($patternscan['semantic_warnings']) > 0) {
   	$warnings = '';
-  	foreach ($patternscan['semantic_warnings'] as $warning) {
-  	  switch (key($warning)) {
+  	foreach ($patternscan['semantic_warnings'] as $warn_data) {
+  		
+  		$warnings.= '[' . $warn_data['action'] . ':' . $warn_data['tag'] . '] ';
+  		
+  		$type = key($warn_data['warning']);
+  		
+  	  switch ($type) {
   	    case -1:
   	      $warnings .= t('[Already defined element]: ');
   	      break;
@@ -267,7 +257,9 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
           $warnings .= t('[Remaining dependency]: ');
           break;
   	  }
-  	  $warnings.= $warning[key($warning)] . $br;
+  	  
+  	  $warnings.= reset($warn_data['warning']) . $br;
+  	  
   	}
   	$msgs[] = t('Semantic warnings: ') . $br . $warnings;
   }
@@ -427,22 +419,20 @@ function _patterns_scan_action($action, $result = array(), $level = PATTERNS_VAL
 	  if (!isset($tag_modules[$tag])) {
 	  	$result['unknown_tag'][] = $tag;
 	  }
-	  else if ($level >= PATTERNS_VALIDATE_TAG_ERRORS) {
-			patterns_invoke('prepare', $key, $action);
+	  
+    //Include semantic warnings if requested
+    else if ($level >= PATTERNS_VALIDATE_SEMANTIC) {
+    	
+    	patterns_invoke('prepare', $key, $action);
 			$validation = patterns_invoke('validate', $key, $action);
 			
-	  	if ($validation['status'] <= PATTERNS_WARN) {
-    		$result['tag_errors'][] = array('action' => $key, 'tag' => $tag, 'msg' => $validation['msg']);
-  		}
-	  	
-  		//Include semantic warnings if requested
-      if ($level >= PATTERNS_VALIDATE_SEMANTIC && isset($validation['result'])) {
-        foreach ($validation['result'] as $semantic_warning) {
-          $result['semantic_warnings'][] = $semantic_warning;
-        }   
-      }
-      
-	  }
+			if ($validation['status'] <= PATTERNS_WARN && isset($validation['result'])) {
+			
+      	foreach ($validation['result'] as $semantic_warning) {
+        	$result['semantic_warnings'][] = array('action' => $key, 'tag' => $tag, 'warning' => $semantic_warning);;
+      	}
+			}   
+    }
   	
   }
   //else {

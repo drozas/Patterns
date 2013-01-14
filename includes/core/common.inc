@@ -17,54 +17,46 @@
  * @return array $results array containing the description of eventual errors
  * @TODO Doc.
  */
-function patterns_prepare_action(&$action, &$data, $actions_map) {
-//function patterns_prepare_actions(&$actions, $actions_map) {
+function patterns_prepare_action(&$action, &$data) {
 
   $status = PATTERNS_SUCCESS;
   $message = '';
 
   if (empty($action)) {
-    return patterns_results();
+    return patterns_results(PATTERNS_ERR, t('An unspecified error occurred. No valid action found'));
   }
 
   // Keep a list of which modules handle what tags.
   $tag_modules = patterns_tagmodules_get_index($data);
 
-  $errors = array();
+  if (!array_key_exists($data['tag'], $tag_modules)) {
+  	$msg = t('<%tag> is not a valid tag', array('%tag' => $data['tag']));
+  	return patterns_results(PATTERNS_ERR, $msg);
+  }
 
+  $err_prefix = t('Errors during pre-processing.');
+  
   /////////////////////////////////////////////
   // Prepare actions for validation/processing
   /////////////////////////////////////////////
 
-  $result = patterns_invoke('prepare', $action, $data);
+  $results = patterns_invoke('prepare', $action, $data);
 
+  if (!patterns_error_check_results($results, $err_prefix)){
+  	return $results;
+  }
+  
   $key = &$action;
   $data = &$data;
+  
+	//////////////////////////////////////////////////
+  // Validate tags with their appropriate components
+  //////////////////////////////////////////////////
+  $results = patterns_invoke('validate', $key, $data);
 
-  // TODO: manage multiple pattern includes
-  $pattern_info = reset($actions_map['patterns']);
-  $pattern_title = $pattern_info['title'];
+  patterns_error_check_results($results, $err_prefix);
 
-  if (!array_key_exists($data['tag'], $tag_modules)) {
-  	$errors[] = t('Pattern %title: <%tag> is not a valid tag', array('%tag' => $data['tag'], '%title' => $pattern_title));
-  }
-  else {
-  	//////////////////////////////////////////////////
-    // Validate tags with their appropriate components
-    //////////////////////////////////////////////////
-    $results = patterns_invoke('validate', $key, $data);
-
-    if (!patterns_error_check_results($results)) {
-        $errors[] = t('pattern %title: !msg', array('!msg' => $results['msg'], '%tag' => $data['tag'], '%title' => $pattern_title));
-    }
-  }
-
-  if (count($errors)) {
-    $message = t('Errors encountered during pre-processing:') . '<br/>' . implode('<br/>', $errors);
-    $status = PATTERNS_ERR;
-  }
-
-  return patterns_results($status, $message);
+  return $results;
 }
 
 /**
@@ -81,7 +73,6 @@ function patterns_prepare_action(&$action, &$data, $actions_map) {
 function patterns_implement_action($action, $data, &$identifiers, $place = 0, $actions_map = NULL) {
 
   patterns_set_error_handler();
-  // @TODO: I removed the calls to the error handler. Maybe needed again? See how to do it.
 
   $status = PATTERNS_SUCCESS;
   $msg = '';
@@ -89,17 +80,13 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
   // Refresh the list of forms based on the data we have.
   $tagmodules = patterns_tagmodules_get_index($data);
   $tag_info = patterns_tagmodules_filter($tagmodules, $data['tag']);
+  
+  $tag_description = isset($tag_info['description']) ? $tag_info['description'] : 'no description';
+   
   $form_ids = $tag_info[$action];
 
-  /*
-   * form_ids is used differently now.
-   // If prepare removed the data, don't continue with this action.
-   if (empty($form_ids)) {
-     drupal_set_message(t('No Form ID to execute was found'), 'error');
-     return patterns_results(PATTERNS_ERR, t('No Form ID to execute was found'));
-   }
-   */
-
+  
+  
   // Gather info about the action
   $action_location = patterns_locate_action($place, $actions_map);
   $index = $action_location['key'] + 1;
@@ -122,119 +109,111 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
   	$funcs = $results['result'];
   }
   
+  // Auto include FILES
+  if (!empty($tag_info[PATTERNS_FILES])) {
+    foreach ($tag_info[PATTERNS_FILES] as $file) {
+      require_once($file);
+    }
+  }
+  
   // Build the action
   foreach ($funcs as $func) {
-    if (!in_array($func, $form_ids)) {
-			// TODO: check this case
-			// TODO: error checking
-    	// Run it as a custom callback function.
-      $result = $func($action, $data); 
-      if (isset($result['msg'])) {
-        drupal_set_message($result['msg']);
-      }
+    
+    $form_id = $func;
+    $clone = $data; // TODO: does this prevent subsequent form_ids' communication?
+
+    $results['action_descriptions'][$place][] = $tag_info['descr'];
+
+    // If tokens are enabled, apply tokens to the action values
+    // before processing.
+    if (module_exists('token')) {
+      _patterns_recurse_tokens($clone, $identifiers);
+    }
+
+    /////////////////////////////////////////////////////
+    // BUILD: Get the form data for the action. This can return either
+    // just the form values, or the full form_state object.
+    /////////////////////////////////////////////////////
+    $results = patterns_invoke('build', $action, $clone, $form_id);
+
+    if (!patterns_error_check_results($results)) {
+      return $results;
+    }
+
+    // If no special callback was returned, we use the data as it is
+    if (!isset($results['result']) || empty($results['result'])) {
+	  	$form_obj = $clone;
+	  }
+	  else {
+	  	$form_obj = $results['result'];
+	  }
+
+    // We check for the 'storage' and 'submitted' values in the object to see
+    // if it is a form_state instead of form_values. There could be a better way
+    // to do this.
+    if (array_key_exists('submitted', (array) $form_obj) && array_key_exists('storage', (array) $form_obj)) {
+      $action_state = $form_obj;
+      $need_buildinfo = FALSE;
     }
     else {
 
-      $form_id = $func;
-      $clone = $data; // TODO: does this prevent subsequent form_ids' communication?
-
-      $results['action_descriptions'][$place][] = $tag_info['descr'];
-
-      // If tokens are enabled, apply tokens to the action values
-      // before processing.
-      if (module_exists('token')) {
-        _patterns_recurse_tokens($clone, $identifiers);
-        //array_walk($clone, '_patterns_replace_tokens', $identifiers);
-      }
-
-      /////////////////////////////////////////////////////
-      // BUILD: Get the form data for the action. This can return either
-      // just the form values, or the full form_state object.
-      /////////////////////////////////////////////////////
-      $results = patterns_invoke('build', $action, $clone, $form_id);
-
-      if (!patterns_error_check_results($results)) {
-        return $results;
-      }
-
-	    // If no special callback was returned, we use the data as it is
-      if (!isset($results['result']) || empty($results['result'])) {
-		  	$form_obj = $clone;
-		  }
-		  else {
-		  	$form_obj = $results['result'];
-		  }
-
-      // Auto include FILES
-      if (!empty($tag_info[PATTERNS_FILES])) {
-        foreach ($tag_info[PATTERNS_FILES] as $file) {
-          require_once($file);
-        }
-      }
-
-      // We check for the 'storage' and 'submitted' values in the object to see
-      // if it is a form_state instead of form_values. There could be a better way
-      // to do this.
-      if (array_key_exists('submitted', (array) $form_obj) && array_key_exists('storage', (array) $form_obj)) {
-        $action_state = $form_obj;
-        $need_buildinfo = FALSE;
+      if (!isset($tag_info['files'])) {
+        $files = array();
       }
       else {
-
-        if (!isset($tag_info['files'])) {
-          $files = array();
-        }
-        else {
-          $files = $tag_info['files'];
-        }
-
-        $action_state = array(
-              // @TODO Ste: check if storage is needed here
-              'storage' => NULL,
-              'submitted' => FALSE,
-              'build_info' => array('files' => $files),
-              'values' => $form_obj,
-        );
-        $need_buildinfo = TRUE;
+        $files = $tag_info['files'];
       }
 
-      ////////////////////////////////////////////////////
-      // Get any extra parameters required for the action
-      ////////////////////////////////////////////////////
-      $results = patterns_invoke('params', $action, $clone, $form_id, $action_state);
+      $action_state = array(
+            'storage' => NULL,
+            'submitted' => FALSE,
+            'build_info' => array('files' => $files),
+            'values' => $form_obj,
+      );
+      $need_buildinfo = TRUE;
+    }
 
-      if (!patterns_error_check_results($results)) {
-        return $results;
-      }
+    ////////////////////////////////////////////////////
+    // Get any extra parameters required for the action
+    ////////////////////////////////////////////////////
+    $results = patterns_invoke('params', $action, $clone, $form_id, $action_state);
 
-      // A single, simple value can be returned as a parameter, which is then
-      // put into an array here.
-      if (!isset($results['result'])) {
-        $results['result'] = NULL;
-      }
-      if (!is_array($results['result'])) {
-        $params = array($results['result']);
-      }
-      else {
-        $params = $results['result'];
-      }
+    if (!patterns_error_check_results($results)) {
+      return $results;
+    }
 
-      if ($need_buildinfo) {
-        $action_state['build_info']['args'] = $params;
-      }
+    // A single, simple value can be returned as a parameter, which is then
+    // put into an array here.
+    if (!isset($results['result'])) {
+      $results['result'] = NULL;
+    }
+    if (!is_array($results['result'])) {
+      $params = array($results['result']);
+    }
+    else {
+      $params = $results['result'];
+    }
 
-      ///////////////////
-      // Execute action: pass action_state and params to a form
-      ///////////////////
-      patterns_execute_action($form_id, $action_state, $params);
+    if ($need_buildinfo) {
+      $action_state['build_info']['args'] = $params;
+    }
 
-      // @TODO: do we need this?
-      if ($errors = form_get_errors()) {
-        $results['error_message'] = t('Above error(s) occurred while executing action #%num (%action) in %title pattern. Error location(s) are: %errors', array('%num' => $index, '%action' => $action_description, '%title' => $pattern_title, '%errors' => str_replace('][', '->', implode(', ', array_keys($errors)))));
-        $results['success'] = FALSE; // @TODO: Do we need success = FALSE ?
-        $results['status'] = PATTERNS_ERR;
-        return $results;
-      }
+    ///////////////////
+    // Execute action: pass action_state and params to a form
+    ///////////////////
+    patterns_execute_action($form_id, $action_state, $params);
+    
+    if ($errors = form_get_errors()) {
+      drupal_set_message(print_r($errors, true));
+      $errors_tokens =  array(
+        '%num' => $index, 
+        '%action' => $tag_description,
+        '%title' => $pattern_title, 
+        '%errors' => str_replace('][', '->', implode(', ', array_keys($errors))),
+      );
+      
+      $msg = t('Above error(s) occurred while executing action #%num (%action) in %title pattern. Error location(s) are: %errors', $errors_tokens);
+      return patterns_results(PATTERN_ERR, $msg);
     }
     
     ////////////////////
@@ -263,6 +242,117 @@ function patterns_implement_action($action, $data, &$identifiers, $place = 0, $a
  * @param array $params Extra parameters to be passed to the form function.
  */
 function patterns_execute_action($form_id, &$form_state, $params) {
+  
+	patterns_executing(TRUE);
+	
+	//$args = is_array($params) ? array_merge(array($form_state), $params)
+	//													: array($form_state);
+	
+	// We don't know here whether we are executing a callback
+	// or building a form														
+	//$result = call_user_func_array($form_id, $args);
+	//$result1 = $form_id($form_state, $params);
+
+	$result = drupal_retrieve_form($form_id, $form_state, $params); 
+	
+	// Check whether it is callback or a form submission
+	if (_patterns_is_patterns_results($result)) {
+		// Callback: nothing to do anymore
+		if (isset($result['msg'])) {
+    	drupal_set_message($result['msg']);
+    }
+	}
+	else {
+		// Form: we just built it, and not we need to submit it
+      	
+		// Make sure we always have a clear cache for everything.
+  	// Code taken from drupal_flush_all_caches().
+
+  	// Don't clear cache_form - in-progress form submissions may break.
+  	// Ordered so clearing the page cache will always be the last action.
+	  $core = array('cache', 'cache_block', 'cache_filter', 'cache_page');
+	  $cache_tables = array_merge(module_invoke_all('flush_caches'), $core);
+	  foreach ($cache_tables as $table) {
+	    cache_clear_all('*', $table, TRUE);
+	  }
+	
+	  // This is the old way of executing the form: it is slower
+	  // because it needs to rebuilds it
+	  //////////////////////////////////////////////////////////////
+	  //$args = array_unshift($args, $form_id);
+  	//$return = call_user_func_array('drupal_form_submit', $args);
+	  ///////////////////////////////////////////////////////////////
+	  
+		$form = $result;
+		
+		// Merge in default values.
+  	$form_state += form_state_defaults();
+  	$form_state['input'] = $form_state['values'];
+  	$form_state['programmed'] = TRUE;
+		// Programmed forms are always submitted.
+  	$form_state['submitted'] = TRUE;
+		
+		// Reset form validation.
+    $form_state['must_validate'] = TRUE;
+    form_clear_error();
+
+    drupal_prepare_form($form_id, $form, $form_state);
+    drupal_process_form($form_id, $form, $form_state);
+		
+	}
+	
+  patterns_executing(FALSE);
+}
+
+/**
+ * Outputs information about a successful execution of a section of a pattern
+ * and updates its db status
+ * 
+ * @param mixed $pid The pid of the pattern
+ * @param mixed $pattern_title The title of the pattern
+ * @param mixed $section The title of the section executed
+ * @param mixed $msg Optional. An additional message to be displayed
+ */
+function _patterns_section_success($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);
+	drupal_set_message(t('Section "@section" of pattern "@pattern" ran successfully.', $params));
+	if (!empty($msg)) {
+ 		drupal_set_message($msg);	
+ 	}
+  
+	$query_params = array(
+		':time' => time(), // Note: time() != $_SERVER['REQUEST_TIME']
+    ':pid' => $pid,
+    ':en' => PATTERNS_STATUS_ENABLED,
+  );
+  
+  db_query("UPDATE {patterns} SET status = :en, enabled = :time WHERE pid = :pid", $query_params);
+}
+
+/**
+ * Outputs information about an un-successful execution of a section of a pattern
+ * 
+ * @param mixed $pid The pid of the pattern
+ * @param mixed $pattern_title The title of the pattern
+ * @param mixed $section The title of the section executed
+ * @param mixed $msg Optional. An additional message to be displayed
+ */
+function _patterns_section_fail($pid, $pattern_title, $section, $msg = NULL) {
+	$params =  array(
+		'@pattern' => $pattern_title,
+    '@section' => $section,
+ 	);  
+ 	drupal_set_message(t('Section "@section" of pattern "@pattern" ran with errors. Check the error messages to get more details.', $params), 'warning');
+ 	if (!empty($msg)) {
+ 		drupal_set_message($msg, 'error');	
+ 	}
+}
+
+
+function patterns_execute_action1($form_id, &$form_state, $params) {
   // Make sure we always have a clear cache for everything.
   // Code taken from drupal_flush_all_caches().
 
@@ -363,9 +453,9 @@ function patterns_executing($b = NULL) {
  * @param mixed $form_id The name of the function
  * @return boolean TRUE, if the function name maps to an existing form
  */
-function patterns_is_form($form_id = NULL) {
-  $form_state = array();
-  $result = @drupal_retrieve_form($form_id, $b);
+function patterns_is_form($form_id = NULL, $form_state = array()) {
+  
+ 
+  $result = drupal_retrieve_form($form_id, $form_state);    
   return (isset($result) && is_array($result) && count($result) > 1);
 }
-
