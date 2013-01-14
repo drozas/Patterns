@@ -532,11 +532,12 @@ function modules_disable($action, &$data) {
  * Wraps the call to drupal_form_submit for setting the values of the variables
  * Goes through all the expected values from the form and prepare them for the query
  *
- * @param string $action  String containing the type of action. Currently, should be only 'modify'
- * @param array $data  Array of pairs variable name/value
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function variables_execute($action, &$data) {
-  foreach ($data['values'] as $variable) {
+function variables_execute($form_id, &$form_state) {
+  $names = array();
+  foreach ($form_state['values'] as $variable) {
     $var = variable_get($variable['name'], NULL);
     if (is_array($var)) {
       //Make sure we don't lose parts of the array that were not defined by pattern's action
@@ -546,7 +547,11 @@ function variables_execute($action, &$data) {
     else {
       variable_set($variable['name'], $variable['value']);
     }
+    $names[] = $variable['name'];
   }
+  
+  $msg = t('Variable(s) %vars updated.', array('%vars' => implode(', ', $names)));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
