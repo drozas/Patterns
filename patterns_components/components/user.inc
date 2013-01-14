@@ -112,8 +112,8 @@ function user_patterns_export_all_permissions($args = NULL, &$result = NULL) {
     $action = array(
       PATTERNS_MODIFY => array(
         'tag' => 'permission',
-        'rid' => $rid,
-        'value' => $permissions
+        'role' => $roles[$rid],
+        'value' => $permissions,
       )
     );
     array_push($result, $action);
