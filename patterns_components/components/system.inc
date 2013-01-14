@@ -516,27 +516,31 @@ function modules_enable($action, &$data) {
 }
 
 /**
- * Wraps the call to drupal_form_submit to disable modules. It disables automatically all the dependencies
+ * Wraps the call to drupal_form_submit to disable modules. It disables automatically all the dependencies.
  *
- * @param string $action  String containing the type of action. Currently, should be only 'modify'
- * @param array $data  Array of value variables containing the modules
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function modules_disable($action, &$data) {
-  $modules = $data;
-  foreach ($data['values'] as $module) {
+function modules_disable($form_id, &$form_state) {
+  $modules_disabled = $data;
+  foreach ($form_state['values'] as $module) {
     module_disable(array($module['value']), TRUE);
   }
+  $msg = ((count($modules_disabled) > 0) ? t('Module(s) %modules disabled.', array('%modules' => implode(', ', $modules_disabled))) : t('No modules have been disabled.'));
+  
+  return patterns_results(PATTERN_SUCCESS, $msg);
 }
 
 /**
- * Wraps the call to drupal_form_submit for setting the values of the variables
- * Goes through all the expected values from the form and prepare them for the query
+ * Wraps the call to drupal_form_submit for setting the values of the variables.
+ * Goes through all the expected values from the form and prepare them for the query.
  *
- * @param string $action  String containing the type of action. Currently, should be only 'modify'
- * @param array $data  Array of pairs variable name/value
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
  */
-function variables_execute($action, &$data) {
-  foreach ($data['values'] as $variable) {
+function variables_execute($form_id, &$form_state) {
+  $names = array();
+  foreach ($form_state['values'] as $variable) {
     $var = variable_get($variable['name'], NULL);
     if (is_array($var)) {
       //Make sure we don't lose parts of the array that were not defined by pattern's action
@@ -546,7 +550,11 @@ function variables_execute($action, &$data) {
     else {
       variable_set($variable['name'], $variable['value']);
     }
+    $names[] = $variable['name'];
   }
+  
+  $msg = t('Variable(s) %vars updated.', array('%vars' => implode(', ', $names)));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 /**
