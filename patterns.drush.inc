@@ -9,7 +9,6 @@
  * TODO: do we need the form-helper command ?
  */
 
-
 /**
  * Implements hook_drush_help().
  */
@@ -37,6 +36,9 @@ function patterns_drush_help($section) {
 			$text.= "The relative path of extracted files is computed from the Drupal root directory. Absolute paths can be used to point to external paths. ";
 			return dt($text);
 			break;	
+		 case 'drush:patterns-test-ci':
+      return dt('Starts the automated tests for Patterns and return an exit value for continuos integration.');
+      break;
 	}
 }
 
@@ -204,6 +206,14 @@ function patterns_drush_command() {
     ),
     'drupal dependencies' => $deps_export,
     'core' => array('7'),
+  );
+  
+  $items['patterns-test-ci'] = array(
+    'callback' => 'drush_patterns_test_regular_expression',
+    'description' => "Tests for continuos integration.",
+    'arguments' => array(
+      'regex' => "Regular expression to filter out tests.",
+    )
   );
     
 	return $items;
@@ -632,4 +642,124 @@ function patterns_drush_filter_components($components) {
     }
     
 	return $out;
+}
+
+// A Drush command callback.
+function drush_patterns_test_regular_expression($test_re='') {
+  
+  module_load_include('module', 'simpletest');
+  module_load_include('inc', 'simpletest', 'simpletest.pages');
+  
+  global $verbose, $color;
+  $verbose = is_null(drush_get_option('detail')) ? FALSE : TRUE;
+  $color = is_null(drush_get_option('color')) ? FALSE : TRUE;
+  $error_on_fail = is_null(drush_get_option('error-on-fail')) ? FALSE : TRUE;
+  if (!preg_match("/^\/.*\//", $test_re)) {
+    $test_re = "/$test_re/";
+  }
+  
+  $all_test_classes = simpletest_test_get_all();
+  //print_r($all_test_classes);
+  // Check that the test class parameter has been set.
+  if (empty($test_re)) {
+    drush_print("\nAvailable test groups & classes");
+    drush_print("-------------------------------");
+    $current_group = '';
+    foreach ($all_test_classes as $class => $details) {
+      if (class_exists($class) && method_exists($class, 'getInfo')) {
+        $info = call_user_func(array($class, 'getInfo'));
+        if ($info['group'] != $current_group) {
+          $current_group = $info['group'];
+          drush_print('[' . $current_group . ']');
+        }
+        drush_print("\t" . $class . ' - ' . $info['name']);
+      }
+    }
+    return;
+  }
+
+   
+  
+  // Find test classes that match
+  foreach ($all_test_classes as $class => $details) {
+    if (class_exists($class) && method_exists($class, 'getInfo')) {
+      if (preg_match($test_re, $class)) {
+        $info = call_user_func(array($class, 'getInfo'));
+        $matching_classes[$class] = $info;
+      }
+    }
+  }
+
+  $matching_classes = $all_test_classes['Patterns'];
+ 
+  
+  //print_r($matching_classes);
+  
+  $tests_list = array();
+  foreach ($matching_classes as $class_name => $details) {
+    if (class_exists($class_name)) {
+      $tests_list[] = $class_name;
+    }
+  }
+  //print_r($matching_classes);
+  
+  // Limit the number of tests for now
+  $tests_list = array(
+    //$tests_list[0], 
+    $tests_list[1],
+  );
+  
+  
+  
+  $total_tests = count($tests_list);
+
+  
+  $test_id = simpletest_run_tests($tests_list, 'drupal');
+  
+  $batch = &batch_get();
+  $batch['progressive'] = FALSE;
+  drush_backend_batch_process();
+  
+  
+  $results = simpletest_result_get($test_id);
+  
+  //print_r($results);
+  
+  $analysis = _patterns_drush_test_check_results($results);
+  
+  //print_r($analysis);
+  
+  $fail = FALSE;
+  
+  foreach ($analysis as $area => $failed) {
+    if ($failed > 0) {
+      $fail = TRUE;
+      drush_set_error($area . ' ' . $failed . ' tests failed');
+    }
+  }
+  
+  if ($failed) {
+    exit(1);
+  }
+  else {
+    exit(0);
+  }
+  
+}
+
+ function _patterns_drush_test_check_results($results) {
+  $return = array();
+  
+  foreach($results as $area => $tests) {
+    $return[$area] = 0;
+    foreach($tests as $result) {
+      if ($result->status == 'fail') {
+        $return[$area]++;
+        drush_set_error(drush_html_to_text($result->message));
+//       print $area; // . + ': ' . $result->message;
+      }
+    }
+  }
+  
+  return $return;
 }
