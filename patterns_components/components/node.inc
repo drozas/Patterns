@@ -111,7 +111,7 @@ function node_patterns_get_arguments($action, $tag, $form_id, &$loop = FALSE) {
 function node_patterns_prepare($action, $tag, &$data) {
   if ($tag == 'content_type') {
     if ($action === PATTERNS_CREATE or $action === PATTERNS_MODIFY) {
-      if (isset($data['node_options'])) {
+      if (isset($data['node_options']) and $data['node_options']) {
         $data['node_options'] = array_values($data['node_options']);
       }
       else {
@@ -167,6 +167,11 @@ function node_patterns_validate($action, $tag, &$data) {
           if (empty($data['type'])) {
             $status = PATTERNS_ERR;
             $msg = t('"type" field is required.');
+            return patterns_results($status, $msg, $result);
+          }
+          if (empty($data['title'])) {
+            $status = PATTERNS_ERR;
+            $msg = t('"title" field is required.');
             return patterns_results($status, $msg, $result);
           }
           $set = db_select('node_type', 'nt')
