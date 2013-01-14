@@ -350,7 +350,7 @@ function user_patterns_validate($action, $tag, &$data) {
         $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
         return patterns_results(PATTERNS_ERR, $msg);
       }else if($action == PATTERNS_MODIFY) {
-        $mandatory_attributes = array('rid', 'value');
+        $mandatory_attributes = array('role', 'value');
         if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
           return patterns_results(PATTERNS_ERR, $msg);
         }
@@ -467,7 +467,7 @@ function user_patterns_validate($action, $tag, &$data) {
       //This is the only case available, the lack of the rest are checking during the syntactic validation
       if($action == PATTERNS_MODIFY) {
         $permissions = $data['value'];
-        $rid = $data['rid'];
+        $role = $data['role'];
         //Check if all permissions exist, if any of them don't raise a syntactic warning
         $available_permissions = user_permission_get_modules();
         $msg = "";
@@ -479,10 +479,10 @@ function user_patterns_validate($action, $tag, &$data) {
         if ($msg !="") {
           $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => $msg);
         }
-        //Raise semantic warning if the rid does not exist
-        if (!array_key_exists($rid, user_roles())) {
+        //Raise semantic warning if the role name does not exist
+        if (!user_role_load_by_name($role)) {
           $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
-              t('The role id %rid does not exist in the system.', array('%rid' =>$rid,)));
+              t('The role %role does not exist in the system.', array('%role' =>$role,)));
         }
       }
             
