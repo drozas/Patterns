@@ -13,6 +13,6 @@ info:
 actions:
   - modify:
       tag: permission
-      rid: 5
+      role: administrator
       value:
-        - delete own page content
+        - administer themes

@@ -12,7 +12,7 @@ class PatternsUserTestCase extends PatternsTestCase {
   static function getInfo() {
     return array(
       'name' => 'User component',
-      'description' => 'Creates, modifies and deletes users.',
+      'description' => 'Testing cases for users, roles, permissions and its relationships',
       'group' => 'Patterns',
     );
   }
@@ -33,67 +33,108 @@ class PatternsUserTestCase extends PatternsTestCase {
     $this->testRoleCreate();
     $this->testRoleModify();
     $this->testRoleDelete();
-//    $this->testUserCreate();
-//    $this->testUserModify();
-//    $this->testUserDelete();
+    //@TO-DO: Disable temporarily due to login issue. Ref: http://drupal.org/node/394976
+    //$this->testPermissionModify();
+    //$this->testPermissionModifyUserCreate();
   }
 
-  private function testPermissionCreate() {
-    $added_perms = array('administer nodes', 'access comments', 'administer comments');
-    $rid = db_select('role', 'r')
-      ->fields('r', array('rid'))
-      ->condition('name', 'test_role')
-      ->execute()->fetchField();
-
-    $this->assertIdentical($rid, '5', t('The role id should be 5 here.'));
-
-    $role_permissions = user_role_permissions(array($rid => 'a'));
-    $role_permissions = $role_permissions[$rid];
-    //$this->verbose(print_r($role_permissions, true));
-    $permission_count = count($role_permissions);
-
-    $this->assertIdentical($permission_count, 0, t('The permission count to role %rid should be zero at this point.', array('%rid' => $rid)));
-
-    parent::runFile('user_permission_create.yaml', 'Permissions (create)', $this->user_tests_dir);
-
-    $role_permissions = user_role_permissions(array($rid => 'a'));
-$this->verbose(print_r($role_permissions, true));
-    $role_permissions = $role_permissions[$rid];
-    $role_permissions = array_keys($role_permissions);
-    $equals = $this->arrayEquals($added_perms, $role_permissions);
-
-    // TODO: the arrays should be equal, not false
-    $this->assertIdentical($equals, false, t('The role should contain the added permissions here.'));
-
-  }
-
+  
+  /**
+   *
+   * Creates an user, a role and a set of permissions. This case proves the fact
+   * that patterns whose semantic dependencies are manually solved can be run.
+   *
+   */
+  private function testPermissionModifyUserCreate() {
+    $username = 'test_uid_sem_dependencies';
+    $rolename = 'manager_sem_dep';
+    $permissions = array('administer blocks', 'administer image styles', );
+    
+    //Delete user if exists already
+    if (user_load_by_name($username)) {
+      user_delete(user_load_by_name($username)->uid);
+    }
+    
+    //Delete role if exists already
+    if (user_role_load_by_name($rolename)) {
+      user_role_delete($rolename);
+    }
+    
+    //Raise error if user exists already
+    $this->assertFalse(user_load_by_name($username),
+        format_string('Username %username does not exist in the system yet.', array('%username' => $username)));
+    
+    //Raise error if role exists already
+    $this->assertFalse(user_role_load_by_name($rolename),
+        format_string('role %role does not exist in the system yet.', array('%role' => $rolename)));
+    
+    //Run pattern that creates user assign him a role and set the permissions for that role
+    parent::runFile('user_permission_modify_user_create.yaml', 'User, role and permissions', $this->user_tests_dir);
+    //parent::quickRun('user_permission_modify_user_create.yaml', 'User, role and permissions', $this->user_tests_dir, 'yaml', TRUE, 'php');
+    
+    //Raise error if user does not exist now
+    $this->assertTrue(user_load_by_name($username),
+        format_string('Username %username now exists in the system.', array('%username' => $username)));
+    
+    
+    //Raise error if role does not exist now
+    $this->assertTrue(user_role_load_by_name($rolename),
+        format_string('role %role does not exist in the system yet.', array('%role' => $rolename)));
+    
+    //Check also that the new user holds the expected permissions
+    $user = user_load_by_name($username);
+    $debugrole = user_role_load_by_name($rolename);
+    foreach ($permissions as $permission) {
+      $this->assertTrue(user_access($permission, $user),
+          format_string('Permission %p successfully added to the role after running the pattern.', array('%p' => $permission)));
+    }
+    
+}
+  
+  
+  /**
+   * 
+   * Add permissions to administer modules to anonymous user as a test.
+   * It removes explicitely the permission from the user before running the pattern.
+   * 
+   */
   private function testPermissionModify() {
-    $perms = array('delete own page content');
+    $permission = 'administer themes';
+    $role_name = 'administrator';
+    $role = user_role_load_by_name($role_name);
+    $role_list = array($role->rid => $role->name);
+
+    $ur = user_role_permissions($role_list);
+    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $this->verbose(format_string('Does it have the role before executing the tentative removal?: %cond', array ('%cond'=> $cond)));
+    debug($cond);
+    debug($ur);
+    //Remove the permission to administer modules in case they have it.
+    if (array_key_exists($permission, user_role_permissions($role_list)[$role->rid])) {
+      user_role_revoke_permissions($role->rid, array($permission));
+    }
+    
+
+    cache_clear_all();
+    $ur = user_role_permissions($role_list);
+    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $this->verbose(format_string('Does it have the role before executing the pattern?: %cond', array ('%cond'=> $cond)));
+    debug($cond);
+    debug($ur);
+    $this->assertFalse(array_key_exists($permission, user_role_permissions($role_list)[$role->rid]), 
+        format_string('Permission %p successfully removed manually to the role.', array('%p' => $permission)));
+
+    //Run the pattern that adds the permission
     parent::runFile('user_permission_modify.yaml', 'Permissions (modify)', $this->user_tests_dir);
 
-    $rid = 5;
-
-    $role_permissions = user_role_permissions(array($rid => 'a'));
-    $role_permissions = $role_permissions[$rid];
-    $role_permissions = array_keys($role_permissions);
-    $equals = $this->arrayEquals($role_permissions, $perms);
-
-    // TODO: the arrays should be equal
-    $this->assertIdentical($equals, false, t('The role should contain the modified permissions here.'));
-  }
-
-  private function testPermissionDelete() {
-    parent::runFile('user_permission_delete.yaml', 'Permissions (delete)', $this->user_tests_dir);
-    $rid = 5;
-
-    $role_permissions = user_role_permissions(array($rid => 'a'));
-    $role_permissions = $role_permissions[$rid];
-    $role_permissions = array_keys($role_permissions);
-    $len = count($role_permissions);
-
-    // TODO: permissin count should be 0 here
-    $this->assertIdentical($len, 0, t('The permission count to role %role should be zero at this point.', array('%role' => $rid)));
-
+    $ur = user_role_permissions($role_list);
+    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $this->verbose(format_string('Does it have the role after executing the pattern?: %cond', array ('%cond'=> $cond)));
+    debug($cond);
+    debug($ur);
+    //Check if the user currently holds the permission after running the pattern
+    $this->assertTrue(array_key_exists($permission, user_role_permissions($role_list)[$role->rid]),
+        format_string('Permission %p successfully added to the role after running the pattern.', array('%p' => $permission)));
   }
 
   private function arrayEquals($a, $b) {
@@ -192,7 +233,4 @@ $this->verbose(print_r($role_permissions, true));
     $this->assertIdentical($user_count, '0', t('The user should not exist at this point.'));
   }
 
-  // TODO
-  private function testUserModify() {
-  }
 }
