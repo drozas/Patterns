@@ -21,23 +21,21 @@ function block_patterns($data) {
   );
   
   $actions['block_custom'] = array(
-      PATTERNS_INFO => t('Create/Modify/Delete Meta information associated to custom modules'),
-      PATTERNS_CREATE => array('block_custom_create'),
-      PATTERNS_MODIFY => array('block_custom_modify'),
-      PATTERNS_DELETE => array('block_custom_delete'),
+      PATTERNS_INFO => t('Establish meta information relationship in custom modules'),
+      PATTERNS_MODIFY => array('set_block_custom'),
       PATTERNS_FILES  => $files,
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_custom', ),
   );
   
   $actions['block_node_type'] = array(
-      PATTERNS_INFO => t('Create/Modify/Delete visibility relationships between Blocks and Content Types'),
+      PATTERNS_INFO => t('Establish relationships between Blocks and Content Types'),
       PATTERNS_MODIFY => array('set_block_node_type'),
       PATTERNS_FILES  => $files,
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_node_types', ),
   );
   
   $actions['block_role'] = array(
-      PATTERNS_INFO => t('Create/Modify/Delete visibility relationships between Blocks and Roles'),
+      PATTERNS_INFO => t('Establish visibility relationships between Blocks and Roles'),
       PATTERNS_MODIFY => array('set_block_node_role'),
       PATTERNS_FILES  => $files,
       PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_node_roles', ),
@@ -94,8 +92,8 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
 
 /**
  *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of blocks currently stored in the system.
+ * Returns a set of PATTERNS_MODIFY actions with the metadata stored
+ * for all the custom blocks currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
@@ -103,17 +101,25 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
  * @return array $result  Set of actions after performing the changes.
  */
 function block_patterns_export_all_block_custom($args = NULL, &$result = NULL) {
-  //@TO-DO
-  $blocks = _block_rehash();
   $result = array();
+  $block_custom_metadata = db_query('SELECT * from block_custom');
+
+  //In this case the export is only as a set of modifys
+  foreach ($block_custom_metadata as $metadata) {
+    $data = array('tag' => 'block_custom');
+    foreach ($metadata as $key => $value) {
+      $data[$key] = $value;
+    }
+    $action = array(PATTERNS_MODIFY => $data);
+    array_push($result, $action);
+  }
   return $result;
 }
 
-
 /**
  *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of blocks currently stored in the system.
+ * Returns a set of PATTERNS_MODIFY actions with the metadata stored
+ * for all the custom blocks currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
@@ -121,9 +127,18 @@ function block_patterns_export_all_block_custom($args = NULL, &$result = NULL) {
  * @return array $result  Set of actions after performing the changes.
  */
 function block_patterns_export_all_block_node_types($args = NULL, &$result = NULL) {
-  //@TO-DO
-  $blocks = _block_rehash();
   $result = array();
+  $block_node_types = db_query('SELECT * from block_node_type');
+
+  //In this case the export is only as a set of modifys
+  foreach ($block_node_types as $node_type) {
+    $data = array('tag' => 'block_node_type');
+    foreach ($node_type as $key => $value) {
+      $data[$key] = $value;
+    }
+    $action = array(PATTERNS_MODIFY => $data);
+    array_push($result, $action);
+  }
   return $result;
 }
 
@@ -139,9 +154,24 @@ function block_patterns_export_all_block_node_types($args = NULL, &$result = NUL
  * @return array $result  Set of actions after performing the changes.
  */
 function block_patterns_export_all_block_node_roles($args = NULL, &$result = NULL) {
-  //@TO-DO
-  $blocks = _block_rehash();
   $result = array();
+  $block_node_roles = db_query('SELECT * from block_role');
+
+  //In this case the export is only as a set of modifys
+  foreach ($block_node_roles as $role) {
+    $data = array('tag' => 'block_node_role');
+    foreach ($role as $key => $value) {
+      //Transform the rid into the role name
+      if ($key == 'rid') {
+        $role = user_role_load($value);
+        $data['role'] = $role->name;
+      }else{
+        $data[$key] = $value;
+      }
+    }
+    $action = array(PATTERNS_MODIFY => $data);
+    array_push($result, $action);
+  }
   return $result;
 }
 
