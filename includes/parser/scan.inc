@@ -288,6 +288,9 @@ function _patterns_scan_analyze_patternscan($patternscan, $include = FALSE, $lev
         case -4:
           $warnings .= t('[Remaining dependency]: ');
           break;
+        case -5:
+          $warnings .= t('[Not unique alias]: ');
+          break;
   	  }
   	  
   	  $warnings.= reset($warn_data['warning']) . $br;
