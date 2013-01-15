@@ -40,7 +40,7 @@ function block_patterns($data) {
       PATTERNS_INFO => t('Establish visibility relationships between Blocks and Roles'),
       PATTERNS_MODIFY => array('set_block_node_role'),
       PATTERNS_FILES  => $files,
-      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_node_roles', ),
+      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_roles', ),
   );
 
   return $actions;
@@ -155,13 +155,13 @@ function block_patterns_export_all_block_node_types($args = NULL, &$result = NUL
  *
  * @return array $result  Set of actions after performing the changes.
  */
-function block_patterns_export_all_block_node_roles($args = NULL, &$result = NULL) {
+function block_patterns_export_all_block_roles($args = NULL, &$result = NULL) {
   $result = array();
   $block_node_roles = db_query('SELECT * from block_role');
 
   //In this case the export is only as a set of modifys
   foreach ($block_node_roles as $role) {
-    $data = array('tag' => 'block_node_role');
+    $data = array('tag' => 'block_role');
     foreach ($role as $key => $value) {
       //Transform the rid into the role name
       if ($key == 'rid') {
