@@ -174,48 +174,121 @@ function node_patterns_validate($action, $tag, &$data) {
             $msg = t('"title" field is required.');
             return patterns_results($status, $msg, $result);
           }
-          $set = db_select('node_type', 'nt')
-                    ->fields('nt', array('name'))
-                    ->condition('type', $data['type'])
-                    ->execute()
-                    ->fetchField();
-          if (!$set) {
+          $node_item = db_select('node_type', 'nt')
+             ->fields('nt', array('name'))
+             ->condition('type', $data['type'])
+             ->execute()
+             ->fetchField();
+          if (!$node_item) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The content type: "%oldname" does not exist in the system.', array('%oldname' =>$data['type'],)));
+              t('The content type: "%type" does not exist in the system.', array('%type' =>$data['type'],)));
           }
           break;
+
+        //check nid first, then title second, one of them is enough, but because of title is not unique, so nid is perfered.
+        //if nid is existed, the title will not be check.
         case PATTERNS_MODIFY :
-          if (empty($data['nid'])) {
+          if (empty($data['nid']) && empty($data['title'])) {
             $status = PATTERNS_ERR;
-            $msg = t('"id" field is required.');
+            $msg = t('"id or title" field is required.');
             return patterns_results($status, $msg, $result);
           }
-          $data['node'] = node_load($data['nid']);
-          if ($data['node'] === FALSE) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['title'],)));
-          } 
+          elseif (!empty($data['nid'])) {
+            $data['node'] = node_load($data['nid']);
+            if ($data['node'] === FALSE) {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['nid'],)));
+            } 
+            else {
+              $data['node'] = (object) $data['node'];
+              if ($data['type'] != $data['node']->type) {
+                $status = PATTERNS_ERR;
+                $msg = t("You can't change content type for already existing node.");
+                return patterns_results($status, $msg, $result);
+              }
+            }
+          }
           else {
-            $data['node'] = (object) $data['node'];
-            if ($data['type'] != $data['node']->type) {
-              $status = PATTERNS_ERR;
-              $msg = t("You can't change content type for already existing node.");
-              return patterns_results($status, $msg, $result);
+            $num_nodeswithSameTitle = db_select('node')
+                            ->condition('title', $data['title'])
+                            ->countQuery()
+                            ->execute()
+                            ->fetchField();
+            if ($num_nodeswithSameTitle > 1) {
+              $result[] = array(PATTERNS_WARNING_NOT_UNIQUE_ALIAS=> 
+                t('The node titled: "%title" is not unique in the system.', array('%title' =>$data['title'],)));
+            } 
+            elseif ($num_nodeswithSameTitle  == 1) {
+              $node_item = db_select('node', 'nd')
+                 ->fields('nd', array('nid'))
+                 ->condition('title', $data['title'])
+                 ->execute()
+                 ->fetchField();
+              $data['node'] = node_load($node_item);
+              $data['nid'] = $node_item;
+              if ($data['node'] === FALSE) {
+                $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                  t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['nid'],)));
+              } 
+              else {
+                $data['node'] = (object) $data['node'];
+                if ($data['type'] != $data['node']->type) {
+                  $status = PATTERNS_ERR;
+                  $msg = t("You can't change content type for already existing node.");
+                  return patterns_results($status, $msg, $result);
+                }
+              }
+            }
+            else {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['title'],)));
             }
           }
           break;
+
+        //check nid first, then title second, one of them is enough, but because of title is not unique, so nid is perfered.
         case PATTERNS_DELETE :
-          if (empty($data['nid'])) {
+          if (empty($data['nid']) && empty($data['title'])) {
             $status = PATTERNS_ERR;
-            $msg = t('"id" field is required.');
+            $msg = t('"id or title" field is required.');
             return patterns_results($status, $msg, $result);
           }
-          $data['node'] = node_load($data['nid']);
-          if ($data['node'] === FALSE) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
-              t('The node %oldname does not exist in the system.', array('%oldname' =>$data['nid'],)));
+          elseif (!empty($data['nid'])) {
+            $data['node'] = node_load($data['nid']);
+            if ($data['node'] === FALSE) {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['nid'],)));
+            } 
+            $data['node'] = (object) $data['node'];
           }
-          $data['node'] = (object) $data['node'];
+          else {
+            $num_nodeswithSameTitle = db_select('node')
+                            ->condition('title', $data['title'])
+                            ->countQuery()
+                            ->execute()
+                            ->fetchField();
+            if ($num_nodeswithSameTitle > 1) {
+              $result[] = array(PATTERNS_WARNING_NOT_UNIQUE_ALIAS=> 
+                t('The node titled: "%title" is not unique in the system.', array('%title' =>$data['title'],)));
+            } 
+            elseif ($num_nodeswithSameTitle  == 1) {
+               $node_item = db_select('node', 'nd')
+                 ->fields('nd', array('nid'))
+                 ->condition('title', $data['title'])
+                 ->execute()
+                 ->fetchField();
+              $data['node'] = node_load($node_item);
+              $data['nid'] = $node_item;
+              if ($data['node'] === FALSE) {
+                $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                  t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['nid'],)));
+              } 
+            }
+            else {
+              $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED => 
+                t('The node: "%oldname" does not exist in the system.', array('%oldname' =>$data['title'],)));
+            }
+          }
           break;
       }
       break;
