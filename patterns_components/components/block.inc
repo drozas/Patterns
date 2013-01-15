@@ -11,6 +11,8 @@ function block_patterns($data) {
 
   $files = array('modules/block/block.admin.inc');
   
+  //All these functions are applied through custom functions
+  
   $actions['block'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Blocks'),
     PATTERNS_CREATE => array('block_create'),
@@ -118,8 +120,8 @@ function block_patterns_export_all_block_custom($args = NULL, &$result = NULL) {
 
 /**
  *
- * Returns a set of PATTERNS_MODIFY actions with the metadata stored
- * for all the custom blocks currently stored in the system.
+ * Returns a set of PATTERNS_MODIFY actions with the relationship between blocks
+ * and node types currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
@@ -145,8 +147,8 @@ function block_patterns_export_all_block_node_types($args = NULL, &$result = NUL
 
 /**
  *
- * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
- * with the whole set of blocks currently stored in the system.
+ * Returns a set of PATTERNS_MODIFY actions with the relationship between blocks
+ * and roles currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
