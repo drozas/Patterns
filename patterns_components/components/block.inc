@@ -300,7 +300,7 @@ function block_patterns_validate($action, $tag, &$data) {
           break;
         case PATTERNS_MODIFY:
         case PATTERNS_DELETE:
-          //Create semantic warning if the combination of module+delta does not exist
+          //Create semantic warning if the combination of module+delta+theme does not exist
           if (!_block_patterns_mdt_exists($data['module'], $data['delta'], $data['theme'])) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                 t('There are not any blocks defined by module %module whose delta is %delta for theme %theme in the system.',
@@ -370,7 +370,7 @@ function block_create($form_id, &$form_state) {
   ));
   $query->execute();
 
-  return patterns_results(PATTERNS_SUCCESS, 'New block successfully added');
+  return patterns_results(PATTERNS_SUCCESS, t('New block successfully added'));
 }
 
 /**
@@ -393,7 +393,7 @@ function block_modify($form_id, &$form_state) {
   ->condition('theme', $form_state['values']['theme'])
   ->execute();
   
-  $msg =t('Updated the following fields for block created by module %module with delta %delta for theme %theme: %fields.',
+  $msg = t('Updated the following fields for block created by module %module with delta %delta for theme %theme: %fields.',
       array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
           '%theme' => $form_state['values']['theme'],'%fields' => implode(', ', array_keys($fields))));
   
@@ -401,6 +401,28 @@ function block_modify($form_id, &$form_state) {
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
+/**
+ *
+ * Wraps several a call to drupal_form_submit to delete the settings of a block.
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_delete($form_id, &$form_state) {
+  //At this point all the fields have been validated, and all of them are mandatory
+  $query = db_delete('block')
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->condition('theme', $form_state['values']['theme'])
+  ->execute();
+
+  $msg = t('Removed the configuration for block created by module %module with delta %delta for theme %theme.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%theme' => $form_state['values']['theme'],));
+
+
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
 
 // // returns arguments needed for the forms when processing automatically
 // // $loop is set if we want to extract all values
