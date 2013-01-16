@@ -364,7 +364,7 @@ function block_create($form_id, &$form_state) {
   ));
   $query->execute();
 
-  return patterns_results(PATTERNS_SUCCESS, $msg);
+  return patterns_results(PATTERNS_SUCCESS, 'New block successfully added');
 }
 
 /**
@@ -386,6 +386,11 @@ function block_modify($form_id, &$form_state) {
   ->condition('delta', $form_state['values']['delta'])
   ->condition('theme', $form_state['values']['theme'])
   ->execute();
+  
+  $msg =t('Updated the following fields for block created by module %module with delta %delta for theme %theme: %fields.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%theme' => $form_state['values']['theme'],'%fields' => implode(', ', array_keys($fields))));
+  
   
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
