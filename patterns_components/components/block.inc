@@ -9,7 +9,7 @@
  */
 function block_patterns($data) {
 
-  $files = array('modules/block/block.admin.inc');
+  $files = array('modules/block/block.admin.inc', 'modules/block/block.api.php');
   
   //All these functions are applied through custom functions
   
@@ -176,6 +176,129 @@ function block_patterns_export_all_block_roles($args = NULL, &$result = NULL) {
   }
   return $result;
 }
+
+/**
+ *
+ * @param string $action Type of action being executed
+ * @param string $tag Type of tag to be validated
+ * @param array $data Associative array containing the data action processed from the pattern
+ *
+ * @return mixed through patterns_results($status, $msg, $result) function. Status of the operation,
+ * error messages and semantic warnings through $result
+ */
+function block_patterns_validate($action, $tag, &$data) {
+  $result = array();
+  $status = PATTERNS_SUCCESS;
+  $msg = '';
+
+  /*
+   * Syntactic validation:
+  * - Syntactic warnings: They refer to wrong grammar statements that will not
+  * provoke any execution error. Ex.: non-interpretable attributes.
+  * - Syntactic errors: They refer to wrong grammar statements that will provoke
+  * an execution error. Ex.: misspelling in required attribute.
+  *
+  */
+  switch ($tag) {
+    case 'block':
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_MODIFY:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+    case 'block_custom':
+      //@TO-DO
+      break;
+    case 'block_node_type':
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+    case 'block_role':
+        switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+  }
+
+  /*
+   * Semantic validation:
+  * - Semantic warnings: They refer to the meaning of the pattern itself, and they
+  * might provoke execution errors if they are not solved.
+  *
+  */
+  switch ($tag) {
+    case 'block':
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_MODIFY:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+    case 'block_custom':
+      //@TO-DO
+      break;
+    case 'block_node_type':
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+    case 'block_role':
+      switch ($action) {
+        case PATTERNS_CREATE:
+          //@TO-DO
+          break;
+        case PATTERNS_DELETE:
+          //@TO-DO
+          break;
+      }
+      break;
+  }
+  return patterns_results($status, $msg, $result);
+}
+
+
+/**
+ *
+ * Wraps several calls to several drupal_form_submit to create a block.
+ * The action is implemented making use of the call to hook_block_save
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_create($form_id, &$form_state) {
+  //Invoke 
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
+
 
 // // returns arguments needed for the forms when processing automatically
 // // $loop is set if we want to extract all values
