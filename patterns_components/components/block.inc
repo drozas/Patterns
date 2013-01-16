@@ -238,7 +238,7 @@ function block_patterns_validate($action, $tag, &$data) {
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
-          //In this case mandatory and interpreatable are the same
+          //In this case mandatory and interpretable are the same
           if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
             $status = PATTERNS_WARN;
           }
@@ -300,10 +300,10 @@ function block_patterns_validate($action, $tag, &$data) {
           break;
         case PATTERNS_MODIFY:
           //Create semantic warning if the combination of module+delta does not exist
-          if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
+          if (!_block_patterns_mdt_exists($data['module'], $data['delta'], $data['theme'])) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
-                t('There are not any blocks defined by module %module whose delta is %delta in the system.',
-                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+                t('There are not any blocks defined by module %module whose delta is %delta for theme %theme in the system.',
+                    array('%module' =>$data['module'], '%theme' => $data['theme'], '%delta' => $data['delta'])));
           }
           //We raised a semantic error if the theme does not exist
           if (!array_key_exists($data['theme'], list_themes())) {
@@ -677,6 +677,27 @@ function _block_patterns_module_delta_exists ($module, $delta) {
   ->fields('b')
   ->condition('module', $module)
   ->condition('delta', $delta)
+  ->execute();
+
+  return $query->rowCount() > 0;
+}
+
+/**
+ *
+ * Checks the existance of a block with the given module, delta and theme values (unique constraint)
+ *
+ * @param string $module  Module from which the block originates
+ * @param string $delta  Unique ID for a block within a module
+ * @param string $theme  Theme key
+ *
+ * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
+ */
+function _block_patterns_mdt_exists ($module, $delta, $theme) {
+  $query = db_select('block', 'b')
+  ->fields('b')
+  ->condition('module', $module)
+  ->condition('delta', $delta)
+  ->condition('theme', $theme)
   ->execute();
 
   return $query->rowCount() > 0;
