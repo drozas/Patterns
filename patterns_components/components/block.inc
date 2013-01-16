@@ -233,7 +233,15 @@ function block_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_DELETE:
-          //@TO-DO
+          //Check mandatory fields
+          $mandatory_attributes = array('module', 'delta', 'theme');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case mandatory and interpreatable are the same
+          if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
           break;
       }
       break;
