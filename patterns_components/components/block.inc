@@ -295,7 +295,25 @@ function block_patterns_validate($action, $tag, &$data) {
  * @param array $form_state  Set of values after parsing the action.
  */
 function block_create($form_id, &$form_state) {
-  //Invoke 
+  //We will need to make an insertion similar to the one in block_add_block_form_submit but 
+  //in a simplified way. At this point all the mandatory values have been checked, and we 
+  //will provide the optional value for the rest
+  $query = db_insert('block')
+    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache'));
+  $query->values(array(
+      'visibility' => (int) $form_state['values']['visibility'],
+      'pages' => trim($form_state['values']['pages']),
+      'custom' => (int) $form_state['values']['custom'],
+      'title' => $form_state['values']['title'],
+      'module' => $form_state['values']['module'],
+      'theme' => $form_state['values']['theme'],
+      'status' => $form_state['values']['status'],
+      'weight' => $form_state['values']['weight'],
+      'delta' => $form_state['values']['delta'],
+      'cache' => $form_state['values']['cache'],
+  ));
+  $query->execute();
+  
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
