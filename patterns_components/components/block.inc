@@ -299,6 +299,7 @@ function block_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_MODIFY:
+        case PATTERNS_DELETE:
           //Create semantic warning if the combination of module+delta does not exist
           if (!_block_patterns_mdt_exists($data['module'], $data['delta'], $data['theme'])) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
@@ -310,9 +311,6 @@ function block_patterns_validate($action, $tag, &$data) {
             $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
                 t('The theme %theme to update is not currently installed in the system.', array('%theme' =>$data['theme'],)));
           }
-          break;
-        case PATTERNS_DELETE:
-          //@TO-DO
           break;
       }
       break;
