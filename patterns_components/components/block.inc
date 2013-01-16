@@ -68,8 +68,8 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
       foreach ($blocks as $block) {
         $data = array('tag' => 'block');
         foreach ($block as $key => $value) {
-          //In the case of modify, we discard the ID
-          if ($key != 'bid') {
+          //In the case of modify, we discard the ID and the info (set through block_custom)
+          if ($key != 'bid' && $key != 'info') {
             $data[$key] = $value;
           }
         }
@@ -82,7 +82,10 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
       foreach ($blocks as $block) {
         $data = array('tag' => 'block');
         foreach ($block as $key => $value) {
-          $data[$key] = $value;
+          //In the case of modify, we discard only the info (set through block_custom)
+          if ($key != 'info') {
+            $data[$key] = $value;
+          }
         }
         $action = array(PATTERNS_MODIFY => $data);
         array_push($result, $action);
@@ -224,7 +227,13 @@ function block_patterns_validate($action, $tag, &$data) {
       }
       break;
     case 'block_custom':
-      //@TO-DO
+      //The only available action for block_custom is modify, rest are considered syntactical errors
+      if ($action == PATTERNS_MODIFY) {
+
+      }else{
+        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+        return patterns_results(PATTERNS_ERR, $msg);
+      }
       break;
     case 'block_node_type':
       switch ($action) {
@@ -323,7 +332,7 @@ function block_create($form_id, &$form_state) {
   //in a simplified way. At this point all the mandatory values have been checked, and we 
   //will provide the optional value for the rest
   $query = db_insert('block')
-    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache'));
+    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache', 'region'));
   $query->values(array(
       'visibility' => (int) $form_state['values']['visibility'],
       'pages' => trim($form_state['values']['pages']),
@@ -335,6 +344,7 @@ function block_create($form_id, &$form_state) {
       'weight' => $form_state['values']['weight'],
       'delta' => $form_state['values']['delta'],
       'cache' => $form_state['values']['cache'],
+      'region' => $form_state['values']['region'],
   ));
   $query->execute();
   
