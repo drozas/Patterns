@@ -221,7 +221,7 @@ function block_patterns_validate($action, $tag, &$data) {
           break;
         case PATTERNS_MODIFY:
           //Check mandatory fields
-          $mandatory_attributes = array('module', 'delta');
+          $mandatory_attributes = array('module', 'delta', 'theme');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
@@ -298,7 +298,7 @@ function block_patterns_validate($action, $tag, &$data) {
                     array('%module' =>$data['module'], '%delta' =>$data['delta'])));
           }
           //We raised a semantic error if the theme does not exist
-          if (isset($data['theme']) && !array_key_exists($data['theme'], list_themes())) {
+          if (!array_key_exists($data['theme'], list_themes())) {
             $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
                 t('The theme %theme to update is not currently installed in the system.', array('%theme' =>$data['theme'],)));
           }
@@ -374,27 +374,19 @@ function block_create($form_id, &$form_state) {
  * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
  * @param array $form_state  Set of values after parsing the action.
  */
-function block_update($form_id, &$form_state) {
-  //We will need to make an insertion similar to the one in block_add_block_form_submit but
-  //in a simplified way. At this point all the mandatory values have been checked, and
-  //default values are provided for the optional attributes in case they are not provided
-  $query = db_insert('block')
-  ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache', 'region'));
-  $query->values(array(
-      'visibility' => (isset($form_state['values']['visibility'])) ? (int) $form_state['values']['visibility']: 1,
-      'pages' => (isset($form_state['values']['pages'])) ? trim($form_state['values']['pages']): '',
-      'custom' => (isset($form_state['values']['custom'])) ? (int) $form_state['values']['custom']: 0,
-      'title' => $form_state['values']['title'],
-      'module' => $form_state['values']['module'],
-      'theme' => (isset($form_state['values']['theme'])) ? $form_state['values']['theme']: variable_get('theme_default', 'bartik'),
-      'status' => (isset($form_state['values']['status'])) ? $form_state['values']['status']: 0,
-      'weight' => (isset($form_state['values']['weight'])) ? $form_state['values']['weight']: 0,
-      'delta' => $form_state['values']['delta'],
-      'cache' => (isset($form_state['values']['cache'])) ? $form_state['values']['cache']: -1,
-      'region' => (isset($form_state['values']['region'])) ? $form_state['values']['region']: -1,
-  ));
-  $query->execute();
-
+function block_modify($form_id, &$form_state) {
+  //We can use the all the optional fields provided by the pattern after removing the ones that compound the key
+  $fields_to_remove = array('tag' => $form_state['values']['tag'], 'module' => $form_state['values']['module'] , 
+      'delta' => $form_state['values']['delta'], 'theme' => $form_state['values']['theme']);
+  $fields = array_diff_key($form_state['values'], $fields_to_remove);
+  
+  $query = db_update('block')
+  ->fields($fields)
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->condition('theme', $form_state['values']['theme'])
+  ->execute();
+  
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
