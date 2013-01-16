@@ -258,7 +258,20 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-          //@TO-DO
+          //We have four actions to treat:
+          //check module+delta don't exist
+          //check theme exist
+          //$block = block_load($data['module'], $data['delta']);
+          /*$query = db_select('block', 'b')
+            ->fields('bid')
+            ->condition('module', $data['module'])
+            ->condition('delta', $data['delta'])
+            ->execute();*/
+          //Create semantic warning if the role name has already been defined
+          if (in_array($role_name, $current_roles)) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('The role name %role_name already exists in the system.', array('%role_name' =>$role_name,)));
+          }
           break;
         case PATTERNS_MODIFY:
           //@TO-DO
@@ -516,7 +529,7 @@ function block_create($form_id, &$form_state) {
 //           'block_admin_configure',
 //           'block_admin_display_form'
 //         );
-//     }
+//     }$field
 //     else {
 //       // TODO
 //     }
@@ -586,3 +599,21 @@ function block_create($form_id, &$form_state) {
 // /*function block_patterns_cleanup($action, $tag, &$data) {
 //   return patterns_results();
 // }*/
+
+/**
+ * 
+ * Checks the existance of a block with the given module and delta values
+ * 
+ * @param string $module  Module from which the block originates
+ * @param string $delta  Unique ID for a block within a module
+ * 
+ * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
+ */
+function _block_patterns_module_delta_exists ($module, $delta) {
+  $query = db_select('block', 'b')
+  ->fields('bid')
+  ->condition('module', $data['module'])
+  ->condition('delta', $data['delta'])
+  ->execute();
+  return $query->rowCount() > 0;
+}
