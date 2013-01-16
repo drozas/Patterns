@@ -262,15 +262,16 @@ function block_patterns_validate($action, $tag, &$data) {
           //check module+delta don't exist
           //check theme exist
           //$block = block_load($data['module'], $data['delta']);
-          /*$query = db_select('block', 'b')
-            ->fields('bid')
-            ->condition('module', $data['module'])
-            ->condition('delta', $data['delta'])
-            ->execute();*/
           //Create semantic warning if the role name has already been defined
-          if (in_array($role_name, $current_roles)) {
+          if (_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
-                t('The role name %role_name already exists in the system.', array('%role_name' =>$role_name,)));
+                t('A block defined by module %module with delta %delta already exists in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+          }
+          //We raised a semantic error if the theme does not exist
+          if (!array_key_exists($data['theme'], list_themes())) {
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                t('The theme %theme is not currently installed in the system.', array('%theme' =>$data['theme'],)));
           }
           break;
         case PATTERNS_MODIFY:
@@ -611,9 +612,10 @@ function block_create($form_id, &$form_state) {
  */
 function _block_patterns_module_delta_exists ($module, $delta) {
   $query = db_select('block', 'b')
-  ->fields('bid')
-  ->condition('module', $data['module'])
-  ->condition('delta', $data['delta'])
+  ->fields('b')
+  ->condition('module', $module)
+  ->condition('delta', $delta)
   ->execute();
+
   return $query->rowCount() > 0;
 }
