@@ -40,13 +40,6 @@ function block_patterns($data) {
     PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_blocks', ),
   );
   
-/*  $actions['block_custom'] = array(
-      PATTERNS_INFO => t('Establish meta information relationship in custom modules'),
-      PATTERNS_MODIFY => array('set_block_custom'),
-      PATTERNS_FILES  => $files,
-      PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_block_custom', ),
-  );*/
-  
   $actions['block_node_type'] = array(
       PATTERNS_INFO => t('Create and delete relationships between Blocks and Content Types'),
       PATTERNS_CREATE => array('block_node_type_create'),
@@ -72,7 +65,9 @@ function block_patterns($data) {
  * Returns a set of PATTERNS_CREATE or PATTERNS_MODIFY actions
  * with the whole set of blocks currently stored in the system.
  * In the case of custom blocks some extra fields from table 
- * block_custom will be exported
+ * block_custom will be exported.
+ * Different actions are employed to gather the blocks depending on the
+ * type of action to return.
  *
  * @param array $args  Set of arguments received from the form.
  * @param string $result  Current set of actions for the whole process.
@@ -80,87 +75,81 @@ function block_patterns($data) {
  * @return array $result  Set of actions after performing the changes.
  */
 function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
-  $blocks = db_query('SELECT * from block');
   $result = array();
 
-  //Got through all the blocks and prepare set of actions.
-  foreach ($blocks as $block) {
-    $data = array('tag' => 'block');
-    foreach ($block as $key => $value) {
-      //We discard the bid for all the cases
-      if ($key != 'bid') {
-        $data[$key] = $value;
-      }
-      
-      if ($key == 'module' && $value == 'block') {
-        //This query must always return one record
-        $block_custom_metadata = db_select('block_custom', 'bc')
-        ->fields('bc', array('body', 'info', 'format'))
-        ->condition('bid', $block->delta)
-        ->range(0,1)
-        ->execute();
-        $metadata = $block_custom_metadata->fetch();
-        //We check the existance to avoid warnings with records inserted manually
-        if ($metadata) {
-          $data['body'] = $metadata->body;
-          $data['info'] = $metadata->info;
-          $data['format'] = $metadata->format;
+  //Got through all the blocks and prepare set of actions according to the type of export process.
+  //Depending on the action we will use a different method to gather the blocks
+  switch ($args['type']) {
+    case PATTERNS_CREATE :
+      $blocks = _block_rehash();
+      foreach ($blocks as $block) {
+        $data = array('tag' => 'block');
+        //$previous_delta = NULL;
+        foreach ($block as $key => $value) {
+          //We discard bid and info (comes directly from block_custom table for certain cases)
+          if ($key != 'bid' && $key != 'info') {
+            $data[$key] = $value;
+          }
+          
+          //In case the block is a custom one (created by block) we will need to
+          //add some extra fields from block_custom table
+          if ($key == 'module' && $value == 'block') {
+            //This query must return a maximum of 1 record
+            $block_custom_metadata = db_select('block_custom', 'bc')
+            ->fields('bc', array('body', 'info', 'format'))
+            ->condition('bid', $block['delta'])
+            ->range(0,1)
+            ->execute();
+            $metadata = $block_custom_metadata->fetch();
+            //We check the existance to avoid warnings with records inserted manually
+            if ($metadata) {
+              $data['body'] = $metadata->body;
+              $data['info'] = $metadata->info;
+              $data['format'] = $metadata->format;
+            }
+          }
         }
-
+        $action = array(PATTERNS_CREATE => $data);
+        array_push($result, $action);
       }
-
-    
-    //If is a custom block (created by module block) we add the info from its table in a new action. This value
-    //should not be exported for each theme, it should be exported only once as a new action!
-/*    if ($key == 'module' && $value == 'block') {
-      //Change query to select only those for this delta (that matches bic in this table). Should return only one value.
-      $block_custom_metadata = db_select('block_custom', 'bc')
-      ->fields('bc', array('body', 'info', 'format'))
-      ->condition('bic', $block['delta'])
-      ->execute();
-      foreach ($block_custom_metadata as $metadata) {
-        $data = array('tag' => 'block_custom');
-        foreach ($metadata as $key => $value) {
-          $data[$key] = $value;
+      break;
+    case PATTERNS_MODIFY :
+      $blocks = db_query('SELECT * from block');
+      foreach ($blocks as $block) {
+        $data = array('tag' => 'block');
+        foreach ($block as $key => $value) {
+          //We discard the bid for all the cases
+          if ($key != 'bid') {
+            $data[$key] = $value;
+          }
+          
+          //In case the block is a custom one (created by block) we will need to 
+          //add some extra fields from block_custom table
+          if ($key == 'module' && $value == 'block') {
+            //This query must return a maximum of 1 record
+            $block_custom_metadata = db_select('block_custom', 'bc')
+            ->fields('bc', array('body', 'info', 'format'))
+            ->condition('bid', $block->delta)
+            ->range(0,1)
+            ->execute();
+            $metadata = $block_custom_metadata->fetch();
+            //We check the existance to avoid warnings with records inserted manually
+            if ($metadata) {
+              $data['body'] = $metadata->body;
+              $data['info'] = $metadata->info;
+              $data['format'] = $metadata->format;
+            }
+          }
         }
         $action = array(PATTERNS_MODIFY => $data);
         array_push($result, $action);
       }
- */   
-    
-    }
-    $action = array($args['type'] => $data);
-    array_push($result, $action);
+      break;
   }
-
+  
   return $result;
 }
 
-/**
- *
- * Returns a set of PATTERNS_MODIFY actions with the metadata stored
- * for all the custom blocks currently stored in the system.
- *
- * @param array $args  Set of arguments received from the form.
- * @param string $result  Current set of actions for the whole process.
- *
- * @return array $result  Set of actions after performing the changes.
- */
-/*function block_patterns_export_all_block_custom($args = NULL, &$result = NULL) {
-  $result = array();
-  $block_custom_metadata = db_query('SELECT * from block_custom');
-
-  //In this case the export is only as a set of modifys
-  foreach ($block_custom_metadata as $metadata) {
-    $data = array('tag' => 'block_custom');
-    foreach ($metadata as $key => $value) {
-      $data[$key] = $value;
-    }
-    $action = array(PATTERNS_MODIFY => $data);
-    array_push($result, $action);
-  }
-  return $result;
-}*/
 
 /**
  *
