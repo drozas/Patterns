@@ -122,24 +122,6 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
           if ($key != 'bid') {
             $data[$key] = $value;
           }
-          
-          //In case the block is a custom one (created by block) we will need to 
-          //add some extra fields from block_custom table
-          if ($key == 'module' && $value == 'block') {
-            //This query must return a maximum of 1 record
-            $block_custom_metadata = db_select('block_custom', 'bc')
-            ->fields('bc', array('body', 'info', 'format'))
-            ->condition('bid', $block->delta)
-            ->range(0,1)
-            ->execute();
-            $metadata = $block_custom_metadata->fetch();
-            //We check the existance to avoid warnings with records inserted manually
-            if ($metadata) {
-              $data['body'] = $metadata->body;
-              $data['info'] = $metadata->info;
-              $data['format'] = $metadata->format;
-            }
-          }
         }
         $action = array(PATTERNS_MODIFY => $data);
         array_push($result, $action);
@@ -236,7 +218,6 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-        case PATTERNS_MODIFY:
           //Assign mandatory fields depending on the type of block (custom required some extra fields)
           //$mandatory_attributes = array('module', 'delta', 'title');
           $mandatory_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
@@ -244,8 +225,6 @@ function block_patterns_validate($action, $tag, &$data) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
           //Define interpretable attributes depending on the type of block (custom required some extra fields)
-          $interpretable_attributes = array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
-            'custom', 'visibility', 'pages', 'cache');
           $interpretable_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache', 'body', 'info', 'format'): array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache');
@@ -253,9 +232,22 @@ function block_patterns_validate($action, $tag, &$data) {
             $status = PATTERNS_WARN;
           }
           break;
+        case PATTERNS_MODIFY:
+          //Assign mandatory fields depending, custom_block fields are not covered by modify actions
+          $mandatory_attributes = array('module', 'delta', 'title');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //Define interpretable attributes, custom_block fields are not covered by modify actions
+          $interpretable_attributes = array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
+              'custom', 'visibility', 'pages', 'cache');
+          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
+          break;
         case PATTERNS_DELETE:
           //Check mandatory fields
-          $mandatory_attributes = array('module', 'delta', 'theme');
+          $mandatory_attributes = array('module', 'delta');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
@@ -264,15 +256,6 @@ function block_patterns_validate($action, $tag, &$data) {
             $status = PATTERNS_WARN;
           }
           break;
-      }
-      break;
-    case 'block_custom':
-      //The only available action for block_custom is modify, rest are considered syntactical errors
-      if ($action == PATTERNS_MODIFY) {
-
-      }else{
-        $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
-        return patterns_results(PATTERNS_ERR, $msg);
       }
       break;
     case 'block_node_type':
@@ -320,18 +303,20 @@ function block_patterns_validate($action, $tag, &$data) {
           }
           break;
         case PATTERNS_MODIFY:
-        case PATTERNS_DELETE:
           //Create semantic warning if the combination of module+delta+theme does not exist
           if (!_block_patterns_mdt_exists($data['module'], $data['delta'], $data['theme'])) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                 t('There are not any blocks defined by module %module whose delta is %delta for theme %theme in the system.',
                     array('%module' =>$data['module'], '%theme' => $data['theme'], '%delta' => $data['delta'])));
           }
-          //We raised a semantic error if the theme does not exist
-          if (!array_key_exists($data['theme'], list_themes())) {
-            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
-                t('The theme %theme to update is not currently installed in the system.', array('%theme' =>$data['theme'],)));
-          }
+          break;
+        case PATTERNS_DELETE:
+          //Create semantic warning if the combination of module+delta does not exist
+          if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
+            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                t('There are not any blocks defined by module %module whose delta is %delta in the system.',
+                    array('%module' =>$data['module'], '%theme' => $data['theme'])));
+          }        
           break;
       }
       break;
@@ -449,7 +434,6 @@ function block_delete($form_id, &$form_state) {
   $query = db_delete('block')
   ->condition('module', $form_state['values']['module'])
   ->condition('delta', $form_state['values']['delta'])
-  //->condition('theme', $form_state['values']['theme'])
   ->execute();
   cache_clear_all();
 
