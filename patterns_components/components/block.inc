@@ -313,9 +313,9 @@ function block_patterns_validate($action, $tag, &$data) {
         case PATTERNS_DELETE:
           //Create semantic warning if the combination of module+delta does not exist
           if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
-            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
                 t('There are not any blocks defined by module %module whose delta is %delta in the system.',
-                    array('%module' =>$data['module'], '%theme' => $data['theme'])));
+                    array('%delta' =>$data['delta'])));
           }
           //Create semantic warning if the operation is performed in a block that is not custom.
           if ($data['module']!='block') {
@@ -324,7 +324,6 @@ function block_patterns_validate($action, $tag, &$data) {
                     of this action might create some inconsistencies in the Database. Use MODIFY if you want to disable the block instead.',
                     array('%module' =>$data['module'])));
           }
-          
           break;
       }
       break;
@@ -400,6 +399,8 @@ function block_create($form_id, &$form_state) {
 /**
  *
  * Wraps several calls to several drupal_form_submit to update the settings of a block.
+ * This operation affects only the block table, block_custom table is not affected in case
+ * is a custom block
  *
  * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
  * @param array $form_state  Set of values after parsing the action.
@@ -436,7 +437,7 @@ function block_modify($form_id, &$form_state) {
  */
 function block_delete($form_id, &$form_state) {
   //At this point all the fields have been validated, and all of them are mandatory
-  $query = db_delete('block')
+/*  $query = db_delete('block')
   ->condition('module', $form_state['values']['module'])
   ->condition('delta', $form_state['values']['delta'])
   ->execute();
@@ -452,23 +453,24 @@ function block_delete($form_id, &$form_state) {
         'format' => $form_state['values']['format'],
     ));
     $query->execute();
-  }
+  }*/
+  //This operation is only available for custom modules, and we need to delete
+  //the information for all the tables
+  db_delete('block_custom')
+  ->condition('bid', $form_state['values']['delta'])
+  ->execute();
+  db_delete('block')
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->execute();
+  db_delete('block_role')
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->execute();
 
-  if ($query > 0) {
-    $msg = t('Removed the configuration for block created by module %module with delta %delta for theme %theme.',
-        array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
-            '%theme' => $form_state['values']['theme'],));
-    return patterns_results(PATTERNS_SUCCESS, $msg);
-  }else{
-    $msg = t('There was an error while trying to remove the configuration for block created by module %module with delta %delta for theme %theme.',
-        array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
-            '%theme' => $form_state['values']['theme'],));
-    return patterns_results(PATTERNS_ERR, $msg);
-  }
-
-
-
-
+  $msg = t('Removed all the configuration for custom block delta %delta.',
+      array('%delta' => $form_state['values']['delta']));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
 // // returns arguments needed for the forms when processing automatically
