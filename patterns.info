@@ -1,5 +1,5 @@
 name = Patterns
-description = Magically import and export web site configuration and content to files.
+description = Magically import and export web site configuration, and content to files.
 dependencies[] = token
 dependencies[] = libraries
 
