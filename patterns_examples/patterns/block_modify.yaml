@@ -14,7 +14,7 @@ info:
 modules:
   - block
 block:
-#Modify common settings of a normal and a custom block for the theme 'seven'
+# Modify common settings of a normal and a custom block for the theme 'seven'
   - 
     modify:
       tag: block
