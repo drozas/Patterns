@@ -28,7 +28,7 @@ before_script:
 
 # INSTALL DRUPAL
   - drush dl drupal
-  - mv drupal-7.18 drupal
+  - mv drupal-7.19 drupal
   - mv /home/travis/builds/QScience/Patterns ./drupal/sites/all/modules/patterns
   - cd drupal
   - bash sites/all/modules/patterns/scripts/setup
