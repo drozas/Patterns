@@ -436,24 +436,6 @@ function block_modify($form_id, &$form_state) {
  * @param array $form_state  Set of values after parsing the action.
  */
 function block_delete($form_id, &$form_state) {
-  //At this point all the fields have been validated, and all of them are mandatory
-/*  $query = db_delete('block')
-  ->condition('module', $form_state['values']['module'])
-  ->condition('delta', $form_state['values']['delta'])
-  ->execute();
-  cache_clear_all();
-  
-  
-  if ($form_state['values']['module']=='block') {
-    $query = db_insert('block_custom')
-    ->fields(array('body', 'info', 'format'));
-    $query->values(array(
-        'body' => $form_state['values']['body'],
-        'info' => $form_state['values']['info'],
-        'format' => $form_state['values']['format'],
-    ));
-    $query->execute();
-  }*/
   //This operation is only available for custom modules, and we need to delete
   //the information for all the tables
   db_delete('block_custom')
