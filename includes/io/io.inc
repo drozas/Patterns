@@ -353,7 +353,7 @@ function _patterns_io_check_htaccess() {
 }
 
 /**
- * Checks if the patterns directory exist and is writable.
+ * Checks if the patterns directory exists and is writable.
  */
 function _patterns_io_is_patterns_dir_ready($patterns_files_dir = NULL, $flag = FILE_MODIFY_PERMISSIONS) {
 
@@ -366,48 +366,31 @@ function _patterns_io_is_patterns_dir_ready($patterns_files_dir = NULL, $flag = 
 
 
 /**
- * Saves a pattern string or array into the database AND in the file system.
- *
- * Updates the same file to the newer version, but does not replace an existing
- * file (e.g. if we are moving a file to a new location).
- *
- * Produces error messages if the pattern could not be saved.
- *
- * @param mixed $content The content of the pattern to be saved. Can be a string the
- *  or an array represeting the pattern. In the latter case @param $original
- *  can be contain the string. If @param $original is missing the pattern is
- *  saved as a PHP array.
- * @param mixed $name The name of the pattern file.
- * @param mixed $format file format (notice: it is not the extension!)
- *   (optional) The format of the pattern. Defaults to PATTERNS_FORMAT_YAML.
- * @param mixed $dir the destination directory
- * @param mixed $original the string representation of the pattern. Optional.
- *
- * @return bool
- *   TRUE on success, FALSE otherwise.
- *
- * TODO: if content is array and original is null, dump the array into the
- *  correct original file
- *
+ * Lower level primitive for patterns_io_save_pattern
+ * 
+ * Returns a patterns_results object with a message, instead of a boolean
  */
-function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL) {
-
+function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL) {
+  $status = PATTERNS_SUCCESS;
+  $msg = NULL;
+  
+  
   if (is_null($name)) {
-    drupal_set_message(t('Cannot save pattern with \'NULL\' identifier.'), 'error');
-    return FALSE;
+    $msg = t('Cannot save pattern with \'NULL\' identifier.');
+    return patterns_results(PATTERNS_ERR, $msg);
   }
 
   if (!patterns_validate_pattern($content, $format, PATTERNS_VALIDATE_SYNTAX)) {
-    drupal_set_message(t("Pattern '%name' could not be saved. Make sure edited code is well-formed.", array('%name' => $name)), 'error');
-    return FALSE;
+    $msg = t("Pattern '%name' could not be saved. Make sure edited code is well-formed.", array('%name' => $name));
+    return patterns_results(PATTERNS_ERR, $msg);
   }
 
   if (is_null($dir)) {
     $dir = patterns_path_get_files_dir();
   }
   if (!file_prepare_directory($dir, FILE_CREATE_DIRECTORY)) {
-    drupal_set_message(t('Error: the pattern is not writable. Please check the file system permissions.'), 'error');
-    return FALSE;
+    $msg = t('Error: the pattern is not writable. Please check the file system permissions.');
+    return patterns_results(PATTERNS_ERR, $msg);
   }
 
   // Check if the file has a valid extension
@@ -429,30 +412,68 @@ function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTE
   
   $path = file_unmanaged_save_data($original, $path_original, FILE_EXISTS_REPLACE);
   if (!$path) {
-    drupal_set_message(t('An error occurred while saving the file to %path. A file with the same name exists.', array('%path' => $path_original)), 'error');
-    return FALSE;
+    $msg = t('An error occurred while saving the file to %path. A file with the same name exists.', array('%path' => $path_original));
+    return patterns_results(PATTERNS_ERR, $msg);
   }
 
   // Load and save pattern.
   $load_function = patterns_parser_get_parser_function($format, PATTERNS_PARSER_LOAD);
   if (!$load_function) {
-    drupal_set_message(t('Could not find a parser for ', array('%name' => $name)), 'error'); // TODO: proper t()
-    return FALSE;
+    $msg = t('Could not find a parser for ', array('%name' => $name));
+   return patterns_results(PATTERNS_ERR, $msg);
   }
 
   $pattern = $load_function($path);
   if (!$pattern) {
-    drupal_set_message(t("Pattern '%name' could not be saved into the database. Make sure edited code is well-formed.", array('%name' => $name)), 'error');
+    $msg = t("Pattern '%name' could not be saved into the database. Make sure edited code is well-formed.", array('%name' => $name));
     patterns_io_remove_pattern_from_fs($path);
-    return FALSE;
+    return patterns_results(PATTERNS_ERR, $msg);
   }
   
   patterns_db_save_pattern($pattern, $path, $name, $format);
   
   $link = l($name, 'admin/patterns/edit/' . $name);
-  drupal_set_message(t('Pattern !name was saved in %path.', array('!name' => $link, '%path' => $path, )));
+  $msg = t('Pattern !name was saved in %path.', array('!name' => $link, '%path' => $path, ));
 
-  return TRUE;
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
+
+/**
+ * Saves a pattern string or array into the database AND in the file system.
+ *
+ * Updates the same file to the newer version, but does not replace an existing
+ * file (e.g. if we are moving a file to a new location).
+ *
+ * @param mixed $content The content of the pattern to be saved. Can be a string the
+ *  or an array represeting the pattern. In the latter case @param $original
+ *  can be contain the string. If @param $original is missing the pattern is
+ *  saved as a PHP array.
+ * @param mixed $name The name of the pattern file.
+ * @param mixed $format file format (notice: it is not the extension!)
+ *   (optional) The format of the pattern. Defaults to PATTERNS_FORMAT_YAML.
+ * @param mixed $dir the destination directory
+ * @param mixed $original the string representation of the pattern. Optional.
+ * @param bool $verbose Optional. If TRUE, a message is displayed with drupal_set_message. 
+ *  Defaults, TRUE
+ *
+ * @return bool
+ *   TRUE on success, FALSE otherwise.
+ *
+ * @see _patterns_io_save_pattern
+ * 
+ * TODO: if content is array and original is null, dump the array into the
+ *  correct original file
+ *
+ */
+function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL, $verbose = TRUE) {
+  $result = _patterns_io_save_pattern($content, $name, $format, $dir, $original, $verbose);
+  
+  if ($verbose && !empty($result['msg'])) {
+    $status = ($result['status'] == PATTERNS_SUCCESS) ? 'status' : 'error';
+    drupal_set_message($result['msg'], $status);
+  }
+  
+  return ($result['status'] == PATTERNS_SUCCESS) ? TRUE : FALSE;
 }
 
 /**
