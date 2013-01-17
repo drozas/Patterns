@@ -236,26 +236,18 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-          //Check mandatory fields
-          $mandatory_attributes = array('module', 'delta', 'title');
+        case PATTERNS_MODIFY:
+          //Assign mandatory fields depending on the type of block (custom required some extra fields)
+          //$mandatory_attributes = array('module', 'delta', 'title');
+          $mandatory_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
-          //Define interpretable attributes
+          //Define interpretable attributes depending on the type of block (custom required some extra fields)
           $interpretable_attributes = array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache');
-          if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
-            $status = PATTERNS_WARN;
-          }
-          break;
-        case PATTERNS_MODIFY:
-          //Check mandatory fields
-          $mandatory_attributes = array('module', 'delta', 'theme');
-          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
-            return patterns_results(PATTERNS_ERR, $msg);
-          }
-          //Define interpretable attributes
-          $interpretable_attributes = array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
+          $interpretable_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
+            'custom', 'visibility', 'pages', 'cache', 'body', 'info', 'format'): array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache');
           if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
             $status = PATTERNS_WARN;
@@ -398,6 +390,19 @@ function block_create($form_id, &$form_state) {
       'region' => (isset($form_state['values']['region'])) ? $form_state['values']['region']: -1,
   ));
   $query->execute();
+  
+  //In case the block is a custom one (created by block) we will need
+  //to perform and extra insertion in the block_custom table (all fields are mandatory)
+  if ($form_state['values']['module']=='block') {
+    $query = db_insert('block_custom')
+    ->fields(array('body', 'info', 'format'));
+    $query->values(array(
+        'body' => $form_state['values']['body'],
+        'info' => $form_state['values']['info'],
+        'format' => $form_state['values']['format'],
+    ));
+    $query->execute();    
+  }
 
   return patterns_results(PATTERNS_SUCCESS, t('New block successfully added'));
 }
