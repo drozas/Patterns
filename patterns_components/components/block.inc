@@ -316,12 +316,17 @@ function block_patterns_validate($action, $tag, &$data) {
             $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                 t('There are not any blocks defined by module %module whose delta is %delta in the system.',
                     array('%module' =>$data['module'], '%theme' => $data['theme'])));
-          }        
+          }
+          //Create semantic warning if the operation is performed in a block that is not custom.
+          if ($data['module']!='block') {
+            $result[] = array(PATTERNS_WARNING_INCONSISTENT_OPERATION =>
+                t('Delete operations are not supported for blocks created by the module %module. The execution 
+                    of this action might create some inconsistencies in the Database. Use MODIFY if you want to disable the block instead.',
+                    array('%module' =>$data['module'])));
+          }
+          
           break;
       }
-      break;
-    case 'block_custom':
-      //@TO-DO
       break;
     case 'block_node_type':
       switch ($action) {
@@ -436,6 +441,18 @@ function block_delete($form_id, &$form_state) {
   ->condition('delta', $form_state['values']['delta'])
   ->execute();
   cache_clear_all();
+  
+  
+  if ($form_state['values']['module']=='block') {
+    $query = db_insert('block_custom')
+    ->fields(array('body', 'info', 'format'));
+    $query->values(array(
+        'body' => $form_state['values']['body'],
+        'info' => $form_state['values']['info'],
+        'format' => $form_state['values']['format'],
+    ));
+    $query->execute();
+  }
 
   if ($query > 0) {
     $msg = t('Removed the configuration for block created by module %module with delta %delta for theme %theme.',
