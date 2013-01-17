@@ -315,7 +315,7 @@ function block_patterns_validate($action, $tag, &$data) {
           if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
             $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
                 t('There are not any blocks defined by module %module whose delta is %delta in the system.',
-                    array('%delta' =>$data['delta'])));
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
           }
           //Create semantic warning if the operation is performed in a block that is not custom.
           if ($data['module']!='block') {
