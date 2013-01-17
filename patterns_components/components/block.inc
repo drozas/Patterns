@@ -7,6 +7,24 @@
  * @file
  * Patterns component for blocks.
  */
+
+/*
+ * IMPORTANT!:
+ * - block_custom operation is going to be merged with block operation. This is because
+ * certain operations (as delete) make only sense for the combination of both.
+ * - The syntax will be as follows:
+ * -- If we detect the block is a custom one (created by the module block), we will
+ * --- Export some extra parameters (the ones that are required in the table block_custom
+ * --- Allow some extra attributes (and require some more extra attributes) during the syntactic
+ * validation
+ * --- Distinguish in the semantic analysis, since for instance the DELETE operation will be
+ * available only for custom blocks.
+ * --- Delete on cascade in this case. As it is performed by the block module itself, since the
+ * registers are re-created in the DB in case the deletion is not performed on cascade
+ *  
+ * 
+ * 
+ */
 function block_patterns($data) {
 
   $files = array('modules/block/block.admin.inc', 'modules/block/block.api.php');
@@ -58,7 +76,8 @@ function block_patterns($data) {
  * @return array $result  Set of actions after performing the changes.
  */
 function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
-  $blocks = _block_rehash();
+  //$blocks = _block_rehash();
+  $blocks = db_query('SELECT * from block');
   $result = array();
 
   //Prepare the set of actions according to the option selected 
@@ -70,7 +89,7 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
         $data = array('tag' => 'block');
         foreach ($block as $key => $value) {
           //In the case of modify, we discard the ID and the info (set through block_custom)
-          if ($key != 'bid' && $key != 'info') {
+          if ($key != 'bid') {
             $data[$key] = $value;
           }
         }
@@ -84,7 +103,7 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
         $data = array('tag' => 'block');
         foreach ($block as $key => $value) {
           //In the case of modify, we discard only the info (set through block_custom)
-          if ($key != 'bid' && $key != 'info') {
+          if ($key != 'bid') {
             $data[$key] = $value;
           }
         }
@@ -404,6 +423,8 @@ function block_modify($form_id, &$form_state) {
 /**
  *
  * Wraps several a call to drupal_form_submit to delete the settings of a block.
+ * This operation is only available for custom blocks (as well as it happens in the UI)
+ * since blocks created by custom modules cannot be deleted (only disabled through status)
  *
  * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
  * @param array $form_state  Set of values after parsing the action.
@@ -413,15 +434,25 @@ function block_delete($form_id, &$form_state) {
   $query = db_delete('block')
   ->condition('module', $form_state['values']['module'])
   ->condition('delta', $form_state['values']['delta'])
-  ->condition('theme', $form_state['values']['theme'])
+  //->condition('theme', $form_state['values']['theme'])
   ->execute();
+  cache_clear_all();
 
-  $msg = t('Removed the configuration for block created by module %module with delta %delta for theme %theme.',
-      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
-          '%theme' => $form_state['values']['theme'],));
+  if ($query > 0) {
+    $msg = t('Removed the configuration for block created by module %module with delta %delta for theme %theme.',
+        array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+            '%theme' => $form_state['values']['theme'],));
+    return patterns_results(PATTERNS_SUCCESS, $msg);
+  }else{
+    $msg = t('There was an error while trying to remove the configuration for block created by module %module with delta %delta for theme %theme.',
+        array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+            '%theme' => $form_state['values']['theme'],));
+    return patterns_results(PATTERNS_ERR, $msg);
+  }
 
 
-  return patterns_results(PATTERNS_SUCCESS, $msg);
+
+
 }
 
 // // returns arguments needed for the forms when processing automatically
