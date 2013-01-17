@@ -37,7 +37,7 @@ function block_patterns($data) {
     PATTERNS_MODIFY => array('block_modify'),
     PATTERNS_DELETE => array('block_delete'),
     PATTERNS_FILES  => $files,
-    PATTERNS_EXPORT => array(PATTERNS_EXPORT_ALL => 'block_patterns_export_all_blocks', ),
+    PATTERNS_EXPORT => array(PATTERNS_EXPORT_CURRENT_THEMES => 'block_patterns_export_all_blocks', ),
   );
   
   $actions['block_node_type'] = array(
