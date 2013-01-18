@@ -146,7 +146,7 @@ function block_patterns_export_all_block_node_types($args = NULL, &$result = NUL
 
 /**
  *
- * Returns a set of PATTERNS_MODIFY actions with the relationship between blocks
+ * Returns a set of PATTERNS_CREATE actions with the relationship between blocks
  * and roles currently stored in the system.
  *
  * @param array $args  Set of arguments received from the form.
@@ -264,11 +264,20 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block_role':
         switch ($action) {
         case PATTERNS_CREATE:
-          //@TO-DO
-          break;
         case PATTERNS_DELETE:
-          //@TO-DO
+          //Check mandatory fields
+          $mandatory_attributes = array('module', 'delta', 'role');
+          if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
+            return patterns_results(PATTERNS_ERR, $msg);
+          }
+          //In this case mandatory and interpretable are the same
+          if(_patterns_has_uninterpretable_attributes($data, $mandatory_attributes, $msg)) {
+            $status = PATTERNS_WARN;
+          }
           break;
+        default:
+          $msg = t('Action %action is uncompatible for tag %tag.', array('%action' =>$action, '%tag' =>$tag,));
+          return patterns_results(PATTERNS_ERR, $msg);
       }
       break;
   }
