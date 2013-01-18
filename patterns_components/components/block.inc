@@ -274,13 +274,20 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-          //Create semantic warning if the combination of module+delta already exists (only for not custom)
-          if ($data['module']!= 'block') {
+          if ($data['module']== 'block') {
+            //Check info field is unique in the case of custom blocks
+            if (_block_patterns_info_exists($data['info'])) {
+              $result[] = array(PATTERNS_WARNING_NOT_UNIQUE_ALIAS =>
+                  t('A block defined by module %module with info field named %info already exists in the system.',
+                      array('%module' =>$data['module'], '%info' =>$data['info'])));
+            }
+          }else{
+            //Create semantic warning if the combination of module+delta already exists (only for not custom)
             if (_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
               $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
                   t('A block defined by module %module with delta %delta already exists in the system.',
                       array('%module' =>$data['module'], '%delta' =>$data['delta'])));
-            }
+            }        
           }
           //We raised a semantic error if the theme does not exist in any case
           if (isset($data['theme']) && !array_key_exists($data['theme'], list_themes())) {
@@ -499,7 +506,7 @@ function block_delete($form_id, &$form_state) {
 
 /**
  * 
- * Checks the existance of a block with the given module and delta values
+ * Checks the existance of a block with the given module and delta values.
  * 
  * @param string $module  Module from which the block originates
  * @param string $delta  Unique ID for a block within a module
@@ -518,7 +525,7 @@ function _block_patterns_module_delta_exists ($module, $delta) {
 
 /**
  *
- * Checks the existance of a block with the given module, delta and theme values (unique constraint)
+ * Checks the existance of a block with the given module, delta and theme values (unique constraint).
  *
  * @param string $module  Module from which the block originates
  * @param string $delta  Unique ID for a block within a module
@@ -532,6 +539,23 @@ function _block_patterns_mdt_exists ($module, $delta, $theme) {
   ->condition('module', $module)
   ->condition('delta', $delta)
   ->condition('theme', $theme)
+  ->execute();
+
+  return $query->rowCount() > 0;
+}
+
+/**
+ *
+ * Checks the existance of a block info in the block_custom table (unique constraint).
+ *
+ * @param string $info  Info field to be checked
+ *
+ * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
+ */
+function _block_patterns_info_exists ($info) {
+  $query = db_select('block_custom', 'bc')
+  ->fields('bc')
+  ->condition('info', $info)
   ->execute();
 
   return $query->rowCount() > 0;
