@@ -40,6 +40,7 @@ define('PATTERNS_INCLUDE', 'include');
 
 define('PATTERNS_EXPORT', 'export');
 define('PATTERNS_EXPORT_ALL', 'all');
+define('PATTERNS_EXPORT_CURRENT_THEMES', 'current_theme(s)'); //Export settings related to current theme(s)
 define('PATTERNS_EXTRACT_ALL', 'extract_all');
 
 define('PATTERNS_FILES', 'files');
@@ -84,6 +85,8 @@ define('PATTERNS_WARNING_ELEMENT_UNDEFINED', -2); //This refers to the problem o
 define('PATTERNS_WARNING_UNMET_DEPENDENCY', -3); //This refers to the problem of creating an element that depends on the creation of another element whose creation belongs to another component (or another tag of the same component)
 define('PATTERNS_WARNING_REMAINING_DEPENDENCY', -4); //This refers to the problem of deleting a part of the configuration that affects elements defined by other components.
 define('PATTERNS_WARNING_NOT_UNIQUE_ALIAS', -5); //This refers to the problem of modifying or delete an element that there are more than one meeting the requirement existing on the system (not unique).
+define('PATTERNS_WARNING_INCONSISTENT_OPERATION', -6); //This refers to the problem of trying to apply an action to an element not supported by Drupal core
+
 
 define('PATTERNS_ALLOW_PUBLISH_DEFAULT', TRUE);
 
