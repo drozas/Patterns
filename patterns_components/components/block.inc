@@ -349,7 +349,7 @@ function block_patterns_validate($action, $tag, &$data) {
           }
           //Create semantic warning if the content type does not exist
           if (!array_key_exists($data['type'], node_type_get_names())) {
-            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
                 t('There are not any content types named %type in the system.',
                     array('%type' =>$data['type'])));            
           }
@@ -375,10 +375,33 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block_role':
       switch ($action) {
         case PATTERNS_CREATE:
-          //@TO-DO
+          //Create semantic warning if the combination of module+delta does not exist
+          if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('There are not any blocks defined by module %module whose delta is %delta in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+          }
+          //Raise semantic warning if the role name does not exist
+          if (!user_role_load_by_name($data['role'])) {
+            $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
+                t('The role %role does not exist in the system.', array('%role' =>$data['role'],)));
+          }
+          //Create semantic warning if the combination of module+delta+role already exists
+          if (_block_patterns_mdtype_role($data['module'], $data['delta'], $data['role'])) {
+            $result[] = array(PATTERNS_WARNING_NOT_UNIQUE_ALIAS =>
+                t('An entry to restrict the visualization of the block defined by module %module with delta %delta 
+                    for role %role has already being set in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'], '%role' =>$data['role'])));
+          }
           break;
         case PATTERNS_DELETE:
-          //@TO-DO
+          //Create semantic warning if the combination of module+delta+role does not exist
+          if (!_block_patterns_mdtype_role($data['module'], $data['delta'], $data['role'])) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('The restriction for the visualization of the block defined by module %module with delta %delta
+                    for the role %role trying to be deleted does not exists in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'], '%role' =>$data['role'])));
+          }
           break;
       }
       break;
@@ -667,6 +690,30 @@ function _block_patterns_mdtype_exists($module, $delta, $type) {
   ->condition('module', $module)
   ->condition('delta', $delta)
   ->condition('type', $type)
+  ->execute();
+
+  return $query->rowCount() > 0;
+}
+
+/**
+ *
+ * Checks the existance of a block - role relationship with the given
+ * module, delta and rolename values (unique constraint).
+ *
+ * @param string $module  Module from which the block originates
+ * @param string $delta  Unique ID for a block within a module
+ * @param string $role  Role in rolename format
+ *
+ * @return boolean  TRUE if there is a configuration matching all the parameters, FALSE otherwise
+ */
+function _block_patterns_mdtype_role($module, $delta, $role) {
+  //Obtain the rid from the rolename, we don't need to check existance since we did it previously
+  $rid = user_role_load_by_name($role)->rid;
+  $query = db_select('block_role', 'br')
+  ->fields('br')
+  ->condition('module', $module)
+  ->condition('delta', $delta)
+  ->condition('rid', $rid)
   ->execute();
 
   return $query->rowCount() > 0;
