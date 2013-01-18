@@ -170,7 +170,7 @@ function block_patterns_export_all_block_roles($args = NULL, &$result = NULL) {
         $data[$key] = $value;
       }
     }
-    $action = array(PATTERNS_MODIFY => $data);
+    $action = array(PATTERNS_CREATE => $data);
     array_push($result, $action);
   }
   return $result;
