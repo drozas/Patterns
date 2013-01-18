@@ -370,10 +370,9 @@ function _patterns_io_is_patterns_dir_ready($patterns_files_dir = NULL, $flag = 
  * 
  * Returns a patterns_results object with a message, instead of a boolean
  */
-function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL) {
+function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL, $username = NULL) {
   $status = PATTERNS_SUCCESS;
   $msg = NULL;
-  
   
   if (is_null($name)) {
     $msg = t('Cannot save pattern with \'NULL\' identifier.');
@@ -430,7 +429,7 @@ function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATT
     return patterns_results(PATTERNS_ERR, $msg);
   }
   
-  patterns_db_save_pattern($pattern, $path, $name, $format);
+  patterns_db_save_pattern($pattern, $path, $name, $format, $username);
   
   $link = l($name, 'admin/patterns/edit/' . $name);
   $msg = t('Pattern !name was saved in %path.', array('!name' => $link, '%path' => $path, ));
@@ -453,6 +452,8 @@ function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATT
  *   (optional) The format of the pattern. Defaults to PATTERNS_FORMAT_YAML.
  * @param mixed $dir the destination directory
  * @param mixed $original the string representation of the pattern. Optional.
+ * @param mixed $username (Optional)
+ *   A name for the author/uploader of the pattern. Defaults, logged user
  * @param bool $verbose Optional. If TRUE, a message is displayed with drupal_set_message. 
  *  Defaults, TRUE
  *
@@ -465,8 +466,20 @@ function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATT
  *  correct original file
  *
  */
-function patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATTERNS_FORMAT_YAML, $dir = NULL, $original = NULL, $verbose = TRUE) {
-  $result = _patterns_io_save_pattern($content, $name, $format, $dir, $original, $verbose);
+function patterns_io_save_pattern($content = NULL, 
+                                  $name = NULL, 
+                                  $format = PATTERNS_FORMAT_YAML, 
+                                  $dir = NULL, 
+                                  $original = NULL,
+                                  $username = NULL, 
+                                  $verbose = TRUE) {
+                                    
+
+  if (is_null($username)) {
+    global $user;
+    $username = $user->name;
+  }
+  $result = _patterns_io_save_pattern($content, $name, $format, $dir, $original, $username, $verbose);
   
   if ($verbose && !empty($result['msg'])) {
     $status = ($result['status'] == PATTERNS_SUCCESS) ? 'status' : 'error';
