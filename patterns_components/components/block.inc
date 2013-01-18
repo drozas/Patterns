@@ -332,10 +332,34 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block_node_type':
       switch ($action) {
         case PATTERNS_CREATE:
-          //@TO-DO
+          //Create semantic warning if the combination of module+delta does not exist
+          if (!_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('There are not any blocks defined by module %module whose delta is %delta in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+          }
+          //Create semantic warning if the content type does not exist
+          if (!array_key_exists($data['type'], node_type_get_names())) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('There are not any content types named %type in the system.',
+                    array('%type' =>$data['type'])));            
+          }
+          //Create semantic warning if the combination of module+delta+type already exists
+          if (_block_patterns_mdtype_exists($data['module'], $data['delta'], $data['type'])) {
+            $result[] = array(PATTERNS_WARNING_NOT_UNIQUE_ALIAS =>
+                t('An entry to restrict the visualization of the block defined by module %module with delta %delta 
+                    for the Content Type %type has already being set in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'], '%type' =>$data['type'])));
+          }
           break;
         case PATTERNS_DELETE:
-          //@TO-DO
+          //Create semantic warning if the combination of module+delta+type does not exist
+          if (!_block_patterns_mdtype_exists($data['module'], $data['delta'], $data['type'])) {
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
+                t('The restriction for the visualization of the block defined by module %module with delta %delta
+                    for the Content Type %type trying to be deleted does not exists in the system.',
+                    array('%module' =>$data['module'], '%delta' =>$data['delta'], '%type' =>$data['type'])));
+          }
           break;
       }
       break;
@@ -565,6 +589,28 @@ function _block_patterns_info_exists ($info) {
   $query = db_select('block_custom', 'bc')
   ->fields('bc')
   ->condition('info', $info)
+  ->execute();
+
+  return $query->rowCount() > 0;
+}
+
+/**
+ *
+ * Checks the existance of a block - content type relationship with the given 
+ * module, delta and content type values (unique constraint).
+ *
+ * @param string $module  Module from which the block originates
+ * @param string $delta  Unique ID for a block within a module
+ * @param string $type  Content Type in machine_name format
+ *
+ * @return boolean  TRUE if there is a configuration matching all the parameters, FALSE otherwise
+ */
+function _block_patterns_mdtype_exists ($module, $delta, $type) {
+  $query = db_select('block_node_type', 'bnt')
+  ->fields('bnt')
+  ->condition('module', $module)
+  ->condition('delta', $delta)
+  ->condition('type', $type)
   ->execute();
 
   return $query->rowCount() > 0;
