@@ -135,16 +135,22 @@ function patterns_db_remove_pattern($pid) {
  *   The new path where the file has just been saved or read from.
  * @param mixed $name
  *   The name of the pattern file without the extension.
- * @param mixed $format the format of the pattern (YAML, XML, etc.)
+ * @param mixed $format 
+ *   The format of the pattern (YAML, XML, etc.)
+ * @param mixed $username (Optional)
+ *   A name for the author/uploader of the pattern. Defaults, logged user
  */
-function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
+function patterns_db_save_pattern($pattern, $path, $name, $format = NULL, $username = NULL) {
 
   $title        = patterns_utils_init_from_pattern('title', $pattern);
   $description  = patterns_utils_init_from_pattern('description', $pattern);
   $format       = patterns_utils_init_from_pattern('format', $pattern, $format, PATTERNS_FORMAT_YAML);
 
-  global $user;
-
+  if (is_null($username)) {
+    global $user;
+    $username = $user->name;
+  }
+  
   // Check if it is valid pattern: only syntax is validated, not the tags
   if (patterns_validate_pattern($pattern, $format, PATTERNS_VALIDATE_SYNTAX)) {
     $status = PATTERNS_STATUS_OK;
@@ -179,7 +185,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
 
     // Change of location.
     if ($path != $file) {
-        $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid, 'uuuid' => patterns_utils_get_uuuid(), 'author' => $user->name );
+        $query_params = array('file' => $path, 'updated' => time(), 'pid' => $pid, 'uuuid' => patterns_utils_get_uuuid(), 'author' => $username );
         db_query("UPDATE {patterns} SET file = :file, updated = :updated , uuuid = :uuuid , author = :author WHERE pid = :pid", $query_params);
     }
 
@@ -192,7 +198,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
                             'pid' => $pid,
                             'status' => $status,
                             'uuuid' => patterns_utils_get_uuuid(),
-                            'author' => $user->name,
+                            'author' => $username,
       );
       db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, updated = :updated, status = :status, description = :descr , uuuid = :uuuid, author = :author WHERE pid = :pid", $query_params);
     }
@@ -203,7 +209,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
                             'pid' => $pid,
                             'status' => $status,
                             'uuuid' => patterns_utils_get_uuuid(),
-                            'author' => $user->name,
+                            'author' => $username,
       );
       db_query("UPDATE {patterns} SET pattern = :pattern, title = :title, file = :file, status = :status, description = :descr , uuuid = :uuuid , author = :author WHERE pid = :pid", $query_params);
     }
@@ -220,7 +226,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL) {
                            'time' => time(),
                            'status' => $status,
                            'uuuid' => patterns_utils_get_uuuid(),
-                           'author' => $user->name,
+                           'author' => $username,
     );
     db_query("INSERT INTO {patterns} (name, format, status, file, updated, enabled, title, description, pattern, uuuid, author) VALUES ( :name, :format, :status, :file, :time, 0, :title, :descr, :pattern, :uuuid, :author)", $query_params);
   }
