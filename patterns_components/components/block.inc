@@ -615,6 +615,54 @@ function block_node_type_delete($form_id, &$form_state) {
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
+/**
+ *
+ * Wraps a call to drupal_form_submit to define a visualization relationship
+ * between the given block and role
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_role_create($form_id, &$form_state) {
+  //Obtain the rid from the rolename, we don't need to check existance since we did it previously
+  $rid = user_role_load_by_name($form_state['values']['role'])->rid;
+  //All the fields are mandatory, so it is not necessary to perform any checking
+  $query = db_insert('block_role')
+  ->fields(array('module', 'delta', 'rid'))
+  ->values(array(
+      'module' => $form_state['values']['module'],
+      'delta' => $form_state['values']['delta'],
+      'rid' => $rid,
+  ))
+  ->execute();
+  $msg = t('The block defined by module %module with delta %delta will be shown for role %role.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%role' => $form_state['values']['role']));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
+
+/**
+ *
+ * Wraps a call to drupal_form_submit to remove a visualization relationship
+ * between the given block and role
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_role_delete($form_id, &$form_state) {
+  //Obtain the rid from the rolename, we don't need to check existance since we did it previously
+  $rid = user_role_load_by_name($form_state['values']['role'])->rid;
+  //All the fields are mandatory, so it is not necessary to perform any checking
+  $query = db_delete('block_role')
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->condition('rid', $rid)
+  ->execute();
+  $msg = t('The block defined by module %module with delta %delta will not be shown for role %role.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%type' => $form_state['values']['role']));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
 
 /**
  * 
