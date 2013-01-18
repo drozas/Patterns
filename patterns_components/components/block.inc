@@ -2,6 +2,12 @@
 /*
  * @file
  * Patterns component for blocks.
+ * 
+ * The actions are executed and exported in a different way depending 
+ * on the type of block (custom or not).
+ * Please visit for further details about the syntax and semantic of 
+ * this component: @TO-DO Add link from drupal.org
+ * 
  */
 function block_patterns($data) {
 
@@ -54,7 +60,6 @@ function block_patterns($data) {
  */
 function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
   $result = array();
-
   //Got through all the blocks and prepare set of actions according to the type of export process.
   //Depending on the action we will use a different method to gather the blocks
   switch ($args['type']) {
