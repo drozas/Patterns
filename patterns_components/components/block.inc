@@ -1,35 +1,13 @@
 <?php
 /*
- * TODO:
- * - Create a new tag for each element in the table.
- * - Create a new export function for each element in the table
- * - Re-implement completely the component, using custom functions to implement the changes
  * @file
  * Patterns component for blocks.
- */
-
-/*
- * IMPORTANT!:
- * - block_custom operation is going to be merged with block operation. This is because
- * certain operations (as delete) make only sense for the combination of both.
- * - The syntax will be as follows:
- * -- If we detect the block is a custom one (created by the module block), we will
- * --- Export some extra parameters (the ones that are required in the table block_custom
- * --- Allow some extra attributes (and require some more extra attributes) during the syntactic
- * validation
- * --- Distinguish in the semantic analysis, since for instance the DELETE operation will be
- * available only for custom blocks.
- * --- Delete on cascade in this case. As it is performed by the block module itself, since the
- * registers are re-created in the DB in case the deletion is not performed on cascade
- *  
- * 
- * 
  */
 function block_patterns($data) {
 
   $files = array('modules/block/block.admin.inc', 'modules/block/block.api.php');
   
-  //All these functions are applied through custom functions
+  //All block functions are applied through custom functions
   
   $actions['block'] = array(
     PATTERNS_INFO => t('Create/Modify/Delete Blocks'),
@@ -80,16 +58,15 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
   //Got through all the blocks and prepare set of actions according to the type of export process.
   //Depending on the action we will use a different method to gather the blocks
   switch ($args['type']) {
-    case PATTERNS_CREATE :
+    case PATTERNS_CREATE:
       $blocks = _block_rehash();
+      //Custom blocks are exported without delta, but including the fields on block_custom
       foreach ($blocks as $block) {
         $data = array('tag' => 'block');
-        //$previous_delta = NULL;
         foreach ($block as $key => $value) {          
           
           //We discard bid and info for all the cases
-          if ($key != 'bid' && $key != 'info' /*&& ($block['module'] != 'block' && $key!='delta' )*/) {
-            //If it is a custom module, and we are processing delta we'll skip it as well
+          if ($key != 'bid' && $key != 'info') {
             $data[$key] = $value;
           }
           
@@ -225,14 +202,14 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-          //Assign mandatory fields depending on the type of block (custom required some extra fields)
+          //Assign mandatory fields depending on the type of block (custom required some extra fields but does not use delta)
           //$mandatory_attributes = array('module', 'delta', 'title');
-          $mandatory_attributes = ($data['module'] == 'block') ? array('module', /*'delta',*/ 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
+          $mandatory_attributes = ($data['module'] == 'block') ? array('module', 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
-          //Define interpretable attributes depending on the type of block (custom required some extra fields)
-          $interpretable_attributes = ($data['module'] == 'block') ? array('module', /*'delta',*/ 'title', 'theme', 'status', 'weight', 'region',
+          //Define interpretable attributes depending on the type of block (custom required some extra fields but does not use delta)
+          $interpretable_attributes = ($data['module'] == 'block') ? array('module', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache', 'body', 'info', 'format'): array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache');
           if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
@@ -297,13 +274,15 @@ function block_patterns_validate($action, $tag, &$data) {
     case 'block':
       switch ($action) {
         case PATTERNS_CREATE:
-          //Create semantic warning if the combination of module+delta already exists
-          if (_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
-            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
-                t('A block defined by module %module with delta %delta already exists in the system.',
-                    array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+          //Create semantic warning if the combination of module+delta already exists (only for not custom)
+          if ($data['module']!= 'block') {
+            if (_block_patterns_module_delta_exists($data['module'], $data['delta'])) {
+              $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+                  t('A block defined by module %module with delta %delta already exists in the system.',
+                      array('%module' =>$data['module'], '%delta' =>$data['delta'])));
+            }
           }
-          //We raised a semantic error if the theme does not exist
+          //We raised a semantic error if the theme does not exist in any case
           if (isset($data['theme']) && !array_key_exists($data['theme'], list_themes())) {
             $result[] = array(PATTERNS_WARNING_UNMET_DEPENDENCY =>
                 t('The theme %theme is not currently installed in the system.', array('%theme' =>$data['theme'],)));
