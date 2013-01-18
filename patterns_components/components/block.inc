@@ -298,7 +298,7 @@ function block_patterns_validate($action, $tag, &$data) {
         case PATTERNS_MODIFY:
           //Create semantic warning if the combination of module+delta+theme does not exist
           if (!_block_patterns_mdt_exists($data['module'], $data['delta'], $data['theme'])) {
-            $result[] = array(PATTERNS_WARNING_ALREADY_DEFINED_ELEMENT =>
+            $result[] = array(PATTERNS_WARNING_ELEMENT_UNDEFINED =>
                 t('There are not any blocks defined by module %module whose delta is %delta for theme %theme in the system.',
                     array('%module' =>$data['module'], '%theme' => $data['theme'], '%delta' => $data['delta'])));
           }

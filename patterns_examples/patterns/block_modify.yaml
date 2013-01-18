@@ -33,7 +33,7 @@ block:
     modify:
       tag: block
       module: block
-      delta: 14
+      delta: 1
       theme: seven
       status: 1
       weight: 0
@@ -41,5 +41,5 @@ block:
       custom: 0
       visibility: 0
       pages:
-      title: block_title_test_manual_opt_pattern
+      title: new_title
       cache: -1

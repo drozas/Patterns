@@ -14,4 +14,4 @@ actions:
   - delete:
      tag: block
      module: block
-     delta: pattern-automatic
+     delta: 1

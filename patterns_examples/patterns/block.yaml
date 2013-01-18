@@ -20,7 +20,6 @@ block:
       body: This is a block created from an automatically exported pattern!.
       info: Automatic Pattern Block
       format: filtered_html
-      delta: pattern-automatic
       theme: bartik
       status: 1
       weight: 0
