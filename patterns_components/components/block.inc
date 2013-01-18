@@ -69,12 +69,10 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
       foreach ($blocks as $block) {
         $data = array('tag' => 'block');
         foreach ($block as $key => $value) {          
-          
           //We discard bid and info for all the cases
           if ($key != 'bid' && $key != 'info') {
             $data[$key] = $value;
           }
-          
           //In case the block is a custom one (created by block) we will need to
           //add some extra fields from block_custom table while processing the 'module' field
           if ($key == 'module' && $value == 'block') {
@@ -91,7 +89,6 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
               $data['info'] = $metadata->info;
               $data['format'] = $metadata->format;
             }
-
           }
         }
         //Unset the delta field in data in case we have just processed a custom block
