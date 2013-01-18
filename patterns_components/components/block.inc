@@ -137,7 +137,7 @@ function block_patterns_export_all_block_node_types($args = NULL, &$result = NUL
     foreach ($node_type as $key => $value) {
       $data[$key] = $value;
     }
-    $action = array(PATTERNS_MODIFY => $data);
+    $action = array(PATTERNS_CREATE => $data);
     array_push($result, $action);
   }
   return $result;
