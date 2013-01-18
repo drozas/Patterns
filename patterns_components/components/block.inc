@@ -85,14 +85,16 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
       foreach ($blocks as $block) {
         $data = array('tag' => 'block');
         //$previous_delta = NULL;
-        foreach ($block as $key => $value) {
-          //We discard bid and info (comes directly from block_custom table for certain cases)
-          if ($key != 'bid' && $key != 'info') {
+        foreach ($block as $key => $value) {          
+          
+          //We discard bid and info for all the cases
+          if ($key != 'bid' && $key != 'info' /*&& ($block['module'] != 'block' && $key!='delta' )*/) {
+            //If it is a custom module, and we are processing delta we'll skip it as well
             $data[$key] = $value;
           }
           
           //In case the block is a custom one (created by block) we will need to
-          //add some extra fields from block_custom table
+          //add some extra fields from block_custom table while processing the 'module' field
           if ($key == 'module' && $value == 'block') {
             //This query must return a maximum of 1 record
             $block_custom_metadata = db_select('block_custom', 'bc')
@@ -107,7 +109,12 @@ function block_patterns_export_all_blocks($args = NULL, &$result = NULL) {
               $data['info'] = $metadata->info;
               $data['format'] = $metadata->format;
             }
+
           }
+        }
+        //Unset the delta field in data in case we have just processed a custom block
+        if ($data['module'] == 'block') {
+          unset($data['delta']);
         }
         $action = array(PATTERNS_CREATE => $data);
         array_push($result, $action);
@@ -220,12 +227,12 @@ function block_patterns_validate($action, $tag, &$data) {
         case PATTERNS_CREATE:
           //Assign mandatory fields depending on the type of block (custom required some extra fields)
           //$mandatory_attributes = array('module', 'delta', 'title');
-          $mandatory_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
+          $mandatory_attributes = ($data['module'] == 'block') ? array('module', /*'delta',*/ 'title', 'body', 'info', 'format'): array('module', 'delta', 'title');
           if (!_patterns_has_all_mandatory_attributes($data, $mandatory_attributes, $msg)) {
             return patterns_results(PATTERNS_ERR, $msg);
           }
           //Define interpretable attributes depending on the type of block (custom required some extra fields)
-          $interpretable_attributes = ($data['module'] == 'block') ? array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
+          $interpretable_attributes = ($data['module'] == 'block') ? array('module', /*'delta',*/ 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache', 'body', 'info', 'format'): array('module', 'delta', 'title', 'theme', 'status', 'weight', 'region',
             'custom', 'visibility', 'pages', 'cache');
           if(_patterns_has_uninterpretable_attributes($data, $interpretable_attributes, $msg)) {
@@ -354,45 +361,85 @@ function block_patterns_validate($action, $tag, &$data) {
 
 /**
  *
- * Wraps several calls to several drupal_form_submit to create a block.
+ * Wraps several calls to several drupal_form_submit to create a block. Depending on the 
+ * type of block (custom or not), a different amount of records will be inserted.
  *
  * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
  * @param array $form_state  Set of values after parsing the action.
  */
 function block_create($form_id, &$form_state) {
-  //We will need to make an insertion similar to the one in block_add_block_form_submit but 
-  //in a simplified way. At this point all the mandatory values have been checked, and 
-  //default values are provided for the optional attributes in case they are not provided
-  $query = db_insert('block')
-    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache', 'region'));
-  $query->values(array(
-      'visibility' => (isset($form_state['values']['visibility'])) ? (int) $form_state['values']['visibility']: 1,
-      'pages' => (isset($form_state['values']['pages'])) ? trim($form_state['values']['pages']): '',
-      'custom' => (isset($form_state['values']['custom'])) ? (int) $form_state['values']['custom']: 0,
-      'title' => $form_state['values']['title'],
-      'module' => $form_state['values']['module'],
-      'theme' => (isset($form_state['values']['theme'])) ? $form_state['values']['theme']: variable_get('theme_default', 'bartik'),
-      'status' => (isset($form_state['values']['status'])) ? $form_state['values']['status']: 0,
-      'weight' => (isset($form_state['values']['weight'])) ? $form_state['values']['weight']: 0,
-      'delta' => $form_state['values']['delta'],
-      'cache' => (isset($form_state['values']['cache'])) ? $form_state['values']['cache']: -1,
-      'region' => (isset($form_state['values']['region'])) ? $form_state['values']['region']: -1,
-  ));
-  $query->execute();
-  
   //In case the block is a custom one (created by block) we will need
   //to perform and extra insertion in the block_custom table (all fields are mandatory)
+  //and to add an entry for each theme as in function block_add_block_form_submit() 
   if ($form_state['values']['module']=='block') {
-    $query = db_insert('block_custom')
-    ->fields(array('body', 'info', 'format'));
+    //Insert an unique specific record for block_custom
+    $delta = db_insert('block_custom')
+    ->fields(array(
+      'body' => $form_state['values']['body'],
+      'info' => $form_state['values']['info'],
+      'format' => $form_state['values']['format'],
+    ))
+    ->execute();
+    // Store block delta to allow other modules to work with new block.
+    $form_state['values']['delta'] = $delta;
+    
+    //Insert specific record for the theme given in the pattern
+    $query = db_insert('block')
+    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache', 'region'));
     $query->values(array(
-        'body' => $form_state['values']['body'],
-        'info' => $form_state['values']['info'],
-        'format' => $form_state['values']['format'],
+        'visibility' => (isset($form_state['values']['visibility'])) ? (int) $form_state['values']['visibility']: 1,
+        'pages' => (isset($form_state['values']['pages'])) ? trim($form_state['values']['pages']): '',
+        'custom' => (isset($form_state['values']['custom'])) ? (int) $form_state['values']['custom']: 0,
+        'title' => $form_state['values']['title'],
+        'module' => $form_state['values']['module'],
+        'theme' => (isset($form_state['values']['theme'])) ? $form_state['values']['theme']: variable_get('theme_default', 'bartik'),
+        'status' => (isset($form_state['values']['status'])) ? $form_state['values']['status']: 0,
+        'weight' => (isset($form_state['values']['weight'])) ? $form_state['values']['weight']: 0,
+        'delta' => $form_state['values']['delta'],
+        'cache' => (isset($form_state['values']['cache'])) ? $form_state['values']['cache']: -1,
+        'region' => (isset($form_state['values']['region'])) ? $form_state['values']['region']: -1,
+    ));
+    $query->execute();
+    
+    //Insert rest of values, for all themes but the one already given in the pattern
+    $query = db_insert('block')->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache'));
+    foreach (list_themes() as $key => $theme) {
+      if ($theme->status && $theme->name != $form_state['values']['theme']) {
+        $query->values(array(
+            'visibility' => (int) $form_state['values']['visibility'],
+            'pages' => trim($form_state['values']['pages']),
+            'custom' => (int) $form_state['values']['custom'],
+            'title' => $form_state['values']['title'],
+            'module' => $form_state['values']['module'],
+            'theme' => $theme->name,
+            'status' => 0,
+            'weight' => 0,
+            'delta' => $form_state['values']['delta'],
+            'cache' => DRUPAL_NO_CACHE,
+        ));
+      }
+    }
+    $query->execute(); 
+  }else{
+    //If it is not a custom block, we will just insert the new record with the values provided in the pattern
+    $query = db_insert('block')
+    ->fields(array('visibility', 'pages', 'custom', 'title', 'module', 'theme', 'status', 'weight', 'delta', 'cache', 'region'));
+    $query->values(array(
+        'visibility' => (isset($form_state['values']['visibility'])) ? (int) $form_state['values']['visibility']: 1,
+        'pages' => (isset($form_state['values']['pages'])) ? trim($form_state['values']['pages']): '',
+        'custom' => (isset($form_state['values']['custom'])) ? (int) $form_state['values']['custom']: 0,
+        'title' => $form_state['values']['title'],
+        'module' => $form_state['values']['module'],
+        'theme' => (isset($form_state['values']['theme'])) ? $form_state['values']['theme']: variable_get('theme_default', 'bartik'),
+        'status' => (isset($form_state['values']['status'])) ? $form_state['values']['status']: 0,
+        'weight' => (isset($form_state['values']['weight'])) ? $form_state['values']['weight']: 0,
+        'delta' => $form_state['values']['delta'],
+        'cache' => (isset($form_state['values']['cache'])) ? $form_state['values']['cache']: -1,
+        'region' => (isset($form_state['values']['region'])) ? $form_state['values']['region']: -1,
     ));
     $query->execute();    
   }
-
+  cache_clear_all();
   return patterns_results(PATTERNS_SUCCESS, t('New block successfully added'));
 }
 
@@ -541,7 +588,7 @@ function block_delete($form_id, &$form_state) {
 //     // Block description for custom blocks is always unique so we can try to get delta by looking up info field
 //     elseif ($data['info']) {
 //       $delta = db_query('SELECT delta FROM {block} bl INNER JOIN {block_custom} bo ON bl.delta = bo.bid AND bl.module = :module WHERE bo.info = :info', array('module' => 'block', 'info' => $data['info']))->fetchField();
-//       if ($delta) {
+//       if ($delta) {T
 //         $data['delta'] = $delta;
 //         $data['module'] = 'block';
 //       }
