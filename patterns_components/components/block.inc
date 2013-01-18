@@ -537,6 +537,53 @@ function block_delete($form_id, &$form_state) {
   return patterns_results(PATTERNS_SUCCESS, $msg);
 }
 
+
+/**
+ *
+ * Wraps a call to drupal_form_submit to define a visualization relationship
+ * between the given block and content type
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_node_type_create($form_id, &$form_state) {
+  //All the fields are mandatory, so it is not necessary to perform any checking
+  $query = db_insert('block_node_type')
+  ->fields(array('module', 'delta', 'type'))
+  ->values(array(
+      'module' => $form_state['values']['module'],
+      'delta' => $form_state['values']['delta'],
+      'type' => $form_state['values']['type'],
+  ))
+  ->execute();
+  $msg = t('The block defined by module %module with delta %delta will be shown for Content type %type.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%type' => $form_state['values']['type']));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
+
+/**
+ *
+ * Wraps a call to drupal_form_submit to remove a visualization relationship
+ * between the given block and content type
+ *
+ * @param string $form_id  String containing the form ID. In the case of custom functions the value is empty.
+ * @param array $form_state  Set of values after parsing the action.
+ */
+function block_node_type_delete($form_id, &$form_state) {
+  //All the fields are mandatory, so it is not necessary to perform any checking
+  $query = db_delete('block_node_type')
+  ->condition('module', $form_state['values']['module'])
+  ->condition('delta', $form_state['values']['delta'])
+  ->condition('type', $form_state['values']['type'])
+  ->execute();
+  $msg = t('The block defined by module %module with delta %delta will not be shown for Content type %type.',
+      array('%module' => $form_state['values']['module'], '%delta' => $form_state['values']['delta'],
+          '%type' => $form_state['values']['type']));
+  return patterns_results(PATTERNS_SUCCESS, $msg);
+}
+
+
 /**
  * 
  * Checks the existance of a block with the given module and delta values.
@@ -546,7 +593,7 @@ function block_delete($form_id, &$form_state) {
  * 
  * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
  */
-function _block_patterns_module_delta_exists ($module, $delta) {
+function _block_patterns_module_delta_exists($module, $delta) {
   $query = db_select('block', 'b')
   ->fields('b')
   ->condition('module', $module)
@@ -566,7 +613,7 @@ function _block_patterns_module_delta_exists ($module, $delta) {
  *
  * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
  */
-function _block_patterns_mdt_exists ($module, $delta, $theme) {
+function _block_patterns_mdt_exists($module, $delta, $theme) {
   $query = db_select('block', 'b')
   ->fields('b')
   ->condition('module', $module)
@@ -585,7 +632,7 @@ function _block_patterns_mdt_exists ($module, $delta, $theme) {
  *
  * @return boolean  TRUE if there is a block matching both parameters, FALSE otherwise
  */
-function _block_patterns_info_exists ($info) {
+function _block_patterns_info_exists($info) {
   $query = db_select('block_custom', 'bc')
   ->fields('bc')
   ->condition('info', $info)
@@ -605,7 +652,7 @@ function _block_patterns_info_exists ($info) {
  *
  * @return boolean  TRUE if there is a configuration matching all the parameters, FALSE otherwise
  */
-function _block_patterns_mdtype_exists ($module, $delta, $type) {
+function _block_patterns_mdtype_exists($module, $delta, $type) {
   $query = db_select('block_node_type', 'bnt')
   ->fields('bnt')
   ->condition('module', $module)
