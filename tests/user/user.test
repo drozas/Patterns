@@ -105,35 +105,35 @@ class PatternsUserTestCase extends PatternsTestCase {
     $role_list = array($role->rid => $role->name);
 
     $ur = user_role_permissions($role_list);
-    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $cond = array_key_exists($permission, $ur[$role->rid]);
     $this->verbose(format_string('Does it have the role before executing the tentative removal?: %cond', array ('%cond'=> $cond)));
     debug($cond);
     debug($ur);
     //Remove the permission to administer modules in case they have it.
-    if (array_key_exists($permission, user_role_permissions($role_list)[$role->rid])) {
+    if (array_key_exists($permission, $ur[$role->rid])) {
       user_role_revoke_permissions($role->rid, array($permission));
     }
     
 
     cache_clear_all();
     $ur = user_role_permissions($role_list);
-    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $cond = array_key_exists($permission, $ur[$role->rid]);
     $this->verbose(format_string('Does it have the role before executing the pattern?: %cond', array ('%cond'=> $cond)));
     debug($cond);
     debug($ur);
-    $this->assertFalse(array_key_exists($permission, user_role_permissions($role_list)[$role->rid]), 
+    $this->assertFalse(array_key_exists($permission, $ur[$role->rid]), 
         format_string('Permission %p successfully removed manually to the role.', array('%p' => $permission)));
 
     //Run the pattern that adds the permission
     parent::runFile('user_permission_modify.yaml', 'Permissions (modify)', $this->user_tests_dir);
 
     $ur = user_role_permissions($role_list);
-    $cond = array_key_exists($permission, user_role_permissions($role_list)[$role->rid]);
+    $cond = array_key_exists($permission, $ur[$role->rid]);
     $this->verbose(format_string('Does it have the role after executing the pattern?: %cond', array ('%cond'=> $cond)));
     debug($cond);
     debug($ur);
     //Check if the user currently holds the permission after running the pattern
-    $this->assertTrue(array_key_exists($permission, user_role_permissions($role_list)[$role->rid]),
+    $this->assertTrue(array_key_exists($permission, $ur[$role->rid]),
         format_string('Permission %p successfully added to the role after running the pattern.', array('%p' => $permission)));
   }
 
