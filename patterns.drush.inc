@@ -330,13 +330,9 @@ function drush_patterns_components() {
  */
 function drush_patterns_publish($pid) {
 	drush_print("Publishing pattern.");
-	$result = patterns_db_publish_pattern($pid);
-	if ($result) {
-		drush_print("Operation was successful");
-	}
-	else {
-		drush_set_error(dt("An error occurred, patterns was not marked as public."));
-	}
+	_patterns_publish_pattern($pid);
+	
+	
 }
 
 /**

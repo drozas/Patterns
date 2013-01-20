@@ -174,6 +174,29 @@ function patterns_import_server_submit($form, &$form_state) {
 
 }
 
+
+/**
+ * Primitive for patterns_publish_pattern.
+ * 
+ * Does not assume that the user submitted a form
+ *
+ * @param mixed $pattern the id or the name of the pattern.
+ */
+function _patterns_publish_pattern($pattern) {
+
+  $result = patterns_db_publish_pattern($pattern);
+
+  if ($result) {
+  	// Patterns API
+  	// Invoke all the modules who wants to do something with the published pattern
+  	module_invoke_all('patterns_publish', $pattern);
+    drupal_set_message(t('Pattern %pattern was marked as public.', array('%pattern' => @$pattern->name)));
+  }
+  else {
+    drupal_set_message(t('An error occurred. Unable to mark pattern %pattern as public.', array('%pattern' => @$pattern->name)), 'error');
+  }
+}
+
 /**
  * Callback function for route /admin/patterns/publish/
  *
@@ -183,24 +206,36 @@ function patterns_import_server_submit($form, &$form_state) {
  * Redirects the user to the patterns home.
  *
  * @param mixed $pattern the id or the name of the pattern.
+ * 
+ * @see _patterns_publish_pattern
  */
 function patterns_publish_pattern($pattern) {
 
   $pattern = patterns_utils_if_invalid_go_back($pattern);
-  $result = patterns_db_publish_pattern($pattern);
-
-  if ($result) {
-    drupal_set_message(t('Pattern %pattern was marked as public.', array('%pattern' => @$pattern->name)));
-  }
-  else {
-    drupal_set_message(t('An error occurred. Unable to mark pattern %pattern as public.', array('%pattern' => @$pattern->name)), 'error');
-  }
-
-  // Patterns API
-  // Invoke all the modules who wants to do something with the published pattern
-  module_invoke_all('patterns_publish', $pattern);
+   _patterns_publish_pattern($pattern);
 
   drupal_goto('admin/patterns');
+}
+
+/**
+ * Primitive for patterns_publish_pattern.
+ * 
+ * Does not assume that the user submitted a form
+ *
+ * @param mixed $pattern the id or the name of the pattern.
+ */
+function _patterns_unpublish_pattern($pattern) {
+  $result = patterns_db_unpublish_pattern($pattern);
+
+  if ($result) {
+    drupal_set_message(t('Pattern %pattern was marked as private.', array('%pattern' => @$pattern->name)));
+    // Patterns API
+  	// Invoke all the modules who wants to do something with the unpublished pattern
+  	module_invoke_all('patterns_unpublish', $pattern);
+  }
+  else {
+    drupal_set_message(t('An error occurred. Unable to mark pattern %pattern as private.', array('%pattern' => @$pattern->name)), 'error');
+  }
 }
 
 /**
@@ -212,20 +247,10 @@ function patterns_publish_pattern($pattern) {
  * Redirects the user to the patterns home.
  *
  * @param mixed $pattern the id or the name of the pattern.
+ * @see _patterns_unpublish_pattern
  */
 function patterns_unpublish_pattern($pattern) {
   $pattern = patterns_utils_if_invalid_go_back($pattern);
-  $result = patterns_db_unpublish_pattern($pattern);
-
-  if ($result) {
-    drupal_set_message(t('Pattern %pattern was marked as private.', array('%pattern' => @$pattern->name)));
-  }
-  else {
-    drupal_set_message(t('An error occurred. Unable to mark pattern %pattern as private.', array('%pattern' => @$pattern->name)), 'error');
-  }
-  // Patterns API
-  // Invoke all the modules who wants to do something with the unpublished pattern
-  module_invoke_all('patterns_unpublish', $pattern);
-
+  _patterns_unpublish_pattern($pattern);
   drupal_goto('admin/patterns');
 }
