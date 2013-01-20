@@ -19,6 +19,7 @@ before_script:
   - phpenv rehash
 
 # PHP CGI
+
   - sudo apt-get install php5-cgi
 
 # GO TO HOME DIR
