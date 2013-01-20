@@ -183,7 +183,9 @@ function patterns_import_server_submit($form, &$form_state) {
  * @param mixed $pattern the id or the name of the pattern.
  */
 function _patterns_publish_pattern($pattern) {
-
+	// get the object
+	$pattern = _patterns_db_get_pattern($pattern);
+	
   $result = patterns_db_publish_pattern($pattern);
 
   if ($result) {
@@ -210,10 +212,8 @@ function _patterns_publish_pattern($pattern) {
  * @see _patterns_publish_pattern
  */
 function patterns_publish_pattern($pattern) {
-
   $pattern = patterns_utils_if_invalid_go_back($pattern);
    _patterns_publish_pattern($pattern);
-
   drupal_goto('admin/patterns');
 }
 
@@ -225,6 +225,8 @@ function patterns_publish_pattern($pattern) {
  * @param mixed $pattern the id or the name of the pattern.
  */
 function _patterns_unpublish_pattern($pattern) {
+	// get the object
+	$pattern = _patterns_db_get_pattern($pattern);
   $result = patterns_db_unpublish_pattern($pattern);
 
   if ($result) {
