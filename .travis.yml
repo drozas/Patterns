@@ -75,5 +75,5 @@ before_script:
 
 script:
  # - drush test-run Patterns --uri=http://127.0.0.1:8888
-   - drush test-run Patterns --xml --uri=http://127.0.0.1:8080
+   - drush test-run Taxonomy --xml --uri=http://127.0.0.1:8080
 
