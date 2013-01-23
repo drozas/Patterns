@@ -69,7 +69,7 @@ before_script:
 
 # START DRUSH BUILT-IN SERVER
 #  - drush runserver --user=1 &
-  - drush runserver --server=builtin 8080 &
+  - drush runserver --server=builtin 8080 --user=1 &
   - sleep 4
   - drush vset --yes simpletest_verbose FALSE
 
