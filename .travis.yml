@@ -56,6 +56,9 @@ before_script:
   - mkdir sites/default/files/simpletest
   - chmod 777 sites/default/files/simpletest -R
 
+# DEBUG
+  - ls -la sites/all/modules/
+  - ls -la sites/default/modules/
 
 # SPYC
   - mkdir sites/all/libraries/
@@ -75,5 +78,5 @@ before_script:
 
 script:
  # - drush test-run Patterns --uri=http://127.0.0.1:8888
-   - drush test-run Taxonomy --xml --uri=http://127.0.0.1:8080
+   - drush test-run PatternsTaxonomyTestCase --xml --uri=http://127.0.0.1:8080
 
