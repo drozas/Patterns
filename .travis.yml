@@ -58,7 +58,7 @@ before_script:
 
 # DEBUG
   - ls -la sites/all/modules/
-  - ls -la sites/default/modules/
+  - ls -la sites/all/modules/patterns/
 
 # SPYC
   - mkdir sites/all/libraries/
