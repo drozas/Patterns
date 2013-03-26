@@ -229,9 +229,16 @@ function drush_patterns() {
 	$patterns = patterns_io_get_patterns();
 	$patterns = $patterns[PATTERNS_STATUS_OK];
 	$pipe = array();
-	$rows[] = array(dt('Id'), dt('Name'), dt('Title'), dt('Status'), dt('Version'));
+	$rows[] = array(dt('Id'), dt('Name'), dt('Title'), dt('Status'), dt('Version'), dt('Public'));
 	foreach ($patterns as $pid => $pattern) {
-		$rows[] = array($pattern->pid, $pattern->name, $pattern->title, $pattern->status, $pattern->info['version']);
+		$rows[] = array(
+			$pattern->pid,
+			$pattern->name,
+			$pattern->title,
+			$pattern->status,
+			$pattern->info['version'],
+			$pattern->public
+		);
 		$pipe[] = "$pattern->title";
 	}
 
