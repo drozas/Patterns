@@ -338,7 +338,10 @@ function drush_patterns_components() {
 function drush_patterns_publish($pid) {
 	drush_print("Publishing pattern.");
 	$result = patterns_db_publish_pattern($pid);
+	
 	if ($result) {
+		$pattern = patterns_get_pattern($pid);
+		module_invoke_all('patterns_publish', $pattern);
 		drush_print("Operation was successful");
 	}
 	else {
