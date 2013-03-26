@@ -114,7 +114,19 @@ function patterns_schema() {
         'size' => 'medium',
         'not null' => TRUE,
         'description' => 'A serialized array containing pattern code.',
-      )
+      ),
+      'uuuid' => array(
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+        'description' => 'Identify patterns and their parent',
+      ),
+      'author' => array(
+          'type' => 'varchar',
+          'length' => 20,
+          'default' => '',
+          'description' => 'pattern\'s author',
+      ),
     ),
     'primary key' => array('pid'),
     'unique keys' => array('name' => array('name'))
@@ -126,21 +138,29 @@ function patterns_schema() {
  * Add uuuid and author field to {patterns} table.
  */
 function patterns_update_7200() {
-  $uuuid = array(
-    'type' => 'varchar',
-    'length' => 50,
-    'default' => '',
-    'description' => 'Identify patterns and their parent',
-  );
-  db_add_field('patterns', 'uuuid', $uuuid);
+  
+  // Add the uuuid field to the db.
+  if (!db_field_exists('patterns', 'uuuid')) {
+    $uuuid = array(
+        'type' => 'varchar',
+        'length' => 50,
+        'default' => '',
+        'description' => 'Identify patterns and their parent',
+    );
+    db_add_field('patterns', 'uuuid', $uuuid);
+  }
 
-  $author = array(
-    'type' => 'varchar',
-    'length' => 20,
-    'default' => '',
-    'description' => 'pattern\'s author',
-  );
-  db_add_field('patterns', 'author', $author);
+  // Add the author field to the db.
+  if (!db_field_exists('patterns', 'author')) {
+    $author = array(
+      'type' => 'varchar',
+      'length' => 20,
+      'default' => '',
+      'description' => 'pattern\'s author',
+    );
+    db_add_field('patterns', 'author', $author);
+  }
+
 }
 
 /**

@@ -374,6 +374,8 @@ function _patterns_io_save_pattern($content = NULL, $name = NULL, $format = PATT
   $status = PATTERNS_SUCCESS;
   $msg = NULL;
   
+    watchdog('patterns_server', 'pattern :tit', array(':tit' => $content), WATCHDOG_NOTICE);
+  
   if (is_null($name)) {
     $msg = t('Cannot save pattern with \'NULL\' identifier.');
     return patterns_results(PATTERNS_ERR, $msg);

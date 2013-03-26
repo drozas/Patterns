@@ -141,5 +141,7 @@ function patterns_config_settings($form, &$form_state) {
     '#default_value' => variable_get('patterns_form_helper', FALSE),
   );
 
-  return system_settings_form($form);
+  $form = system_settings_form($form);
+  $form['#submit'][] = 'menu_rebuild';
+  return $form;
 }

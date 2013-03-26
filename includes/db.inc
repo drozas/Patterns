@@ -145,7 +145,7 @@ function patterns_db_save_pattern($pattern, $path, $name, $format = NULL, $usern
   $title        = patterns_utils_init_from_pattern('title', $pattern);
   $description  = patterns_utils_init_from_pattern('description', $pattern);
   $format       = patterns_utils_init_from_pattern('format', $pattern, $format, PATTERNS_FORMAT_YAML);
-
+  
   if (is_null($username)) {
     global $user;
     $username = $user->name;

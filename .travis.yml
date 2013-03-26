@@ -1,7 +1,7 @@
 language: php
 
 php:
-  - 5.3.3
+  - 5.4
 
 mysql:
   database: drupal_patterns
@@ -23,8 +23,8 @@ before_script:
   - "mysql -e 'create database drupal_patterns;'"
 
 # INSTALL DRUSH
-  - pear channel-discover pear.drush.org
-  - pear install drush/drush
+  - pyrus channel-discover pear.drush.org
+  - pyrus install drush/drush
   - phpenv rehash
 
 # PHP CGI
@@ -56,6 +56,9 @@ before_script:
   - mkdir sites/default/files/simpletest
   - chmod 777 sites/default/files/simpletest -R
 
+# DEBUG
+  - ls -la sites/all/modules/
+  - ls -la sites/all/modules/patterns/
 
 # SPYC
   - mkdir sites/all/libraries/
@@ -63,16 +66,16 @@ before_script:
   - mv /home/travis/Spyc.php sites/all/libraries/spyc/spyc.php
 
 # START FRAMEBUFFER
-  - "export DISPLAY=:99.0"
-  - "sh -e /etc/init.d/xvfb start"
-  - sleep 3 # give Web server some time to bind to sockets, etc
+#  - "export DISPLAY=:99.0"
+#  - "sh -e /etc/init.d/xvfb start"
+#  - sleep 3 # give Web server some time to bind to sockets, etc
 
 # START DRUSH BUILT-IN SERVER
-  - drush runserver --user=1 &
+  - drush runserver --server=builtin 8080 --user=1 &
   - sleep 4
   - drush vset --yes simpletest_verbose FALSE
 
 script:
-  - drush test-run Patterns --uri=http://127.0.0.1:8888
-#  - drush test-run Patterns --uri=http://127.0.0.1/drupal
+ # - drush test-run Patterns --uri=http://127.0.0.1:8080
+   - drush test-run PatternsTaxonomyTestCase --xml --uri=http://127.0.0.1:8080
 
