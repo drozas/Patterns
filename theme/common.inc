@@ -100,11 +100,15 @@ function patterns_get_patterns_links($pattern = NULL, $options = NULL) {
         $actions['publish'] = $pattern->public ? l($actions['publish'], 'admin/patterns/unpublish/' . $pid) : l($actions['publish'], 'admin/patterns/publish/' . $pid);
       }
       
-      // GET
-  		$actions['uri'] = ($pattern->public) ? l(t('Get'), 'patterns/get/' . $pid, array( 'attributes' => array('target' => '_blank')))
-                                       		 : '-';
+     
     }
   }
+  else {
+  	// GET
+   	$actions['uri'] = !($pattern->public) ? '-' : l(t('Get'), 'patterns/get/' . $pid, array( 'attributes' => array('target' => '_blank')));
+                                       		 
+  }
+   
   
 
   return $actions;

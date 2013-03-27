@@ -136,7 +136,7 @@ function theme_patterns_list($args) {
               t('Title'),
               t('Version'),
               t('Description'),
-            array('data' => t('Operations'), 'colspan' => 7),
+            	array('data' => t('Operations'), 'colspan' => 7),
           ),
         );
     }
