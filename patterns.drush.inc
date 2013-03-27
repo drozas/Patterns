@@ -229,9 +229,16 @@ function drush_patterns() {
 	$patterns = patterns_io_get_patterns();
 	$patterns = $patterns[PATTERNS_STATUS_OK];
 	$pipe = array();
-	$rows[] = array(dt('Id'), dt('Name'), dt('Title'), dt('Status'), dt('Version'));
+	$rows[] = array(dt('Id'), dt('Name'), dt('Title'), dt('Status'), dt('Version'), dt('Public'));
 	foreach ($patterns as $pid => $pattern) {
-		$rows[] = array($pattern->pid, $pattern->name, $pattern->title, $pattern->status, $pattern->info['version']);
+		$rows[] = array(
+			$pattern->pid,
+			$pattern->name,
+			$pattern->title,
+			$pattern->status,
+			$pattern->info['version'],
+			$pattern->public
+		);
 		$pipe[] = "$pattern->title";
 	}
 
@@ -331,7 +338,10 @@ function drush_patterns_components() {
 function drush_patterns_publish($pid) {
 	drush_print("Publishing pattern.");
 	$result = patterns_db_publish_pattern($pid);
+	
 	if ($result) {
+		$pattern = patterns_get_pattern($pid);
+		module_invoke_all('patterns_publish', $pattern);
 		drush_print("Operation was successful");
 	}
 	else {

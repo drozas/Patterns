@@ -313,17 +313,6 @@ function patterns_menu() {
     'type' => MENU_CALLBACK,
   );
 
-  // Disable for now
-
-  //  $items['admin/patterns/server'] = array(
-  //    'title' => 'Patterns Server',
-  //    'page callback' => 'drupal_get_form',
-  //    'page arguments' => array('patterns_import_server'),
-  //    'access arguments' => array('administer patterns'),
-  //    'type' => MENU_LOCAL_TASK,
-  //    'weight' => -5
-  //  );
-
   // This items were already commented.
   /////////////////////////////////////////////////////
 
