@@ -1,3 +1,6 @@
+*.tmp
+*.swp
+
 theme/extract.inc
 includes/forms/modules.inc
 tests/importing/imported/*
