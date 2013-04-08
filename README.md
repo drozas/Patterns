@@ -6,6 +6,8 @@ Categories, Roles / Permissions, etc... This site setup and
 configuration process is a very time consuming and repetitive
 bottleneck.
 
+Some changes for jenkins...
+
 The Patterns module is built to bypass this bottleneck by managing and
 automating site configuration. Site configuration is stored in YAML, XML, or
 PHP files called Patterns. These files have a structure which is
